@@ -96,6 +96,7 @@ void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
 		s=getAttrValue("compressionType", attr);
 		if(!strcmp("zlib",&s[0])) m_bCompressedData=true;
+		else if(!strcmp("none",&s[0])) m_bCompressedData=false;
 		else if(s.length()>0) {
 			cout << "Halting! Unknown compression type: " <<  &s[0] << endl;
 			exit(-5);
