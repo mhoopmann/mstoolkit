@@ -94,6 +94,7 @@ void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 		if(!strcmp("64",getAttrValue("precision", attr))) m_bLowPrecision=false;
 		else m_bLowPrecision=true;
 
+		m_bCompressedData=false;
 		s=getAttrValue("compressionType", attr);
 		if(!strcmp("zlib",&s[0])) m_bCompressedData=true;
 		else if(!strcmp("none",&s[0])) m_bCompressedData=false;
