@@ -301,6 +301,8 @@ RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex){
 			pPeaks[j++]=pFI->bs->operator [](i).mz;
 			pPeaks[j++]=pFI->bs->operator [](i).intensity;
 		}
+	} else {
+		pPeaks = (RAMPREAL *) malloc(2 * sizeof(RAMPREAL));
 	}
 	pPeaks[j]=-1;
 
