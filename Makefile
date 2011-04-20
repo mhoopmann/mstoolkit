@@ -5,7 +5,7 @@ MZPARSER_PATH = ./mzParser
 EXPAT_PATH = ../expat-2.0.1/lib
 #SQLITE_PATH = ../sqlite3
 
-MZPARSER = base64.o BasicSpectrum.o mzParser.o RAMPface.o saxhandler.o saxmzmlhandler.o saxmzxmlhandler.o
+MZPARSER = mzp_base64.o BasicSpectrum.o mzParser.o RAMPface.o saxhandler.o saxmzmlhandler.o saxmzxmlhandler.o zran.o
 EXPAT = xmlparse.o xmlrole.o xmltok.o
 ZLIB = adler32.o compress.o crc32.o deflate.o inffast.o inflate.o infback.o inftrees.o trees.o uncompr.o zutil.o
 MSTOOLKIT = Spectrum.o MSObject.o
@@ -69,8 +69,8 @@ zutil.o : $(ZLIB_PATH)/zutil.c
 
 
 #mzParser objects
-base64.o : $(MZPARSER_PATH)/base64.cpp
-	$(CC) $(CFLAGS) $(MZPARSER_PATH)/base64.cpp -c
+mzp_base64.o : $(MZPARSER_PATH)/mzp_base64.cpp
+	$(CC) $(CFLAGS) $(MZPARSER_PATH)/mzp_base64.cpp -c
 
 BasicSpectrum.o : $(MZPARSER_PATH)/BasicSpectrum.cpp
 	$(CC) $(CFLAGS) $(MZPARSER_PATH)/BasicSpectrum.cpp -c
@@ -89,6 +89,9 @@ saxmzmlhandler.o : $(MZPARSER_PATH)/saxmzmlhandler.cpp
 
 saxmzxmlhandler.o : $(MZPARSER_PATH)/saxmzxmlhandler.cpp
 	$(CC) $(CFLAGS) $(MZPARSER_PATH)/saxmzxmlhandler.cpp -c
+	
+zran.o : $(MZPARSER_PATH)/zran.cpp
+	$(CC) $(CFLAGS) $(MZPARSER_PATH)/zran.cpp -c
 
 
 

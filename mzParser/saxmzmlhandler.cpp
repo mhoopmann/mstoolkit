@@ -53,6 +53,9 @@ SAXMzmlHandler::SAXMzmlHandler(BasicSpectrum* bs){
 	m_bNoIndex=true;
 	spec=bs;
 	indexOffset=-1;
+	m_scanPRECCount = 0;
+	m_scanSPECCount = 0;
+	m_scanIDXCount = 0;
 }
 
 SAXMzmlHandler::~SAXMzmlHandler(){
@@ -88,8 +91,19 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 		} else if(strstr(&curIndex.idRef[0],"scanId=")!=NULL) {
 			curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"scanId=")+7);
 		} else {
-			curIndex.scanNum=0;
-			cout << "WARNING: Cannot extract scan number in index offset line: " << &curIndex.idRef[0] << endl;
+			curIndex.scanNum=++m_scanIDXCount;
+			cout << "WARNING: Cannot extract scan number in index offset line: " << &curIndex.idRef[0] << "\tDefaulting to " << m_scanIDXCount << endl;
+		}
+
+	} else if(isElement("precursor",el)) {
+		string s=getAttrValue("spectrumRef", attr);
+		if(strstr(&s[0],"scan=")!=NULL)	{
+			spec->setPrecursorScanNum(atoi(strstr(&s[0],"scan=")+5));
+		} else if(strstr(&s[0],"scanId=")!=NULL) {
+			spec->setPrecursorScanNum(atoi(strstr(&s[0],"scanId=")+7));
+		} else {
+			spec->setPrecursorScanNum(++m_scanPRECCount);
+			cout << "WARNING: Cannot extract precursor scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanPRECCount << endl;
 		}
 
 	}	else if (isElement("referenceableParamGroup", el)) {
@@ -112,8 +126,8 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 		} else if(strstr(&s[0],"scanId=")!=NULL) {
 			spec->setScanNum(atoi(strstr(&s[0],"scanId=")+7));
 		} else {
-			spec->setScanNum(1);
-			cout << "WARNING: Cannot extract scan number spectrum line: " << &s[0] << "\tDefaulting to 1" << endl;
+			spec->setScanNum(++m_scanSPECCount);
+			cout << "WARNING: Cannot extract scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanSPECCount << endl;
 		}
 		m_peaksCount = atoi(getAttrValue("defaultArrayLength", attr));
 		spec->setPeaksCount(m_peaksCount);
@@ -236,6 +250,9 @@ void SAXMzmlHandler::processCVParam(const char* name, const char* accession, con
 		if(spec->getActivation()==CID) spec->setActivation(ETDSA);
 		else spec->setActivation(ETDSA);
 
+	}	else if(!strcmp(name, "FAIMS compensation voltage") || !strcmp(accession,"MS:1001581"))	{
+		spec->setCompensationVoltage(atof(value));
+
 	}	else if(!strcmp(name, "highest observed m/z") || !strcmp(accession,"MS:1000527"))	{
 		spec->setHighMZ(atof(value));
 
@@ -264,6 +281,9 @@ void SAXMzmlHandler::processCVParam(const char* name, const char* accession, con
 
 	} else if(!strcmp(name,"orbitrap") || !strcmp(accession,"MS:1000484")) {
 		m_instrument.analyzer=name;
+
+	} else if(!strcmp(name,"peak intensity") || !strcmp(accession,"MS:1000042")) {
+		spec->setPrecursorIntensity(atof(value));
 
 	} else if(!strcmp(name,"radial ejection linear ion trap") || !strcmp(accession,"MS:1000083")) {
 		m_instrument.analyzer=name;
@@ -314,7 +334,7 @@ bool SAXMzmlHandler::readHeader(int num){
 	}
 
 	//if no scan was requested, grab the next one
-	if(num==0){
+	if(num<0){
 		posIndex++;
 		if(posIndex>=(int)m_vIndex.size()) return false;
 		m_bHeaderOnly=true;
@@ -358,7 +378,7 @@ bool SAXMzmlHandler::readSpectrum(int num){
 	}
 
 	//if no scan was requested, grab the next one
-	if(num==0){
+	if(num<0){
 		posIndex++;
 		if(posIndex>=(int)m_vIndex.size()) return false;
 		parseOffset(m_vIndex[posIndex].offset);
@@ -612,14 +632,28 @@ uint64_t SAXMzmlHandler::dtohl(uint64_t l, bool bNet) {
 f_off SAXMzmlHandler::readIndexOffset() {
 
 	char buffer[200];
+	char chunk[CHUNK];
+	char* start;
+	char* stop;
+	int readBytes;
+	int i;
 
-	FILE* f=fopen(&m_strFileName[0],"r");
-	fseek(f,-200,SEEK_END);
-	fread(buffer,1,200,f);
-	fclose(f);
-
-	char* start=strstr(buffer,"<indexListOffset>");
-	char* stop=strstr(buffer,"</indexListOffset>");
+	if(!m_bGZCompression){
+		FILE* f=fopen(&m_strFileName[0],"r");
+		fseek(f,-200,SEEK_END);
+		fread(buffer,1,200,f);
+		fclose(f);
+		start=strstr(buffer,"<indexListOffset>");
+		stop=strstr(buffer,"</indexListOffset>");
+	} else {
+		i=0;
+		while( (readBytes = extract(fptr, gzIndex, gzIndex->list[gzIndex->have-1].out+i*CHUNK, (unsigned char*)chunk, CHUNK))>0 ){
+			start=strstr(chunk,"<indexListOffset>");
+			stop=strstr(chunk,"</indexListOffset>");
+			if(start!=NULL) break;
+			i++;
+		}
+	}
 
 	if(start==NULL || stop==NULL) {
 		cout << "No index list offset found. Reading this file will be painfully slow." << endl;
@@ -635,9 +669,7 @@ f_off SAXMzmlHandler::readIndexOffset() {
 }
 
 bool SAXMzmlHandler::load(const char* fileName){
-	FILE* f=fopen(fileName,"r");
-	if(f==NULL) return false;
-	m_strFileName=fileName;
+	if(!open(fileName)) return false;
 	m_vInstrument.clear();
 	parseOffset(0);
 	indexOffset = readIndexOffset();

@@ -168,6 +168,10 @@ static void charactersCallback(void *data, const XML_Char *s, int len)
 
 SAXHandler::SAXHandler()
 {
+	fptr = NULL;
+	gzIndex = NULL;
+	m_bGZCompression = false;
+	fptr = NULL;
 	m_parser = XML_ParserCreate(NULL);
 	XML_SetUserData(m_parser, this);
 	XML_SetElementHandler(m_parser, startElementCallback, endElementCallback);
@@ -177,6 +181,10 @@ SAXHandler::SAXHandler()
 
 SAXHandler::~SAXHandler()
 {
+	if(gzIndex!=NULL) free_index(gzIndex);
+	if(fptr!=NULL) fclose(fptr);
+	fptr = NULL;
+	gzIndex = NULL;
 	XML_ParserFree(m_parser);
 }
 
@@ -193,23 +201,71 @@ void SAXHandler::characters(const XML_Char *s, int len)
 {
 }
 
-bool SAXHandler::parse()
-{
-	FILE* pfIn = fopen(m_strFileName.data(), "r");
-	if (pfIn == NULL){
-		cerr << "Failed to open input file '" << m_strFileName << "'.\n";
+bool SAXHandler::open(const char* fileName){
+	if(fptr!=NULL) fclose(fptr);
+	if(m_bGZCompression) fptr=fopen(fileName,"rb");
+	else fptr=fopen(fileName,"r");
+	if(fptr==NULL){
+		cerr << "Failed to open input file '" << fileName << "'.\n";
 		return false;
 	}
-	char buffer[8192];
+	setFileName(fileName);
+
+	//Build the index if gz compressed
+	if(m_bGZCompression){
+
+		if(gzIndex!=NULL) free_index(gzIndex);
+
+		int len;
+		len = build_index(fptr, SPAN, &gzIndex);
+    
+		if (len < 0) {
+        fclose(fptr);
+        switch (len) {
+        case Z_MEM_ERROR:
+            fprintf(stderr, "Error reading .gz file: out of memory\n");
+            break;
+        case Z_DATA_ERROR:
+            fprintf(stderr, "Error reading .gz file: compressed data error in %s\n", fileName);
+            break;
+        case Z_ERRNO:
+            fprintf(stderr, "Error reading .gz file: read error on %s\n", fileName);
+            break;
+        default:
+            fprintf(stderr, "Error reading .gz file: error %d while building index\n", len);
+        }
+				fptr=NULL;
+        return false;
+    }
+	}
+
+	return true;
+
+}
+
+bool SAXHandler::parse()
+{
+	if (fptr == NULL){
+		cerr << "Error parse(): No open file." << endl;
+		return false;
+	}
+
+	char buffer[CHUNK];  //CHUNK=16384
 	int readBytes = 0;
 	bool success = true;
-	while (success && (readBytes = (int) fread(buffer, 1, sizeof(buffer), pfIn)) != 0)
-	{
-		success = (XML_Parse(m_parser, buffer, readBytes, false) != 0);
+	int chunk=0;
+
+	if(m_bGZCompression){
+		while (success && (readBytes = extract(fptr, gzIndex, 0+chunk*CHUNK, (unsigned char*)buffer, CHUNK))>0) {
+			success = (XML_Parse(m_parser, buffer, readBytes, false) != 0);
+			chunk++;
+		}
+	} else {
+		while (success && (readBytes = (int) fread(buffer, 1, sizeof(buffer), fptr)) != 0){
+			success = (XML_Parse(m_parser, buffer, readBytes, false) != 0);
+		}
 	}
 	success = success && (XML_Parse(m_parser, buffer, 0, true) != 0);
-
-	fclose(pfIn);
 
 	if (!success)
 	{
@@ -244,28 +300,35 @@ bool SAXHandler::parse()
 //The parser will halt file reading when stop flag is triggered.
 bool SAXHandler::parseOffset(f_off offset){
 
-	FILE* pfIn = fopen(m_strFileName.data(), "r");
-	if (pfIn == NULL){
-		cerr << "Failed to open input file '" << m_strFileName << "'.\n";
+	if (fptr == NULL){
+		cerr << "Error parseOffset(): No open file." << endl;
 		return false;
 	}
-	char buffer[8192];
+	char buffer[CHUNK]; //CHUNK=16384
 	int readBytes = 0;
 	bool success = true;
-	fseek(pfIn,offset,SEEK_SET);
+	int chunk=0;
+	
 	XML_ParserReset(m_parser,"ISO-8859-1");
 	XML_SetUserData(m_parser, this);
 	XML_SetElementHandler(m_parser, startElementCallback, endElementCallback);
 	XML_SetCharacterDataHandler(m_parser, charactersCallback);
 
+	fseek(fptr,offset,SEEK_SET);
 	m_bStopParse=false;
-	while (success && (readBytes = (int) fread(buffer, 1, sizeof(buffer), pfIn)) != 0)
-	{
-		success = (XML_Parse(m_parser, buffer, readBytes, false) != 0);
-		if(m_bStopParse) break;
-	}
 
-	fclose(pfIn);
+	if(m_bGZCompression){
+		while (success && (readBytes = extract(fptr, gzIndex, offset+chunk*CHUNK, (unsigned char*)buffer, CHUNK))>0) {
+			success = (XML_Parse(m_parser, buffer, readBytes, false) != 0);
+			chunk++;
+			if(m_bStopParse) break;
+		}
+	} else {
+		while (success && (readBytes = (int) fread(buffer, 1, sizeof(buffer), fptr)) != 0) {
+			success = (XML_Parse(m_parser, buffer, readBytes, false) != 0);
+			if(m_bStopParse) break;
+		}
+	}
 
 	if (!success && !m_bStopParse)
 	{
@@ -280,7 +343,7 @@ bool SAXHandler::parseOffset(f_off offset){
 			case XML_ERROR_SYNTAX:
 			case XML_ERROR_INVALID_TOKEN:
 			case XML_ERROR_UNCLOSED_TOKEN:
-				cerr << "Syntax error parsing XML.";
+				cerr << "Syntax error parsing XML." << endl;
 				break;
 
 			// TODO: Add more descriptive text for interesting errors.
@@ -290,8 +353,11 @@ bool SAXHandler::parseOffset(f_off offset){
 				cerr << XML_ErrorString(error) << endl;
 				break;
 		} 
-		cerr << "\n";
 		return false;
 	}
 	return true;
+}
+
+void SAXHandler::setGZCompression(bool b){
+	m_bGZCompression=b;
 }
