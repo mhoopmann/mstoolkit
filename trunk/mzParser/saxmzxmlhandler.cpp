@@ -113,6 +113,12 @@ void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 		s=getAttrValue("precursorCharge", attr);
 		if(s.length()>0) spec->setPrecursorCharge(atoi(&s[0]));
 		else spec->setPrecursorCharge(0);
+		s=getAttrValue("precursorIntensity", attr);
+		if(s.length()>0) spec->setPrecursorIntensity(atof(&s[0]));
+		else spec->setPrecursorIntensity(0.0);
+		s=getAttrValue("precursorScanNum", attr);
+		if(s.length()>0) spec->setPrecursorScanNum(atoi(&s[0]));
+		else spec->setPrecursorScanNum(0);
 		m_bInPrecursorMz = true;
 
 	}	else if (isElement("scan", el)) {
@@ -126,6 +132,7 @@ void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 			spec->setBasePeakIntensity(atof(getAttrValue("basePeakIntensity", attr)));
 			spec->setBasePeakMZ(atof(getAttrValue("basePeakMz", attr)));
 			spec->setCollisionEnergy(atof(getAttrValue("collisionEnergy", attr)));
+			spec->setCompensationVoltage(atof(getAttrValue("CompensationVoltage", attr)));
 			spec->setHighMZ(atof(getAttrValue("highMz", attr)));
 			spec->setLowMZ(atof(getAttrValue("lowMz", attr)));
 			spec->setTotalIonCurrent(atof(getAttrValue("totIonCurrent",attr)));
@@ -210,7 +217,7 @@ bool SAXMzxmlHandler::readHeader(int num){
 	}
 
 	//if no scan was requested, grab the next one
-	if(num==0){
+	if(num<0){
 		posIndex++;
 		if(posIndex>=(int)m_vIndex.size()) return false;
 		m_bHeaderOnly=true;
@@ -254,7 +261,7 @@ bool SAXMzxmlHandler::readSpectrum(int num){
 	}
 
 	//if no scan was requested, grab the next one
-	if(num==0){
+	if(num<0){
 		posIndex++;
 		if(posIndex>=(int)m_vIndex.size()) return false;
 		parseOffset(m_vIndex[posIndex].offset);
@@ -521,14 +528,28 @@ uint64_t SAXMzxmlHandler::dtohl(uint64_t l, bool bNet) {
 f_off SAXMzxmlHandler::readIndexOffset() {
 
 	char buffer[200];
+	char chunk[CHUNK];
+	char* start;
+	char* stop;
+	int readBytes;
+	int i;
 
-	FILE* f=fopen(&m_strFileName[0],"r");
-	fseek(f,-200,SEEK_END);
-	fread(buffer,1,200,f);
-	fclose(f);
-
-	char* start=strstr(buffer,"<indexOffset>");
-	char* stop=strstr(buffer,"</indexOffset>");
+	if(!m_bGZCompression){
+		FILE* f=fopen(&m_strFileName[0],"r");
+		fseek(f,-200,SEEK_END);
+		fread(buffer,1,200,f);
+		fclose(f);
+		start=strstr(buffer,"<indexOffset>");
+		stop=strstr(buffer,"</indexOffset>");
+	} else {
+		i=0;
+		while( (readBytes = extract(fptr, gzIndex, gzIndex->list[gzIndex->have-1].out+i*CHUNK, (unsigned char*)chunk, CHUNK))>0 ){
+			start=strstr(chunk,"<indexOffset>");
+			stop=strstr(chunk,"</indexOffset>");
+			if(start!=NULL) break;
+			i++;
+		}
+	}
 
 	if(start==NULL || stop==NULL) {
 		cout << "No index list offset found. Reading this file will be painfully slow." << endl;
@@ -544,9 +565,7 @@ f_off SAXMzxmlHandler::readIndexOffset() {
 }
 
 bool SAXMzxmlHandler::load(const char* fileName){
-	FILE* f=fopen(fileName,"r");
-	if(f==NULL) return false;
-	m_strFileName=fileName;
+	if(!open(fileName)) return false;
 	indexOffset = readIndexOffset();
 	if(indexOffset==0){
 		m_bNoIndex=true;

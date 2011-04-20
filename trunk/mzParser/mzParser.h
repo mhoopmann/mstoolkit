@@ -169,12 +169,15 @@ public:
 	void setBasePeakIntensity(double d);
 	void setBasePeakMZ(double d);
 	void setCollisionEnergy(double d);
+	void setCompensationVoltage(double d);
 	void setHighMZ(double d);
 	void setLowMZ(double d);
 	void setMSLevel(int level);
 	void setPeaksCount(int i);
 	void setPrecursorCharge(int z);
+	void setPrecursorIntensity(double d);
 	void setPrecursorMZ(double mz);
+	void setPrecursorScanNum(int i);
 	void setRTime(float t);
 	void setScanNum(int num);
 	void setTotalIonCurrent(double d);
@@ -184,12 +187,15 @@ public:
 	double				getBasePeakIntensity();
 	double				getBasePeakMZ();
 	double				getCollisionEnergy();
+	double				getCompensationVoltage();
 	double				getHighMZ();
 	double				getLowMZ();
 	int						getMSLevel();
 	int						getPeaksCount();
 	int						getPrecursorCharge();
+	double				getPrecursorIntensity();
 	double				getPrecursorMZ();
+	int						getPrecursorScanNum();
 	float					getRTime(bool min=true);
 	int						getScanNum();
 	double				getTotalIonCurrent();
@@ -202,16 +208,19 @@ protected:
 	double					basePeakIntensity;
 	double					basePeakMZ;
 	double					collisionEnergy;
+	double					compensationVoltage;	//FAIMS compensation voltage
 	double					highMZ;
 	double					lowMZ;
 	int							msLevel;
 	int							peaksCount;
-	int							precursorCharge;	//Precursor ion charge; 0 if no precursor or unknown
-	double					precursorMZ;			//Precursor ion m/z value; 0 if no precursor or unknown
-	float						rTime;						//always stored in minutes
-	int							scanNum;					//identifying scan number
+	int							precursorCharge;			//Precursor ion charge; 0 if no precursor or unknown
+	double					precursorIntensity;		//Precursor ion intensity; 0 if no precursor or unknown
+	double					precursorMZ;					//Precursor ion m/z value; 0 if no precursor or unknown
+	int							precursorScanNum;			//Precursor scan number; 0 if no precursor or unknown
+	float						rTime;								//always stored in minutes
+	int							scanNum;							//identifying scan number
 	double					totalIonCurrent;
-	vector<specDP>	vData;						//Spectrum data points
+	vector<specDP>	vData;								//Spectrum data points
 	   
 };
 
@@ -3350,6 +3359,37 @@ ZEXTERN int            ZEXPORT inflateUndermine OF((z_streamp, int));
 
 #endif /* ZLIB_H */
 
+
+
+//------------------------------------------------
+// Random access gz (zran from zlib source code)
+//------------------------------------------------
+#define SPAN 1048576L       // desired distance between access points
+#define WINSIZE 32768U      // sliding window size
+#define CHUNK 16384         // file input buffer size
+
+// access point entry 
+typedef struct point {
+	f_off out;          // corresponding offset in uncompressed data 
+	f_off in;           // offset in input file of first full byte
+	int bits;           // number of bits (1-7) from byte at in - 1, or 0
+	unsigned char window[WINSIZE];  // preceding 32K of uncompressed data
+} point;
+
+// access point list 
+typedef struct gz_access {
+	int have;           // number of list entries filled in 
+	int size;           // number of list entries allocated 
+	point *list; // allocated list
+} gz_access;
+
+void free_index(gz_access *index);
+gz_access *addpoint(gz_access *index, int bits, f_off in, f_off out, unsigned left, unsigned char *window);
+int build_index(FILE *in, f_off span, gz_access **built);
+int extract(FILE *in, gz_access *index, f_off offset, unsigned char *buf, int len);
+
+
+
 //------------------------------------------------
 // X!Tandem headers
 //------------------------------------------------
@@ -3369,8 +3409,10 @@ public:
 	virtual void characters(const XML_Char *s, int len);
 
 	//  SAXHandler Parsing functions.
+	bool open(const char* fileName);
 	bool parse();
 	bool parseOffset(f_off offset);
+	void setGZCompression(bool b);
 
 	inline void setFileName(const char* fileName) {
 		m_strFileName = fileName;
@@ -3395,6 +3437,9 @@ protected:
 	XML_Parser m_parser;
 	string  m_strFileName;
 	bool m_bStopParse;
+	bool m_bGZCompression;
+	FILE* fptr;
+	gz_access *gzIndex;
 
 };
 
@@ -3416,8 +3461,8 @@ public:
 	int											highScan();
 	bool										load(const char* fileName);
 	int											lowScan();
-	bool										readHeader(int num=0);
-	bool										readSpectrum(int num=0);
+	bool										readHeader(int num=-1);
+	bool										readSpectrum(int num=-1);
 	
 protected:
 
@@ -3475,7 +3520,9 @@ private:
 	instrumentInfo					m_instrument;
 	int											m_peaksCount;						// Count of peaks in spectrum
 	vector<cvParam>					m_refGroupCvParams;
-	int											m_scanCount;
+	int											m_scanSPECCount;
+	int											m_scanIDXCount;
+	int											m_scanPRECCount;
 	double									m_startTime;						//in minutes
 	double									m_stopTime;							//in minutes
 	string									m_strData;							// For collecting character data.
@@ -3503,8 +3550,8 @@ public:
 	int							highScan();
 	bool						load(const char* fileName);
 	int							lowScan();
-	bool						readHeader(int num=0);
-	bool						readSpectrum(int num=0);
+	bool						readHeader(int num=-1);
+	bool						readSpectrum(int num=-1);
 	
 protected:
 
@@ -3582,7 +3629,7 @@ typedef f_off ramp_fileoffset_t;
 
 typedef struct RAMPFILE{
 	BasicSpectrum* bs;
-  SAXMzmlHandler* mzML;
+        SAXMzmlHandler* mzML;
 	SAXMzxmlHandler* mzXML;
 	int fileType;
 	int bIsMzData;
@@ -3597,6 +3644,10 @@ typedef struct RAMPFILE{
 		if(bs!=NULL) delete bs;
 		if(mzML!=NULL) delete mzML;
 		if(mzXML!=NULL) delete mzXML;
+		bs=NULL;
+		mzML=NULL;
+		mzXML=NULL;
+		
 	}
 } RAMPFILE;
 
@@ -3623,6 +3674,7 @@ struct ScanHeaderStruct {
    double							ionisationEnergy;
    double							lowMZ;
 	 double							precursorIntensity;  /* only if MS level > 1 */
+	 double							compensationVoltage;  /* only if MS level > 1 */
    double							precursorMZ;  /* only if MS level > 1 */
    double							retentionTime;        /* in seconds */
 	 double							totIonCurrent;
@@ -3655,9 +3707,20 @@ typedef struct InstrumentStruct {
    char detector[INSTRUMENT_LENGTH];
 } InstrumentStruct;
 
+struct ScanCacheStruct {
+	int seqNumStart;    // scan at which the cache starts
+	int size;           // number of scans in the cache
+	struct ScanHeaderStruct *headers;
+	RAMPREAL **peaks;
+};
+
 int									checkFileType(const char* fname);
 ramp_fileoffset_t		getIndexOffset(RAMPFILE *pFI);
+void								getScanSpanRange(const struct ScanHeaderStruct *scanHeader, int *startScanNum, int *endScanNum);
 void								rampCloseFile(RAMPFILE *pFI);
+string							rampConstructInputFileName(const string &basename);
+char*								rampConstructInputFileName(char *buf,int buflen,const char *basename);
+char*								rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const char *basename);
 const char**				rampListSupportedFileTypes();
 RAMPFILE*						rampOpenFile(const char *filename);
 char*								rampValidFileType(const char *buf);
@@ -3666,19 +3729,29 @@ ramp_fileoffset_t*	readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *
 void								readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
 RAMPREAL*						readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 int									readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
+void								readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
+
+//MH:Cached RAMP functions
+void														clearScanCache(struct ScanCacheStruct* cache);
+void														freeScanCache(struct ScanCacheStruct* cache);
+int															getCacheIndex(struct ScanCacheStruct* cache, int seqNum);
+struct ScanCacheStruct*					getScanCache(int size);
+const struct ScanHeaderStruct*	readHeaderCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
+int															readMsLevelCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
+const RAMPREAL*									readPeaksCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
+void														shiftScanCache(struct ScanCacheStruct* cache, int nScans);
 
 //MH:Unimplimented functions. These just bark cerr when used.
 InstrumentStruct*		getInstrumentStruct(RAMPFILE *pFI);
-string							rampConstructInputFileName(const string &basename);
-char*								rampConstructInputFileName(char *buf,int buflen,const char *basename);
-char*								rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const char *basename);
+int									isScanAveraged(struct ScanHeaderStruct *scanHeader);
+int									isScanMergedResult(struct ScanHeaderStruct *scanHeader);
 int									rampSelfTest(char *filename);
 char*								rampTrimBaseName(char *buf);
 int									rampValidateOrDeriveInputFilename(char *inbuf, int inbuflen, char *spectrumName);
 int									readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 double							readStartMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 double							readEndMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
-void								readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
+void								setRampOption(long option);
 
 
 #endif

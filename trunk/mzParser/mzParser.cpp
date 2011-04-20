@@ -16,9 +16,11 @@ MzParser::~MzParser(){
 int MzParser::highScan(){
 	switch(fileType){
 		case 1:
+		case 3:
 			return mzML->highScan();
 			break;
 		case 2:
+		case 4:
 			return mzXML->highScan();
 			break;
 		default:
@@ -39,10 +41,16 @@ bool MzParser::load(char* fname){
 	fileType=checkFileType(fname);
 	switch(fileType){
 		case 1:
+		case 3:
+			if(fileType==3) mzML->setGZCompression(true);
+			else mzML->setGZCompression(false);
 			mzML = new SAXMzmlHandler(spec);
 			return mzML->load(fname);
 			break;
 		case 2:
+		case 4:
+			if(fileType==4) mzXML->setGZCompression(true);
+			else mzXML->setGZCompression(false);
 			mzXML = new SAXMzxmlHandler(spec);
 			return mzXML->load(fname);
 			break;
@@ -55,9 +63,11 @@ bool MzParser::load(char* fname){
 int MzParser::lowScan(){
 	switch(fileType){
 		case 1:
+		case 3:
 			return mzML->lowScan();
 			break;
 		case 2:
+		case 4:
 			return mzXML->lowScan();
 			break;
 		default:
@@ -69,9 +79,11 @@ int MzParser::lowScan(){
 bool MzParser::readSpectrum(int num){
 	switch(fileType){
 		case 1:
+		case 3:
 			return mzML->readSpectrum(num);
 			break;
 		case 2:
+		case 4:
 			return mzXML->readSpectrum(num);
 			break;
 		default:
@@ -83,9 +95,11 @@ bool MzParser::readSpectrum(int num){
 bool MzParser::readSpectrumHeader(int num){
 	switch(fileType){
 		case 1:
+		case 3:
 			return mzML->readHeader(num);
 			break;
 		case 2:
+		case 4:
 			return mzXML->readHeader(num);
 			break;
 		default:
@@ -98,20 +112,30 @@ int MzParser::checkFileType(char* fname){
 	char file[256];
 	char ext[256];
 	char *tok;
+	char preExt[256];
+	unsigned int i;
+
+	strcpy(ext,"");
 
 	strcpy(file,fname);
 	tok=strtok(file,".\n");
 	while(tok!=NULL){
+		strcpy(preExt,ext);
 		strcpy(ext,tok);
 		tok=strtok(NULL,".\n");
 	}
 
-	for(unsigned int i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
+	for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
+	for(i=0;i<strlen(preExt);i++) preExt[i]=toupper(preExt[i]);
 
 	if(!strcmp(ext,"MZML")) return 1;
 	if(!strcmp(ext,"MZXML")) return 2;
 	if(!strcmp(ext,"GZ")) {
-		cout << ".gz is not allowed. Please deflate your data. No file loaded." << endl;
+		if(!strcmp(preExt,"MZML")) return 3;
+		if(!strcmp(preExt,"MZXML")) return 4;
+		cerr << "Unknown .gz file. Only .mzML.gz and .mzXML.gz allowed. No file loaded." << endl;
+		return 0;
 	}
+	cerr << "Unknown file type. No file loaded." << endl;
 	return 0;
 }
