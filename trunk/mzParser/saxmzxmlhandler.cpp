@@ -245,6 +245,9 @@ bool SAXMzxmlHandler::readHeader(int num){
 	if(m_vIndex[mid].scanNum==num) {
 		m_bHeaderOnly=true;
 		parseOffset(m_vIndex[mid].offset);
+		//force scan number; this was done for files where scan events are not numbered
+		if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+		spec->setScanIndex(mid+1); //set the index, which starts from 1, so offset by 1
 		m_bHeaderOnly=false;
 		posIndex=mid;
 		return true;
@@ -286,6 +289,9 @@ bool SAXMzxmlHandler::readSpectrum(int num){
 	//need something faster than this perhaps
 	if(m_vIndex[mid].scanNum==num) {
 		parseOffset(m_vIndex[mid].offset);
+		//force scan number; this was done for files where scan events are not numbered
+		if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+		spec->setScanIndex(mid+1); //set the index, which starts from 1, so offset by 1
 		posIndex=mid;
 		return true;
 	}
@@ -610,6 +616,10 @@ int SAXMzxmlHandler::lowScan() {
 
 f_off SAXMzxmlHandler::getIndexOffset(){
 	return indexOffset;
+}
+
+instrumentInfo SAXMzxmlHandler::getInstrument(){
+	return m_instrument;
 }
 
 vector<cindex>* SAXMzxmlHandler::getIndex(){

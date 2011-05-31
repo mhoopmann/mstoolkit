@@ -26,6 +26,7 @@ BasicSpectrum::BasicSpectrum() {
 	precursorMZ=0.0;
 	precursorScanNum=-1;
 	rTime=0.0f;
+	scanIndex=0;
 	scanNum=-1;
 	totalIonCurrent=0.0;
 	vData.clear();
@@ -46,6 +47,7 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
 	precursorMZ=s.precursorMZ;
 	precursorScanNum=s.precursorScanNum;
 	rTime=s.rTime;
+	scanIndex=s.scanIndex;
 	scanNum=s.scanNum;
 	totalIonCurrent=s.totalIonCurrent;
 }
@@ -71,6 +73,7 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
 		precursorMZ=s.precursorMZ;
 		precursorScanNum=s.precursorScanNum;
 		rTime=s.rTime;
+		scanIndex=s.scanIndex;
 		scanNum=s.scanNum;
 		totalIonCurrent=s.totalIonCurrent;
 	}
@@ -98,6 +101,7 @@ void BasicSpectrum::clear(){
 	precursorMZ=0;
 	precursorScanNum=-1;
 	rTime=0.0f;
+	scanIndex=0;
 	scanNum=-1;
 	totalIonCurrent=0.0;
 	vData.clear();
@@ -116,6 +120,7 @@ void BasicSpectrum::setPrecursorIntensity(double d){ precursorIntensity=d;}
 void BasicSpectrum::setPrecursorMZ(double mz){ precursorMZ=mz;}
 void BasicSpectrum::setPrecursorScanNum(int i){ precursorScanNum=i;}
 void BasicSpectrum::setRTime(float f){ rTime=f;}
+void BasicSpectrum::setScanIndex(int num) { scanIndex=num;}
 void BasicSpectrum::setScanNum(int num){ scanNum=num;}
 void BasicSpectrum::setTotalIonCurrent(double d){ totalIonCurrent=d;}
 
@@ -139,6 +144,7 @@ float BasicSpectrum::getRTime(bool min){
 	if(min) return rTime;
 	else return rTime*60;
 }
+int BasicSpectrum::getScanIndex(){ return scanIndex;}
 int BasicSpectrum::getScanNum(){ return scanNum;}
 double BasicSpectrum::getTotalIonCurrent(){ return totalIonCurrent;}
 unsigned int BasicSpectrum::size(){ return vData.size();}

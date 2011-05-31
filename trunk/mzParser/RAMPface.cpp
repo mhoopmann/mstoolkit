@@ -48,6 +48,47 @@ ramp_fileoffset_t getIndexOffset(RAMPFILE *pFI){
 	}
 }
 
+InstrumentStruct* getInstrumentStruct(RAMPFILE *pFI){
+	InstrumentStruct* r=(InstrumentStruct *) calloc(1,sizeof(InstrumentStruct));
+	if(r==NULL) {
+    printf("Cannot allocate memory\n");
+    return NULL;
+  } else {
+		strcpy(r->analyzer,"UNKNOWN");
+		strcpy(r->detector,"UNKNOWN");
+		strcpy(r->ionisation,"UNKNOWN");
+		strcpy(r->manufacturer,"UNKNOWN");
+		strcpy(r->model,"UNKNOWN");
+  }
+
+	switch(pFI->fileType){
+		case 1:
+		case 3:
+			if(pFI->mzML->getInstrument()->size()>0){
+				if(pFI->mzML->getInstrument()->at(0).analyzer.size()>1) strcpy(r->analyzer,&pFI->mzML->getInstrument()->at(0).analyzer[0]);
+				if(pFI->mzML->getInstrument()->at(0).detector.size()>1) strcpy(r->detector,&pFI->mzML->getInstrument()->at(0).detector[0]);
+				if(pFI->mzML->getInstrument()->at(0).ionization.size()>1) strcpy(r->ionisation,&pFI->mzML->getInstrument()->at(0).ionization[0]);
+				if(pFI->mzML->getInstrument()->at(0).manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzML->getInstrument()->at(0).manufacturer[0]);
+				if(pFI->mzML->getInstrument()->at(0).model.size()>1) strcpy(r->model,&pFI->mzML->getInstrument()->at(0).model[0]);
+			}
+			break;
+
+		case 2:
+		case 4:
+			if(pFI->mzXML->getInstrument().analyzer.size()>1) strcpy(r->analyzer,&pFI->mzXML->getInstrument().analyzer[0]);
+			if(pFI->mzXML->getInstrument().detector.size()>1) strcpy(r->detector,&pFI->mzXML->getInstrument().detector[0]);
+			if(pFI->mzXML->getInstrument().ionization.size()>1) strcpy(r->ionisation,&pFI->mzXML->getInstrument().ionization[0]);
+			if(pFI->mzXML->getInstrument().manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzXML->getInstrument().manufacturer[0]);
+			if(pFI->mzXML->getInstrument().model.size()>1) strcpy(r->model,&pFI->mzXML->getInstrument().model[0]);
+			break;
+
+		default:
+			break;
+	}
+
+	return r;
+}
+
 void getScanSpanRange(const struct ScanHeaderStruct *scanHeader, int *startScanNum, int *endScanNum) {
    if (0 == scanHeader->mergedResultStartScanNum || 0 == scanHeader->mergedResultEndScanNum) {
       *startScanNum = scanHeader->acquisitionNum;
@@ -86,7 +127,9 @@ char* rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const 
 	}
 
 	FILE* f;
-	char *result = NULL;
+	char* result = NULL;
+	char base[512];
+	strcpy(base,basename);
 
 	//Try opening the base name first, then with directory:
 	for(int j=0;j<2;j++){
@@ -95,9 +138,9 @@ char* rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const 
 			if(j==1){
 				strcpy(buf,dir_in);
 				strcat(buf,"/");
-				strcat(buf,basename);
+				strcat(buf,base);
 			} else {
-				strcpy(buf,basename);
+				strcpy(buf,base);
 			}
 
 			switch(i){
@@ -218,6 +261,8 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->precursorScanNum=-1;
 	scanHeader->retentionTime=0.0;
 	scanHeader->totIonCurrent=0.0;
+	scanHeader->scanIndex=0;
+	scanHeader->seqNum=-1;
 
 	if(lScanIndex<0) return;
 	
@@ -270,6 +315,8 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->precursorScanNum=pFI->bs->getPrecursorScanNum();
 	scanHeader->retentionTime=(double)pFI->bs->getRTime(false);
 	scanHeader->totIonCurrent=pFI->bs->getTotalIonCurrent();
+	scanHeader->scanIndex=pFI->bs->getScanIndex();
+	scanHeader->seqNum=pFI->bs->getScanIndex();
 
 	switch(pFI->bs->getActivation()){
 		case 1: strcpy(scanHeader->activationMethod,"CID"); break;
@@ -295,7 +342,7 @@ ramp_fileoffset_t* readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *
 			rIndex = (ramp_fileoffset_t *) malloc((pFI->mzML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			memset(rIndex,-1,(pFI->mzML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			for(i=0;i<v->size();i++) rIndex[v->at(i).scanNum]=(ramp_fileoffset_t)v->at(i).offset;
-			rIndex[i]=-1;
+			rIndex[v->at(i-1).scanNum+1]=-1;
 			*iLastScan=v->at(i-1).scanNum;
 			break;
 		case 2:
@@ -306,7 +353,7 @@ ramp_fileoffset_t* readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *
 			rIndex = (ramp_fileoffset_t *) malloc((pFI->mzXML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			memset(rIndex,-1,(pFI->mzXML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			for(i=0;i<v->size();i++) rIndex[v->at(i).scanNum]=(ramp_fileoffset_t)v->at(i).offset;
-			rIndex[i]=-1;
+			rIndex[v->at(i-1).scanNum+1]=-1;
 			*iLastScan=v->at(i-1).scanNum;
 			break;
 		default:
@@ -316,6 +363,42 @@ ramp_fileoffset_t* readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *
 	}
 	v=NULL;
 	return rIndex;
+}
+
+int readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
+	vector<cindex>* v;
+	unsigned int i;
+	
+	if(lScanIndex<0) return 0;
+
+	switch(pFI->fileType){
+		case 1:
+		case 3:
+			v=pFI->mzML->getIndex();
+			for(i=0;i<v->size();i++) {
+				if(v->at(i).offset==(f_off)lScanIndex) {
+					pFI->mzML->readSpectrum(v->at(i).scanNum);
+					break;
+				}
+			}
+			break;
+		case 2:
+		case 4:
+			v=pFI->mzXML->getIndex();
+			for(i=0;i<v->size();i++) {
+				if(v->at(i).offset==(f_off)lScanIndex) {
+					pFI->mzXML->readSpectrum(v->at(i).scanNum);
+					break;
+				}
+			}
+			break;
+		default:
+			pFI->bs->clear();
+			break;
+	}
+	v=NULL;
+
+	return pFI->bs->getMSLevel();
 }
 
 void readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
@@ -602,11 +685,6 @@ void shiftScanCache(struct ScanCacheStruct* cache, int nScans) {
 //--------------------------------------------------
 // DEAD FUNCTIONS
 //--------------------------------------------------
-InstrumentStruct* getInstrumentStruct(RAMPFILE *pFI){
-	cerr << "call to unsupported function: getInstrumentStruct(RAMPFILE *pFI)" << endl;
-	return NULL;
-}
-
 int isScanAveraged(struct ScanHeaderStruct *scanHeader){
 	cerr << "call to unsupported function: isScanAveraged(struct ScanHeaderStruct *scanHeader)" << endl;
 	return 0;
@@ -624,16 +702,11 @@ int rampSelfTest(char *filename){
 
 char* rampTrimBaseName(char *buf){
 	cerr << "call to unsupported function: rampTrimBaseName(char *buf)" << endl;
-	return "";
+	return buf;
 }
 
 int rampValidateOrDeriveInputFilename(char *inbuf, int inbuflen, char *spectrumName){
 	cerr << "call to unsupported function: rampValidateOrDeriveInputFilename(char *inbuf, int inbuflen, char *spectrumName)" << endl;
-	return 0;
-}
-
-int readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
-	cerr << "call to unsupported function: readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex)" << endl;
 	return 0;
 }
 

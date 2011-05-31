@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <string>
+#include <string.h>
 
 using namespace std;
 
@@ -40,10 +41,13 @@ using namespace std;
 //#define OSX_TIGER // use with OSX if OSX Tiger is being used
 //#define OSX_INTEL // compile with cc on Macintosh OSX on Intel-style processors
 //#define GCC				// to compile with gcc (or g++) on LINUX
+//#define __LINUX__				// to compile with gcc (or g++) on LINUX
 //#define _MSC_VER	// to compile with Microsoft Studio
 
 #define XMLCLASS		
+#ifndef XML_STATIC
 #define XML_STATIC	// to statically link the expat libraries
+#endif
 
 //For Windows
 #ifdef _MSC_VER
@@ -57,7 +61,19 @@ typedef __int64 f_off;
 #define atoi64(h) _atoi64(h)
 #endif
 
-#ifdef GCC
+//For Windows
+#ifdef __MINGW__
+//#define __inline__ _inline
+//#define __int64_t _int64
+//#define uint32_t unsigned long
+//#define uint64_t unsigned _int64
+typedef __int64 f_off;
+//#define fseek(h,p,o) _fseeki64(h,p,o)
+#define ftell(h) _ftelli64(h)
+#define atoi64(h) _atoi64(h)
+#endif
+
+#if defined(GCC) || defined(__LINUX__)
 #ifndef _LARGEFILE_SOURCE
 #error "need to define _LARGEFILE_SOURCE!!"
 #endif    /* end _LARGEFILE_SOURCE */
@@ -86,9 +102,6 @@ typedef off_t f_off;
 #endif
 
 // this define should work for most LINUX and UNIX platforms
-#ifdef GCC
-
-#endif
 
 
 
@@ -179,6 +192,7 @@ public:
 	void setPrecursorMZ(double mz);
 	void setPrecursorScanNum(int i);
 	void setRTime(float t);
+	void setScanIndex(int num);
 	void setScanNum(int num);
 	void setTotalIonCurrent(double d);
 
@@ -197,6 +211,7 @@ public:
 	double				getPrecursorMZ();
 	int						getPrecursorScanNum();
 	float					getRTime(bool min=true);
+	int						getScanIndex();
 	int						getScanNum();
 	double				getTotalIonCurrent();
 	unsigned int	size();
@@ -218,6 +233,7 @@ protected:
 	double					precursorMZ;					//Precursor ion m/z value; 0 if no precursor or unknown
 	int							precursorScanNum;			//Precursor scan number; 0 if no precursor or unknown
 	float						rTime;								//always stored in minutes
+	int							scanIndex;						//when scan numbers aren't enough, there are indexes (start at 1)
 	int							scanNum;							//identifying scan number
 	double					totalIonCurrent;
 	vector<specDP>	vData;								//Spectrum data points
@@ -3546,6 +3562,7 @@ public:
 	//  SAXMzxmlHandler public functions
 	vector<cindex>*	getIndex();
 	f_off						getIndexOffset();
+	instrumentInfo	getInstrument();
 	int							getPeaksCount();
 	int							highScan();
 	bool						load(const char* fileName);
@@ -3629,7 +3646,7 @@ typedef f_off ramp_fileoffset_t;
 
 typedef struct RAMPFILE{
 	BasicSpectrum* bs;
-        SAXMzmlHandler* mzML;
+	SAXMzmlHandler* mzML;
 	SAXMzxmlHandler* mzXML;
 	int fileType;
 	int bIsMzData;
@@ -3665,6 +3682,7 @@ struct ScanHeaderStruct {
    int								peaksCount;
 	 int								precursorCharge;  /* only if MS level > 1 */
 	 int								precursorScanNum; /* only if MS level > 1 */
+	 int								scanIndex; //a sequential index for non-sequential scan numbers (1-based)
    int								seqNum; // number in sequence observed file (1-based)
 	 
    double							basePeakIntensity;
@@ -3716,6 +3734,7 @@ struct ScanCacheStruct {
 
 int									checkFileType(const char* fname);
 ramp_fileoffset_t		getIndexOffset(RAMPFILE *pFI);
+InstrumentStruct*		getInstrumentStruct(RAMPFILE *pFI);
 void								getScanSpanRange(const struct ScanHeaderStruct *scanHeader, int *startScanNum, int *endScanNum);
 void								rampCloseFile(RAMPFILE *pFI);
 string							rampConstructInputFileName(const string &basename);
@@ -3726,6 +3745,7 @@ RAMPFILE*						rampOpenFile(const char *filename);
 char*								rampValidFileType(const char *buf);
 void								readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader);
 ramp_fileoffset_t*	readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
+int									readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void								readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
 RAMPREAL*						readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 int									readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
@@ -3742,13 +3762,11 @@ const RAMPREAL*									readPeaksCached(struct ScanCacheStruct* cache, int seqNu
 void														shiftScanCache(struct ScanCacheStruct* cache, int nScans);
 
 //MH:Unimplimented functions. These just bark cerr when used.
-InstrumentStruct*		getInstrumentStruct(RAMPFILE *pFI);
 int									isScanAveraged(struct ScanHeaderStruct *scanHeader);
 int									isScanMergedResult(struct ScanHeaderStruct *scanHeader);
 int									rampSelfTest(char *filename);
 char*								rampTrimBaseName(char *buf);
 int									rampValidateOrDeriveInputFilename(char *inbuf, int inbuflen, char *spectrumName);
-int									readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 double							readStartMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 double							readEndMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void								setRampOption(long option);
