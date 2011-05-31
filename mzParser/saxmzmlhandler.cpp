@@ -90,20 +90,32 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 			curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"scan=")+5);
 		} else if(strstr(&curIndex.idRef[0],"scanId=")!=NULL) {
 			curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"scanId=")+7);
+		} else if(strstr(&curIndex.idRef[0],"S")!=NULL) {
+			curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"S")+1);
 		} else {
 			curIndex.scanNum=++m_scanIDXCount;
-			cout << "WARNING: Cannot extract scan number in index offset line: " << &curIndex.idRef[0] << "\tDefaulting to " << m_scanIDXCount << endl;
+			//Suppressing warning.
+			//cout << "WARNING: Cannot extract scan number in index offset line: " << &curIndex.idRef[0] << "\tDefaulting to " << m_scanIDXCount << endl;
 		}
 
 	} else if(isElement("precursor",el)) {
 		string s=getAttrValue("spectrumRef", attr);
-		if(strstr(&s[0],"scan=")!=NULL)	{
-			spec->setPrecursorScanNum(atoi(strstr(&s[0],"scan=")+5));
-		} else if(strstr(&s[0],"scanId=")!=NULL) {
-			spec->setPrecursorScanNum(atoi(strstr(&s[0],"scanId=")+7));
+
+		//if spectrumRef is not provided
+		if(s.length()<1){
+			spec->setPrecursorScanNum(0);
 		} else {
-			spec->setPrecursorScanNum(++m_scanPRECCount);
-			cout << "WARNING: Cannot extract precursor scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanPRECCount << endl;
+			if(strstr(&s[0],"scan=")!=NULL)	{
+				spec->setPrecursorScanNum(atoi(strstr(&s[0],"scan=")+5));
+			} else if(strstr(&s[0],"scanId=")!=NULL) {
+				spec->setPrecursorScanNum(atoi(strstr(&s[0],"scanId=")+7));
+			} else if(strstr(&s[0],"S")!=NULL) {
+				spec->setPrecursorScanNum(atoi(strstr(&s[0],"S")+1));
+			} else {
+				spec->setPrecursorScanNum(++m_scanPRECCount);
+				//Suppressing warning.
+				//cout << "WARNING: Cannot extract precursor scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanPRECCount << endl;
+			}
 		}
 
 	}	else if (isElement("referenceableParamGroup", el)) {
@@ -125,9 +137,12 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 			spec->setScanNum(atoi(strstr(&s[0],"scan=")+5));
 		} else if(strstr(&s[0],"scanId=")!=NULL) {
 			spec->setScanNum(atoi(strstr(&s[0],"scanId=")+7));
+		} else if(strstr(&s[0],"S")!=NULL) {
+			spec->setScanNum(atoi(strstr(&s[0],"S")+1));
 		} else {
 			spec->setScanNum(++m_scanSPECCount);
-			cout << "WARNING: Cannot extract scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanSPECCount << endl;
+			//Suppressing warning.
+			//cout << "WARNING: Cannot extract scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanSPECCount << endl;
 		}
 		m_peaksCount = atoi(getAttrValue("defaultArrayLength", attr));
 		spec->setPeaksCount(m_peaksCount);
@@ -361,6 +376,9 @@ bool SAXMzmlHandler::readHeader(int num){
 	if(m_vIndex[mid].scanNum==num) {
 		m_bHeaderOnly=true;
 		parseOffset(m_vIndex[mid].offset);
+		//force scan number; this was done for files where scan events are not numbered
+		if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+		spec->setScanIndex(mid+1); //set the index, which starts from 1, so offset by 1
 		m_bHeaderOnly=false;
 		posIndex=mid;
 		return true;
@@ -404,6 +422,9 @@ bool SAXMzmlHandler::readSpectrum(int num){
 	//for(unsigned int i=0;i<m_vIndex.size();i++){
 		if(m_vIndex[mid].scanNum==num) {
 			parseOffset(m_vIndex[mid].offset);
+			//force scan number; this was done for files where scan events are not numbered
+			if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+			spec->setScanIndex(mid+1); //set the index, which starts from 1, so offset by 1
 			posIndex=mid;
 			return true;
 		}

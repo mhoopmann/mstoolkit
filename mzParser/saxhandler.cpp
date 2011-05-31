@@ -136,12 +136,12 @@ The End
 #include <winsock2.h>   ///Pour windows
 #endif
 
-
-#ifdef GCC
-#include <netinet/in.h>  ////Pour linux
+#ifdef __MINGW__
+#include <stdio.h>
+#include <winsock2.h>   ///Pour windows
 #endif
 
-#ifdef GCC4
+#if defined(GCC) || defined(__LINUX__)
 #include <netinet/in.h>  ////Pour linux gcc v. 4
 #endif
 
