@@ -1,35 +1,36 @@
-#Set your paths here. Ignoring SQLite for now.
-#No need to compile zlib. However, run "make buildlib" in expat prior to running this.
-ZLIB_PATH = ../zlib
-MZPARSER_PATH = ./mzParser
-EXPAT_PATH = ../expat-2.0.1/lib
-#SQLITE_PATH = ../sqlite3
+#Set your paths here.
+ZLIB_PATH = ./src/zLib-1.2.5
+MZPARSER_PATH = ./src/mzParser
+EXPAT_PATH = ./src/expat-2.0.1
+SQLITE_PATH = ./src/sqlite-3.7.7.1
+MST_PATH = ./src/MSToolkit
 
-MZPARSER = mzp_base64.o BasicSpectrum.o mzParser.o RAMPface.o saxhandler.o saxmzmlhandler.o saxmzxmlhandler.o zran.o
+HEADER_PATH = ./include
+
+MZPARSER = mzp_base64.o BasicSpectrum.o mzParser.o RAMPface.o saxhandler.o saxmzmlhandler.o saxmzxmlhandler.o Czran.o
 EXPAT = xmlparse.o xmlrole.o xmltok.o
 ZLIB = adler32.o compress.o crc32.o deflate.o inffast.o inflate.o infback.o inftrees.o trees.o uncompr.o zutil.o
 MSTOOLKIT = Spectrum.o MSObject.o
-#READER = MSReader.o
+READER = MSReader.o
 READERLITE = MSReaderLite.o
-#MSMAT = msmat.o msmat_base.o msmat_header_parser.o LazyMatrix.o crawutils.o
-#SQLITE = sqlite3.o 
+SQLITE = sqlite3.o 
 
 CC = g++
 GCC = gcc
-#MSMAT_FLAGS=-DOLD_BOOST
 NOSQLITE = -D_NOSQLITE
 
-CFLAGS = -O3 -static -I. -I$(ZLIB_PATH) -I$(MZPARSER_PATH) -I$(EXPAT_PATH) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC
+CFLAGS = -O3 -static -I. -I$(HEADER_PATH) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H
 LIBS = -lm -lpthread -ldl
 
-all:  $(ZLIB) $(MZPARSER) $(MSTOOLKIT) $(READERLITE) 
-	ar rcs libmstoolkitlite.a $(ZLIB) $(EXPAT:xml%.o=$(EXPAT_PATH)/xml%.o) $(MZPARSER) $(MSTOOLKIT) $(READERLITE)
+all:  $(ZLIB) $(MZPARSER) $(MSTOOLKIT) $(READER) $(READERLITE) $(EXPAT) $(SQLITE)
+	ar rcs libmstoolkitlite.a $(ZLIB) $(EXPAT) $(MZPARSER) $(MSTOOLKIT) $(READERLITE)
+	ar rcs libmstoolkit.a $(ZLIB) $(EXPAT) $(MZPARSER) $(MSTOOLKIT) $(READER) $(SQLITE)
 #	$(CC) $(CFLAGS) MSTDemo.cpp -L. -lmstoolkitlite -o MSTDemo
 #	$(CC) $(CFLAGS) MSSingleScan.cpp -L. -lmstoolkitlite -o MSSingleScan
 #	$(CC) $(CFLAGS) MSConvertFile.cpp -L. -lmstoolkitlite -o MSConvertFile
 
 clean:
-	rm -f *.o libmstoolkitlite.a
+	rm -f *.o libmstoolkitlite.a libmstoolkit.a
 
 # zLib objects
 
@@ -90,51 +91,40 @@ saxmzmlhandler.o : $(MZPARSER_PATH)/saxmzmlhandler.cpp
 saxmzxmlhandler.o : $(MZPARSER_PATH)/saxmzxmlhandler.cpp
 	$(CC) $(CFLAGS) $(MZPARSER_PATH)/saxmzxmlhandler.cpp -c
 	
-zran.o : $(MZPARSER_PATH)/zran.cpp
-	$(CC) $(CFLAGS) $(MZPARSER_PATH)/zran.cpp -c
+Czran.o : $(MZPARSER_PATH)/Czran.cpp
+	$(CC) $(CFLAGS) $(MZPARSER_PATH)/Czran.cpp -c
 
 
+#expat objects
+xmlparse.o : $(EXPAT_PATH)/xmlparse.c
+	$(GCC) $(CFLAGS) $(EXPAT_PATH)/xmlparse.c -c
+xmlrole.o : $(EXPAT_PATH)/xmlrole.c
+	$(GCC) $(CFLAGS) $(EXPAT_PATH)/xmlrole.c -c
+xmltok.o : $(EXPAT_PATH)/xmltok.c
+	$(GCC) $(CFLAGS) $(EXPAT_PATH)/xmltok.c -c
 
 
 
 #SQLite object
-sqlite3.o : ./SQLite/sqlite3.c
-	$(GCC) $(CFLAGS) SQLite/sqlite3.c -c
+sqlite3.o : $(SQLITE_PATH)/sqlite3.c
+	$(GCC) $(CFLAGS) $(SQLITE_PATH)/sqlite3.c -c
 
 
 
 
 #MSToolkit objects
 
-Spectrum.o : Spectrum.cpp
-	$(CC) $(CFLAGS) Spectrum.cpp -c
+Spectrum.o : $(MST_PATH)/Spectrum.cpp
+	$(CC) $(CFLAGS) $(MST_PATH)/Spectrum.cpp -c
 
-MSReader.o : MSReader.cpp
-	$(CC) $(CFLAGS) MSReader.cpp -c
+MSReader.o : $(MST_PATH)/MSReader.cpp
+	$(CC) $(CFLAGS) $(MST_PATH)/MSReader.cpp -c
 
-MSReaderLite.o : MSReader.cpp
-	$(CC) $(CFLAGS) $(NOSQLITE) MSReader.cpp -c -o MSReaderLite.o
+MSReaderLite.o : $(MST_PATH)/MSReader.cpp
+	$(CC) $(CFLAGS) $(NOSQLITE) $(MST_PATH)/MSReader.cpp -c -o MSReaderLite.o
 
-MSObject.o : MSObject.cpp
-	$(CC) $(CFLAGS) MSObject.cpp -c
-
-
+MSObject.o : $(MST_PATH)/MSObject.cpp
+	$(CC) $(CFLAGS) $(MST_PATH)/MSObject.cpp -c
 
 
-#MSMAT objects
-
-msmat.o :  ./msmat/msmat.cpp ./msmat/msmat.H
-	$(CC) -o $@ $(CFLAGS) -c $<
-
-msmat_base.o : ./msmat/msmat_base.cpp ./msmat/msmat_base.H 
-	$(CC) -o $@ $(CFLAGS) -c $<
-
-msmat_header_parser.o : ./msmat/msmat_header_parser.cpp ./msmat/msmat_header_parser.H 
-	$(CC) -o $@ $(CFLAGS) -c $<
-
-LazyMatrix.o : ./msmat/LazyMatrix.cpp ./msmat/LazyMatrix.H 
-	$(CC) -o $@ $(CFLAGS) -c $<
-
-crawutils.o : ./msmat/crawutils.cpp ./msmat/crawutils.H 
-	$(CC) -o $@ $(CFLAGS) -c $<
 
