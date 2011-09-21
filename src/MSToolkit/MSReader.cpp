@@ -926,7 +926,7 @@ void MSReader::appendFile(Spectrum& s)
       else
 	{
 
-	  for(int i=0; i<chgs.size(); i++)
+	  for(unsigned int i=0; i<chgs.size(); i++)
 	    {
 	      chg=chgs.at(i);
 	      MH = s.getMZ()*chg -(chg-1)*1.008;
