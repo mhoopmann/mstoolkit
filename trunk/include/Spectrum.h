@@ -57,7 +57,7 @@ class Spectrum {
   MSSpectrumType  getFileType();
   float           getIonInjectionTime();
   double    			getMZ();
-  bool            getRawFilter(char*,int);
+  bool            getRawFilter(char*,int,bool bLock=false);
   float		    		getRTime();
   float           getRTimeApex();
   int	      			getScanNumber(bool second=false);
