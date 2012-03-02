@@ -2464,6 +2464,9 @@ MSSpectrumType MSReader::EvaluateFilter(long scan, double *precursormz, char* ch
 
     i=cFilter.find("Full ms");
     if( i > -1)	return MS1;
+
+		i=cFilter.find("Full lock ms");
+    if( i > -1)	return MS1;
    
     if(cFilter.find("SRM ms2")>-1) {
 			start = cFilter.find("SRM ms2",0);

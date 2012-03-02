@@ -310,12 +310,14 @@ double Spectrum::getMZ(){
   return mz;
 }
 
-bool Spectrum::getRawFilter(char* c, int sz){
+bool Spectrum::getRawFilter(char* c, int sz, bool bLock){
   if(sz<(int)strlen(rawFilter)) {
     cout << "Buffer too small to retrieve RAW filter. " << sizeof(c) << " " << strlen(rawFilter) << endl;
     return false;
   } else {
-    strcpy(c,rawFilter);
+		strcpy(c,rawFilter);
+		char* chp=strstr(c,"lock");
+		if(!bLock && chp!=NULL) strcpy(chp,chp+5);
     return true;
   }
 }
