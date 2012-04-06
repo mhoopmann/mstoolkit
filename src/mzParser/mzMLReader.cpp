@@ -9,57 +9,73 @@ int main(int argc, char* argv[]){
 		exit(0);
 	}
 
-	BasicSpectrum s;
-	MzParser sax(&s);
-	sax.load(argv[1]);
+	MSDataFile* msd;
+	ChromatogramListPtr sl;
+	ChromatogramPtr s2;
+	string st=argv[1];
+	vector<TimeIntensityPair> pairs;
 
-	/*
-	RAMPFILE* r;
-	RAMPREAL* peaks;
-	ramp_fileoffset_t rio;
-	ramp_fileoffset_t* ro;
-	int iLastScan;
-	
-	
-	r=rampOpenFile(argv[1]);
-	if(r==NULL) cout << "Error reading file!" << endl;
-	rio=getIndexOffset(r);
-	ro=readIndex(r,rio,&iLastScan);
+	msd = new MSDataFile(argv[1]);
+	if(!msd->run.chromatogramListPtr->get()) cout << "WTF" << endl;
 
-	cout << (long)rio << " " << iLastScan << endl;
-	cout << (long)ro[5] << endl;
-	peaks=readPeaks(r,ro[5]);
-
-	int n=0;
-	while(peaks[n]>-0.1){
-		//cout << peaks[n] << "\t" << peaks[n+1] << endl;
-		n+=2;
+	sl = msd->run.chromatogramListPtr;
+	for (int j=1; j<(int)sl->size(); j++) {
+		s2 = sl->chromatogram(j, true);
+		cout << j << "\t" << s2->id << endl;
+		s2->getTimeIntensityPairs(pairs);
+		for(int k=0;k<(int)pairs.size();k++) cout << pairs[k].time << " " << pairs[k].intensity << endl;
 	}
 
-	cout << "Here" << endl;
-	rampCloseFile(r);
-	free(ro);
-	cout << "Exiting" << endl;
-	exit(0);
-	*/
+	exit(1);
+
+	BasicSpectrum s;
+	BasicChromatogram chromat;
+	MzParser sax(&s,&chromat);
+	sax.load(argv[1]);
+
+	bool bLastWasSpectrum=true;
 	char c='a';
 	char str[256];
 	int num;
 	while(c!='x'){
 
-		cout << "\nCurrent spectrum:" << endl;
-		cout << "\tScan number: " << s.getScanNum() << endl;
-		cout << "\tRetention Time: " << s.getRTime() << endl;
-		cout << "\tMS Level: " << s.getMSLevel() << endl;
-		cout << "\tNumber of Peaks: " << s.size() << endl;
-		cout << "\nMenu:\n\t's' to grab a new spectrum\n\t'p' to show peaks\n\t'x' to exit" << endl;
+		if(bLastWasSpectrum){
+			cout << "\nCurrent spectrum:" << endl;
+			cout << "\tScan number: " << s.getScanNum() << endl;
+			cout << "\tRetention Time: " << s.getRTime() << endl;
+			cout << "\tMS Level: " << s.getMSLevel() << endl;
+			cout << "\tNumber of Peaks: " << s.size() << endl;
+		} else {
+			chromat.getIDString(str);
+			cout << "\nCurrent chromatogram:" << endl;
+			cout << "\tID: " << str << endl;
+			cout << "\tNumber of Peaks: " << chromat.size() << endl;
+		}
+		cout << "\nMenu:\n\t'c' to grab a new chromatogram\n\t's' to grab a new spectrum\n\t'p' to show peaks\n\t'x' to exit" << endl;
 		cout << "Please enter your choice: ";
 		cin >> c;
 
 		switch(c){
+			case 'c':
+				if(sax.highChromat()==0){
+					cout << "No chromatograms in the file." << endl;
+				} else {
+					cout << "Enter a number from 0 to " << sax.highChromat()-1 << ": ";
+					cin >> str;
+					num=(int)atoi(str);
+					if(num<0 || num>sax.highChromat()-1) {
+						cout << "Bad number! BOOOOO!" << endl;
+					} else {
+						if(!sax.readChromatogram(num)) cout << "Chromatogram number not in file." << endl;
+						else bLastWasSpectrum=false;
+					}
+				}
+				break;
 			case 'p':
-				for(unsigned int i=0;i<s.size();i++){
-					printf("%.6lf\t%.1lf\n",s[i].mz,s[i].intensity);
+				if(bLastWasSpectrum){
+					for(unsigned int i=0;i<s.size();i++) printf("%.6lf\t%.1lf\n",s[i].mz,s[i].intensity);
+				} else {
+					for(unsigned int i=0;i<chromat.size();i++) printf("%.6lf\t%.1lf\n",chromat[i].time,chromat[i].intensity);
 				}
 				break;
 			case 's':
@@ -70,6 +86,7 @@ int main(int argc, char* argv[]){
 					cout << "Bad number! BOOOOO!" << endl;
 				} else {
 					if(!sax.readSpectrum(num)) cout << "Spectrum number not in file." << endl;
+					else bLastWasSpectrum=true;
 				}
 				break;
 			case 'x':

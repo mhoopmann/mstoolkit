@@ -128,8 +128,6 @@ MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 The End 
 */
 
-//#include "stdafx.h"
-//#include "saxhandler.h"
 #include "mzParser.h"
 
 // Static callback handlers

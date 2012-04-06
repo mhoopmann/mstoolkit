@@ -4,6 +4,7 @@ MZPARSER_PATH = ./src/mzParser
 EXPAT_PATH = ./src/expat-2.0.1
 SQLITE_PATH = ./src/sqlite-3.7.7.1
 MST_PATH = ./src/MSToolkit
+HDF5_PATH = ./src/hdf5-1.8.8
 
 HEADER_PATH = ./include
 
@@ -14,6 +15,9 @@ MSTOOLKIT = Spectrum.o MSObject.o
 READER = MSReader.o
 READERLITE = MSReaderLite.o
 SQLITE = sqlite3.o 
+HDF5 = H5AbstractDs.o H5ArrayType.o H5AtomType.o H5Attribute.o H5CommonFG.o H5CompType.o H5DataSet.o H5DataSpace.o H5DataType.o \
+	H5DcreatProp.o H5DxferProp.o H5EnumType.o H5Exception.o H5FaccProp.o H5FcreatProp.o H5File.o H5FloatType.o H5Group.o H5IdComponent.o \
+	H5IntType.o H5Library.o H5Object.o H5PredType.o H5PropList.o H5StrType.o H5VarLenType.o
 
 CC = g++
 GCC = gcc
@@ -32,6 +36,10 @@ all:  $(ZLIB) $(MZPARSER) $(MSTOOLKIT) $(READER) $(READERLITE) $(EXPAT) $(SQLITE
 clean:
 	rm -f *.o libmstoolkitlite.a libmstoolkit.a
 
+# HDF5 objects
+H5%.o : H5%.cpp
+	(GCC) $(CFLAGS) $(HDF5_PATH)/$< -c
+	
 # zLib objects
 
 adler32.o : $(ZLIB_PATH)/adler32.c

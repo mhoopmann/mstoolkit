@@ -18,11 +18,9 @@
  * Artistic License granted 3/11/2005
  *******************************************************/
 
-//#include "stdafx.h"
-//#include "saxmzxmlhandler.h"
 #include "mzParser.h"
 
-SAXMzxmlHandler::SAXMzxmlHandler(BasicSpectrum* bs){
+mzpSAXMzxmlHandler::mzpSAXMzxmlHandler(BasicSpectrum* bs){
 	m_bInMsInstrument=false;
 	m_bInDataProcessing=false;
 	m_bInScan=false;
@@ -40,11 +38,11 @@ SAXMzxmlHandler::SAXMzxmlHandler(BasicSpectrum* bs){
 	indexOffset=-1;
 }
 
-SAXMzxmlHandler::~SAXMzxmlHandler(){
+mzpSAXMzxmlHandler::~mzpSAXMzxmlHandler(){
 	spec=NULL;
 }
 
-void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
+void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
 	string s;
 
@@ -90,7 +88,7 @@ void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
 		//It appears "network" means little-endian to mzXML...
 		if(!strcmp("network",getAttrValue("byteOrder", attr))) m_bNetworkData=false;
-		else m_bNetworkData=true;
+		else m_bNetworkData=false; //make it false anyway. //m_bNetworkData=true;
 		if(!strcmp("64",getAttrValue("precision", attr))) m_bLowPrecision=false;
 		else m_bLowPrecision=true;
 
@@ -164,7 +162,7 @@ void SAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 }
 
 
-void SAXMzxmlHandler::endElement(const XML_Char *el) {
+void mzpSAXMzxmlHandler::endElement(const XML_Char *el) {
 
 	if(isElement("dataProcessing", el))	{
 		m_bInDataProcessing=false;
@@ -209,11 +207,11 @@ void SAXMzxmlHandler::endElement(const XML_Char *el) {
 	}
 }
 
-void SAXMzxmlHandler::characters(const XML_Char *s, int len) {
+void mzpSAXMzxmlHandler::characters(const XML_Char *s, int len) {
 	m_strData.append(s, len);
 }
 
-bool SAXMzxmlHandler::readHeader(int num){
+bool mzpSAXMzxmlHandler::readHeader(int num){
 	spec->clear();
 
 	if(m_bNoIndex){
@@ -260,7 +258,7 @@ bool SAXMzxmlHandler::readHeader(int num){
 	return false;
 }
 
-bool SAXMzxmlHandler::readSpectrum(int num){
+bool mzpSAXMzxmlHandler::readSpectrum(int num){
 	spec->clear();
 
 	if(m_bNoIndex){
@@ -303,7 +301,7 @@ bool SAXMzxmlHandler::readSpectrum(int num){
 	return false;
 }
 
-void SAXMzxmlHandler::pushSpectrum(){
+void mzpSAXMzxmlHandler::pushSpectrum(){
 
 	specDP dp;
 	for(unsigned int i=0;i<vdM.size();i++)	{
@@ -314,7 +312,7 @@ void SAXMzxmlHandler::pushSpectrum(){
 	
 }
 
-void SAXMzxmlHandler::decompress32(){
+void mzpSAXMzxmlHandler::decompress32(){
 
 	vdM.clear();
 	vdI.clear();
@@ -330,11 +328,10 @@ void SAXMzxmlHandler::decompress32(){
 	int length;
 	const char* pData = m_strData.data();
 	size_t stringSize = m_strData.size();
-	size_t size = m_peaksCount * 2 * sizeof(uint32_t);
 	
 	//Decode base64
-	char* pDecoded = (char*) new char[size];
-	memset(pDecoded, 0, size);
+	char* pDecoded = (char*) new char[m_compressLen];
+	memset(pDecoded, 0, m_compressLen);
 	length = b64_decode_mio( (char*) pDecoded , (char*) pData, stringSize );
 	pData=NULL;
 
@@ -355,7 +352,7 @@ void SAXMzxmlHandler::decompress32(){
 	delete [] data;
 }
 
-void SAXMzxmlHandler::decompress64(){
+void mzpSAXMzxmlHandler::decompress64(){
 
 	vdM.clear();
 	vdI.clear();
@@ -371,11 +368,10 @@ void SAXMzxmlHandler::decompress64(){
 	int length;
 	const char* pData = m_strData.data();
 	size_t stringSize = m_strData.size();
-	size_t size = m_peaksCount * 2 * sizeof(uint64_t);
 	
 	//Decode base64
-	char* pDecoded = (char*) new char[size];
-	memset(pDecoded, 0, size);
+	char* pDecoded = (char*) new char[m_compressLen];
+	memset(pDecoded, 0, m_compressLen);
 	length = b64_decode_mio( (char*) pDecoded , (char*) pData, stringSize );
 	pData=NULL;
 
@@ -398,7 +394,7 @@ void SAXMzxmlHandler::decompress64(){
 }
 
 
-void SAXMzxmlHandler::decode32(){
+void mzpSAXMzxmlHandler::decode32(){
 // This code block was revised so that it packs floats correctly
 // on both 64 and 32 bit machines, by making use of the uint32_t
 // data type. -S. Wiley
@@ -442,7 +438,7 @@ void SAXMzxmlHandler::decode32(){
 	delete[] pDecoded;
 }
 
-void SAXMzxmlHandler::decode64(){
+void mzpSAXMzxmlHandler::decode64(){
 
 // This code block was revised so that it packs floats correctly
 // on both 64 and 32 bit machines, by making use of the uint32_t
@@ -487,7 +483,7 @@ void SAXMzxmlHandler::decode64(){
 	delete[] pDecoded;
 }
 
-unsigned long SAXMzxmlHandler::dtohl(uint32_t l, bool bNet) {
+unsigned long mzpSAXMzxmlHandler::dtohl(uint32_t l, bool bNet) {
 
 	// mzData allows little-endian data format, so...
 	// If it is not network (i.e. big-endian) data, reverse the byte
@@ -510,7 +506,7 @@ unsigned long SAXMzxmlHandler::dtohl(uint32_t l, bool bNet) {
 	return l;
 }
 
-uint64_t SAXMzxmlHandler::dtohl(uint64_t l, bool bNet) {
+uint64_t mzpSAXMzxmlHandler::dtohl(uint64_t l, bool bNet) {
 
 	// mzData allows little-endian data format, so...
 	// If it is not network (i.e. big-endian) data, reverse the byte
@@ -536,7 +532,7 @@ uint64_t SAXMzxmlHandler::dtohl(uint64_t l, bool bNet) {
 //Finding the index list offset is done without the xml parser
 //to speed things along. This can be problematic if the <indexListOffset>
 //tag is placed anywhere other than the end of the mzML file.
-f_off SAXMzxmlHandler::readIndexOffset() {
+f_off mzpSAXMzxmlHandler::readIndexOffset() {
 
 	char buffer[200];
 	char chunk[CHUNK];
@@ -558,7 +554,7 @@ f_off SAXMzxmlHandler::readIndexOffset() {
 	}
 
 	if(start==NULL || stop==NULL) {
-		cout << "No index list offset found. Reading this file will be painfully slow." << endl;
+		cerr << "No index list offset found. File will not be read." << endl;
 		return 0;
 	}
 
@@ -570,15 +566,16 @@ f_off SAXMzxmlHandler::readIndexOffset() {
 
 }
 
-bool SAXMzxmlHandler::load(const char* fileName){
+bool mzpSAXMzxmlHandler::load(const char* fileName){
 	if(!open(fileName)) return false;
 	indexOffset = readIndexOffset();
 	if(indexOffset==0){
 		m_bNoIndex=true;
+		return false;
 	} else {
 		m_bNoIndex=false;
 		if(!parseOffset(indexOffset)){
-			cout << "Cannot parse index. Make sure index offset is correct or rebuild index." << endl;
+			cerr << "Cannot parse index. Make sure index offset is correct or rebuild index." << endl;
 			return false;
 		}
 		posIndex=-1;
@@ -589,7 +586,7 @@ bool SAXMzxmlHandler::load(const char* fileName){
 }
 
 
-void SAXMzxmlHandler::stopParser(){
+void mzpSAXMzxmlHandler::stopParser(){
 	m_bStopParse=true;
 	XML_StopParser(m_parser,false);
 
@@ -607,28 +604,28 @@ void SAXMzxmlHandler::stopParser(){
 	m_bScanIndex=false;
 }
 
-int SAXMzxmlHandler::highScan() {
+int mzpSAXMzxmlHandler::highScan() {
 	if(m_vIndex.size()==0) return 0;
 	return m_vIndex[m_vIndex.size()-1].scanNum;
 }
 
-int SAXMzxmlHandler::lowScan() {
+int mzpSAXMzxmlHandler::lowScan() {
 	if(m_vIndex.size()==0) return 0;
 	return m_vIndex[0].scanNum;
 }
 
-f_off SAXMzxmlHandler::getIndexOffset(){
-	return indexOffset;
-}
-
-instrumentInfo SAXMzxmlHandler::getInstrument(){
-	return m_instrument;
-}
-
-vector<cindex>* SAXMzxmlHandler::getIndex(){
+vector<cindex>* mzpSAXMzxmlHandler::getIndex(){
 	return &m_vIndex;
 }
 
-int SAXMzxmlHandler::getPeaksCount(){
+f_off mzpSAXMzxmlHandler::getIndexOffset(){
+	return indexOffset;
+}
+
+instrumentInfo mzpSAXMzxmlHandler::getInstrument(){
+	return m_instrument;
+}
+
+int mzpSAXMzxmlHandler::getPeaksCount(){
 	return m_peaksCount;
 }

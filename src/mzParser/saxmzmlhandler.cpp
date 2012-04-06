@@ -33,11 +33,10 @@
  * Artistic License granted 3/11/2005
  *******************************************************/
 
-//#include "stdafx.h"
-//#include "saxmzmlhandler.h"
 #include "mzParser.h"
 
-SAXMzmlHandler::SAXMzmlHandler(BasicSpectrum* bs){
+mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs){
+	m_bChromatogramIndex = false;
 	m_bInmzArrayBinary = false;
 	m_bInintenArrayBinary = false;
 	m_bInRefGroup = false;
@@ -56,25 +55,57 @@ SAXMzmlHandler::SAXMzmlHandler(BasicSpectrum* bs){
 	m_scanPRECCount = 0;
 	m_scanSPECCount = 0;
 	m_scanIDXCount = 0;
+	chromat=NULL;
 }
 
-SAXMzmlHandler::~SAXMzmlHandler(){
+mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs, BasicChromatogram* cs){
+	m_bChromatogramIndex = false;
+	m_bInmzArrayBinary = false;
+	m_bInintenArrayBinary = false;
+	m_bInRefGroup = false;
+	m_bNetworkData = true;
+	m_bLowPrecision = false;
+	m_bInSpectrumList=false;
+	m_bInChromatogramList=false;
+	m_bInIndexedMzML=false;
+	m_bInIndexList=false;
+	m_bCompressedData=false;
+	m_bHeaderOnly=false;
+	m_bSpectrumIndex=false;
+	m_bNoIndex=true;
+	spec=bs;
+	chromat=cs;
+	indexOffset=-1;
+	m_scanPRECCount = 0;
+	m_scanSPECCount = 0;
+	m_scanIDXCount = 0;
+}
+
+mzpSAXMzmlHandler::~mzpSAXMzmlHandler(){
+	chromat=NULL;
 	spec=NULL;
 }
 
-void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
+void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
-	if (isElement("spectrumList",el)) {
-		m_bInSpectrumList=true;
+	if (isElement("binaryDataArray",el)){
+		string s=getAttrValue("encodedLength", attr);
+		m_compressLen=atoi(&s[0]);
 
 	} else if (isElement("binaryDataArrayList",el)) {
 		if(m_bHeaderOnly) stopParser();
+
+	} else if (isElement("chromatogram",el)) {
+		string s=getAttrValue("id", attr);
+		chromat->setIDString(&s[0]);
+		m_peaksCount = atoi(getAttrValue("defaultArrayLength", attr));
 
 	} else if (isElement("chromatogramList",el)) {
 		m_bInChromatogramList=true;
 
 	} else if(isElement("index",el) && m_bInIndexList){
 		if(!strcmp(getAttrValue("name", attr),"spectrum")) m_bSpectrumIndex=true;
+		if(!strcmp(getAttrValue("name", attr),"chromatogram")) m_bChromatogramIndex=true;
 
 	} else if (isElement("indexedmzML",el)) {
 		m_vIndex.clear();
@@ -82,6 +113,10 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
 	} else if(isElement("indexList",el)) {
 		m_bInIndexList=true;
+
+	} else if(isElement("offset",el) && m_bChromatogramIndex){
+		m_strData.clear();
+		curIndex.idRef=string(getAttrValue("idRef", attr));
 
 	} else if(isElement("offset",el) && m_bSpectrumIndex){
 		m_strData.clear();
@@ -133,6 +168,7 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
 	}	else if (isElement("spectrum", el)) {
 		string s=getAttrValue("id", attr);
+		spec->setIDString(&s[0]);
 		if(strstr(&s[0],"scan=")!=NULL)	{
 			spec->setScanNum(atoi(strstr(&s[0],"scan=")+5));
 		} else if(strstr(&s[0],"scanId=")!=NULL) {
@@ -185,13 +221,17 @@ void SAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 }
 
 
-void SAXMzmlHandler::endElement(const XML_Char *el) {
+void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
 
 	if(isElement("binary", el))	{
 		processData();
 		m_bInintenArrayBinary = false;
 		m_bInmzArrayBinary = false;
 		m_strData.clear();
+
+	} else if(isElement("chromatogram",el)) {
+		pushChromatogram();
+		stopParser();
 
 	} else if(isElement("chromatogramList",el)) {
 		m_bInChromatogramList=false;
@@ -201,10 +241,15 @@ void SAXMzmlHandler::endElement(const XML_Char *el) {
 
 	} else if(isElement("index",el)){
 		m_bSpectrumIndex=false;
+		m_bChromatogramIndex=false;
 
 	} else if(isElement("indexList",el)){
 		m_bInIndexList=false;
 		stopParser();
+
+	} else if(isElement("offset",el) && m_bChromatogramIndex){
+		curChromatIndex.offset=mzpatoi64(&m_strData[0]);
+		m_vChromatIndex.push_back(curChromatIndex);
 
 	} else if(isElement("offset",el) && m_bSpectrumIndex){
 		curIndex.offset=mzpatoi64(&m_strData[0]);
@@ -225,11 +270,11 @@ void SAXMzmlHandler::endElement(const XML_Char *el) {
 	}
 }
 
-void SAXMzmlHandler::characters(const XML_Char *s, int len) {
+void mzpSAXMzmlHandler::characters(const XML_Char *s, int len) {
 	m_strData.append(s, len);
 }
 
-void SAXMzmlHandler::processCVParam(const char* name, const char* accession, const char* value, const char* unitName, const char* unitAccession)
+void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, const char* value, const char* unitName, const char* unitAccession)
 {
 	if(!strcmp(name, "32-bit float") || !strcmp(accession,"MS:1000521"))	{
 		m_bLowPrecision = true;
@@ -258,7 +303,7 @@ void SAXMzmlHandler::processCVParam(const char* name, const char* accession, con
 
 	}	else if(!strcmp(name, "electron transfer dissociation") || !strcmp(accession,"MS:1000133"))	{
 		if(spec->getActivation()==CID) spec->setActivation(ETDSA);
-		else spec->setActivation(ETDSA);
+		else spec->setActivation(ETD);
 
 	}	else if(!strcmp(name, "FAIMS compensation voltage") || !strcmp(accession,"MS:1001581"))	{
 		spec->setCompensationVoltage(atof(value));
@@ -276,7 +321,7 @@ void SAXMzmlHandler::processCVParam(const char* name, const char* accession, con
 	} else if(!strcmp(name,"LTQ Velos") || !strcmp(accession,"MS:1000855")) {
 		m_instrument.model=name;
 
-	}	else if(!strcmp(name, "lowest observed m/z") || !strcmp(accession,"MS:1000528"))	{
+	} else if(!strcmp(name, "lowest observed m/z") || !strcmp(accession,"MS:1000528"))	{
 		spec->setLowMZ(atof(value));
 
 	} else	if( !strcmp(name, "MS1 spectrum") || !strcmp(accession,"MS:1000579") ){
@@ -314,8 +359,20 @@ void SAXMzmlHandler::processCVParam(const char* name, const char* accession, con
 			spec->setRTime((float)atof(value)/60.0f); //assume if not minutes, then seconds
 		}
 
+	} else if(!strcmp(name, "scan window lower limit") || !strcmp(accession,"MS:1000501"))    {
+		//TODO: should we also check the units???
+		spec->setLowMZ(atof(value));
+		
+	} else if(!strcmp(name, "scan window upper limit") || !strcmp(accession,"MS:1000500"))    {
+		//TODO: should we also check the units???
+	    spec->setHighMZ(atof(value));
+		
 	}	else if(!strcmp(name, "selected ion m/z") || !strcmp(accession,"MS:1000744"))	{
 		spec->setPrecursorMZ(atof(value));
+
+	}	else if(!strcmp(name, "time array") || !strcmp(accession,"MS:1000595"))	{
+		m_bInmzArrayBinary = true; //note that this uses the m/z designation, although it is a time series
+		m_bInintenArrayBinary = false;
 
 	}	else if(!strcmp(name, "total ion current") || !strcmp(accession,"MS:1000285"))	{
 		spec->setTotalIonCurrent(atof(value));
@@ -328,7 +385,7 @@ void SAXMzmlHandler::processCVParam(const char* name, const char* accession, con
 	}
 }
 
-void SAXMzmlHandler::processData()
+void mzpSAXMzmlHandler::processData()
 {
 	if(m_bInmzArrayBinary) {
 		if(m_bLowPrecision && !m_bCompressedData) decode32(vdM);
@@ -344,7 +401,25 @@ void SAXMzmlHandler::processData()
 	m_bCompressedData=false;
 }
 
-bool SAXMzmlHandler::readHeader(int num){
+bool mzpSAXMzmlHandler::readChromatogram(int num){
+	if(chromat==NULL) return false;
+	chromat->clear();
+
+	if(m_bNoIndex){
+		cout << "Currently only supporting indexed mzML" << endl;
+		return false;
+	}
+
+	//if no scan was requested, grab the next one
+	if(num<0) posChromatIndex++;
+	else posChromatIndex=num;
+	
+	if(posChromatIndex>=(int)m_vChromatIndex.size()) return false;
+	parseOffset(m_vChromatIndex[posChromatIndex].offset);
+	return true;
+}
+
+bool mzpSAXMzmlHandler::readHeader(int num){
 	spec->clear();
 
 	if(m_bNoIndex){
@@ -391,7 +466,7 @@ bool SAXMzmlHandler::readHeader(int num){
 
 }
 
-bool SAXMzmlHandler::readSpectrum(int num){
+bool mzpSAXMzmlHandler::readSpectrum(int num){
 	spec->clear();
 
 	if(m_bNoIndex){
@@ -436,7 +511,16 @@ bool SAXMzmlHandler::readSpectrum(int num){
 	return false;
 }
 
-void SAXMzmlHandler::pushSpectrum(){
+void mzpSAXMzmlHandler::pushChromatogram(){
+	TimeIntensityPair tip;
+	for(unsigned int i=0;i<vdM.size();i++)	{
+		tip.time = vdM[i];
+		tip.intensity = vdI[i];
+		chromat->addTIP(tip);
+	}
+}
+
+void mzpSAXMzmlHandler::pushSpectrum(){
 
 	specDP dp;
 	for(unsigned int i=0;i<vdM.size();i++)	{
@@ -447,7 +531,7 @@ void SAXMzmlHandler::pushSpectrum(){
 	
 }
 
-void SAXMzmlHandler::decompress32(vector<double>& d){
+void mzpSAXMzmlHandler::decompress32(vector<double>& d){
 
 	d.clear();
 	if(m_peaksCount < 1) return;
@@ -462,11 +546,10 @@ void SAXMzmlHandler::decompress32(vector<double>& d){
 	int length;
 	const char* pData = m_strData.data();
 	size_t stringSize = m_strData.size();
-	size_t size = m_peaksCount * 2 * sizeof(uint32_t);
 	
 	//Decode base64
-	char* pDecoded = (char*) new char[size];
-	memset(pDecoded, 0, size);
+	char* pDecoded = (char*) new char[m_compressLen];
+	memset(pDecoded, 0, m_compressLen);
 	length = b64_decode_mio( (char*) pDecoded , (char*) pData, stringSize );
 	pData=NULL;
 
@@ -484,7 +567,7 @@ void SAXMzmlHandler::decompress32(vector<double>& d){
 	delete [] data;
 }
 
-void SAXMzmlHandler::decompress64(vector<double>& d){
+void mzpSAXMzmlHandler::decompress64(vector<double>& d){
 
 	d.clear();
 	if(m_peaksCount < 1) return;
@@ -499,11 +582,10 @@ void SAXMzmlHandler::decompress64(vector<double>& d){
 	int length;
 	const char* pData = m_strData.data();
 	size_t stringSize = m_strData.size();
-	size_t size = m_peaksCount * 2 * sizeof(uint64_t);
 	
 	//Decode base64
-	char* pDecoded = (char*) new char[size];
-	memset(pDecoded, 0, size);
+	char* pDecoded = (char*) new char[m_compressLen];
+	memset(pDecoded, 0, m_compressLen);
 	length = b64_decode_mio( (char*) pDecoded , (char*) pData, stringSize );
 	pData=NULL;
 
@@ -522,7 +604,7 @@ void SAXMzmlHandler::decompress64(vector<double>& d){
 
 }
 
-void SAXMzmlHandler::decode32(vector<double>& d){
+void mzpSAXMzmlHandler::decode32(vector<double>& d){
 // This code block was revised so that it packs floats correctly
 // on both 64 and 32 bit machines, by making use of the uint32_t
 // data type. -S. Wiley
@@ -563,7 +645,7 @@ void SAXMzmlHandler::decode32(vector<double>& d){
 	delete[] pDecoded;
 }
 
-void SAXMzmlHandler::decode64(vector<double>& d){
+void mzpSAXMzmlHandler::decode64(vector<double>& d){
 
 // This code block was revised so that it packs floats correctly
 // on both 64 and 32 bit machines, by making use of the uint32_t
@@ -605,7 +687,7 @@ void SAXMzmlHandler::decode64(vector<double>& d){
 	delete[] pDecoded;
 }
 
-unsigned long SAXMzmlHandler::dtohl(uint32_t l, bool bNet) {
+unsigned long mzpSAXMzmlHandler::dtohl(uint32_t l, bool bNet) {
 
 	// mzData allows little-endian data format, so...
 	// If it is not network (i.e. big-endian) data, reverse the byte
@@ -628,7 +710,7 @@ unsigned long SAXMzmlHandler::dtohl(uint32_t l, bool bNet) {
 	return l;
 }
 
-uint64_t SAXMzmlHandler::dtohl(uint64_t l, bool bNet) {
+uint64_t mzpSAXMzmlHandler::dtohl(uint64_t l, bool bNet) {
 
 	// mzData allows little-endian data format, so...
 	// If it is not network (i.e. big-endian) data, reverse the byte
@@ -654,7 +736,7 @@ uint64_t SAXMzmlHandler::dtohl(uint64_t l, bool bNet) {
 //Finding the index list offset is done without the xml parser
 //to speed things along. This can be problematic if the <indexListOffset>
 //tag is placed anywhere other than the end of the mzML file.
-f_off SAXMzmlHandler::readIndexOffset() {
+f_off mzpSAXMzmlHandler::readIndexOffset() {
 
 	char buffer[200];
 	char chunk[CHUNK];
@@ -676,7 +758,7 @@ f_off SAXMzmlHandler::readIndexOffset() {
 	}
 
 	if(start==NULL || stop==NULL) {
-		cout << "No index list offset found. Reading this file will be painfully slow." << endl;
+		cerr << "No index list offset found. File will not be read." << endl;
 		return 0;
 	}
 
@@ -688,23 +770,30 @@ f_off SAXMzmlHandler::readIndexOffset() {
 
 }
 
-bool SAXMzmlHandler::load(const char* fileName){
+bool mzpSAXMzmlHandler::load(const char* fileName){
 	if(!open(fileName)) return false;
 	m_vInstrument.clear();
+	m_vIndex.clear();
+	m_vChromatIndex.clear();
 	parseOffset(0);
 	indexOffset = readIndexOffset();
 	if(indexOffset==0){
 		m_bNoIndex=true;
+		return false;
 	} else {
 		m_bNoIndex=false;
-		parseOffset(indexOffset);
+		if(!parseOffset(indexOffset)){
+			cerr << "Cannot parse index. Make sure index offset is correct or rebuild index." << endl;
+			return false;
+		}
 		posIndex=-1;
+		posChromatIndex=-1;
 	}
 	return true;
 }
 
 
-void SAXMzmlHandler::stopParser(){
+void mzpSAXMzmlHandler::stopParser(){
 	m_bStopParse=true;
 	XML_StopParser(m_parser,false);
 
@@ -721,28 +810,36 @@ void SAXMzmlHandler::stopParser(){
 	m_bSpectrumIndex=false;
 }
 
-int SAXMzmlHandler::highScan() {
+int mzpSAXMzmlHandler::highChromat() {
+	return m_vChromatIndex.size();
+}
+
+int mzpSAXMzmlHandler::highScan() {
 	if(m_vIndex.size()==0) return 0;
 	return m_vIndex[m_vIndex.size()-1].scanNum;
 }
 
-int SAXMzmlHandler::lowScan() {
+int mzpSAXMzmlHandler::lowScan() {
 	if(m_vIndex.size()==0) return 0;
 	return m_vIndex[0].scanNum;
 }
 
-f_off SAXMzmlHandler::getIndexOffset(){
+vector<cindex>* mzpSAXMzmlHandler::getChromatIndex(){
+	return &m_vChromatIndex;
+}
+
+f_off mzpSAXMzmlHandler::getIndexOffset(){
 	return indexOffset;
 }
 
-vector<cindex>* SAXMzmlHandler::getIndex(){
-	return &m_vIndex;
-}
-
-vector<instrumentInfo>* SAXMzmlHandler::getInstrument(){
+vector<instrumentInfo>* mzpSAXMzmlHandler::getInstrument(){
 	return &m_vInstrument;
 }
 
-int SAXMzmlHandler::getPeaksCount(){
+int mzpSAXMzmlHandler::getPeaksCount(){
 	return m_peaksCount;
+}
+
+vector<cindex>* mzpSAXMzmlHandler::getSpecIndex(){
+	return &m_vIndex;
 }
