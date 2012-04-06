@@ -1,18 +1,16 @@
 /*
-	mzParser - All-in-one header file. No need to link to multiple
-	libraries or header files. This distribution contains novel code
+	mzParser - This distribution contains novel code
 	and publicly available open source utilities. The novel code is
 	open source under the FreeBSD License, please see LICENSE file
 	for detailed information.
 
 	Copyright (C) 2011, Mike Hoopmann, Institute for Systems Biology
 	Version 1.0, January 4, 2011.
+	Version 1.1, March 14, 2012.
 
 	Additional code/libraries obtained from:
 
 	X!Tandem 2010.12.01: http://thegpm.org/
-	eXpat 2.0.1: http://expat.sourceforge.net/
-	zlib 1.2.5: http://www.zlib.net/
 
 	Copyright and license information for these free utilities are
 	provided in the LICENSE file. Note that many changes were made
@@ -26,14 +24,18 @@
 // Standard libraries
 //------------------------------------------------
 #include <vector>
+#include <map>
 #include <stdio.h>
 #include <iostream>
 #include <string>
 #include <string.h>
 #include "expat.h"
 #include "zlib.h"
+#include "hdf5.h"
+#include "H5Cpp.h"
 
 using namespace std;
+using namespace H5;
 
 //------------------------------------------------
 // MACROS
@@ -73,6 +75,8 @@ typedef __int64 f_off;
 #endif
 
 #if defined(GCC) || defined(__LINUX__)
+#include <stdint.h>
+#include <stdexcept>
 #ifndef _LARGEFILE_SOURCE
 #error "need to define _LARGEFILE_SOURCE!!"
 #endif    /* end _LARGEFILE_SOURCE */
@@ -110,6 +114,11 @@ typedef struct specDP{
 	double mz;
 	double intensity;
 } specDP;
+
+typedef struct TimeIntensityPair{
+	double time;
+	double intensity;
+} TimeIntensityPair;
 
 enum enumActivation {
 	none=0,
@@ -182,6 +191,7 @@ public:
 	void setCollisionEnergy(double d);
 	void setCompensationVoltage(double d);
 	void setHighMZ(double d);
+	void setIDString(char* str);
 	void setLowMZ(double d);
 	void setMSLevel(int level);
 	void setPeaksCount(int i);
@@ -203,6 +213,7 @@ public:
 	double				getCollisionEnergy();
 	double				getCompensationVoltage();
 	double				getHighMZ();
+	int						getIDString(char* str);
 	double				getLowMZ();
 	int						getMSLevel();
 	int						getPeaksCount();
@@ -227,6 +238,7 @@ protected:
 	double					collisionEnergy;
 	double					compensationVoltage;	//FAIMS compensation voltage
 	double					highMZ;
+	char						idString[128];
 	double					lowMZ;
 	int							msLevel;
 	int							peaksCount;
@@ -240,6 +252,36 @@ protected:
 	int							scanNum;							//identifying scan number
 	double					totalIonCurrent;
 	vector<specDP>	vData;								//Spectrum data points
+	   
+};
+
+class BasicChromatogram	{
+public:
+
+	//Constructors & Destructors
+	BasicChromatogram();
+	BasicChromatogram(const BasicChromatogram& c);
+	~BasicChromatogram();
+
+	//Operator overloads
+	BasicChromatogram& operator=(const BasicChromatogram& c);
+	TimeIntensityPair& operator[ ](const unsigned int index);
+
+	//Modifiers
+	void addTIP(TimeIntensityPair tip);
+	void clear();
+	void setIDString(char* str);
+
+	//Accessors
+	vector<TimeIntensityPair>&	getData();
+	int													getIDString(char* str);
+	unsigned int								size();
+
+protected:
+
+	//Data Members (protected)
+	char												idString[128];
+	vector<TimeIntensityPair>		vData;					//Chromatogram data points
 	   
 };
 
@@ -299,7 +341,7 @@ private:
 
 
 //------------------------------------------------
-// X!Tandem headers
+// X!Tandem borrowed headers
 //------------------------------------------------
 
 int b64_decode_mio (char *dest, char *src, size_t size);
@@ -351,10 +393,11 @@ protected:
 
 };
 
-class SAXMzmlHandler : public mzpSAXHandler {
+class mzpSAXMzmlHandler : public mzpSAXHandler {
 public:
-	SAXMzmlHandler(BasicSpectrum* bs);
-	~SAXMzmlHandler();
+	mzpSAXMzmlHandler(BasicSpectrum* bs);
+	mzpSAXMzmlHandler(BasicSpectrum* bs, BasicChromatogram* bc);
+	~mzpSAXMzmlHandler();
 
 	//  Overrides of SAXHandler functions
 	void startElement(const XML_Char *el, const XML_Char **attr);
@@ -362,13 +405,16 @@ public:
 	void characters(const XML_Char *s, int len);
 
 	//  SAXMzmlHandler public functions
-	vector<cindex>*					getIndex();
+	vector<cindex>*					getChromatIndex();
 	f_off										getIndexOffset();
 	vector<instrumentInfo>*	getInstrument();
 	int											getPeaksCount();
+	vector<cindex>*					getSpecIndex();
+	int											highChromat();
 	int											highScan();
 	bool										load(const char* fileName);
 	int											lowScan();
+	bool										readChromatogram(int num=-1);
 	bool										readHeader(int num=-1);
 	bool										readSpectrum(int num=-1);
 	
@@ -376,7 +422,7 @@ protected:
 
 private:
 
-	//  SAXMzmlHandler subclasses
+	//  mzpSAXMzmlHandler subclasses
 	class cvParam	{
 	public:
 		string refGroupName;
@@ -387,14 +433,15 @@ private:
 		string unitName;
 	};
 
-	//  SAXMzmlHandler private functions
+	//  mzpSAXMzmlHandler private functions
 	void	processData();
 	void	processCVParam(const char* name, const char* accession, const char* value, const char* unitName="0", const char* unitAccession="0");
+	void	pushChromatogram();
 	void	pushSpectrum();	// Load current data into pvSpec, may have to guess charge
 	f_off readIndexOffset();
 	void	stopParser();
 
-	//  SAXMzmlHandler Base64 conversion functions
+	//  mzpSAXMzmlHandler Base64 conversion functions
 	void decode32(vector<double>& d);
 	void decode64(vector<double>& d);
 	void decompress32(vector<double>& d);
@@ -402,7 +449,7 @@ private:
 	unsigned long dtohl(uint32_t l, bool bNet);
 	uint64_t dtohl(uint64_t l, bool bNet);
 
-	//  SAXMzmlHandler Flags indicating parser is inside a particular tag.
+	//  mzpSAXMzmlHandler Flags indicating parser is inside a particular tag.
 	bool m_bInIndexedMzML;
 	bool m_bInRefGroup;
 	bool m_bInmzArrayBinary;
@@ -411,7 +458,8 @@ private:
 	bool m_bInChromatogramList;
 	bool m_bInIndexList;
 
-	//  SAXMzmlHandler procedural flags.
+	//  mzpSAXMzmlHandler procedural flags.
+	bool m_bChromatogramIndex;
 	bool m_bCompressedData;
 	bool m_bHeaderOnly;
 	bool m_bLowPrecision;
@@ -419,14 +467,20 @@ private:
 	bool m_bNoIndex;
 	bool m_bSpectrumIndex;
 	
-	//  SAXMzmlHandler index data members.
+	//  mzpSAXMzmlHandler index data members.
 	vector<cindex>		m_vIndex;
 	cindex						curIndex;
 	int								posIndex;
 	f_off							indexOffset;
 
-	//  SAXMzmlHandler data members.
+	vector<cindex>		m_vChromatIndex;
+	cindex						curChromatIndex;
+	int								posChromatIndex;
+
+	//  mzpSAXMzmlHandler data members.
+	BasicChromatogram*			chromat;
 	string									m_ccurrentRefGroupName;
+	uLong										m_compressLen;					// For compressed data
 	instrumentInfo					m_instrument;
 	int											m_peaksCount;						// Count of peaks in spectrum
 	vector<cvParam>					m_refGroupCvParams;
@@ -443,17 +497,18 @@ private:
 
 };
 
-class SAXMzxmlHandler : public mzpSAXHandler {
+class mzpSAXMzxmlHandler : public mzpSAXHandler {
 public:
-	SAXMzxmlHandler(BasicSpectrum* bs);
-	~SAXMzxmlHandler();
+	mzpSAXMzxmlHandler(BasicSpectrum* bs);
+	mzpSAXMzxmlHandler(BasicSpectrum* bs, BasicChromatogram* bc);
+	~mzpSAXMzxmlHandler();
 
 	//  Overrides of SAXHandler functions
 	void startElement(const XML_Char *el, const XML_Char **attr);
 	void endElement(const XML_Char *el);
 	void characters(const XML_Char *s, int len);
 
-	//  SAXMzxmlHandler public functions
+	//  mzpSAXMzxmlHandler public functions
 	vector<cindex>*	getIndex();
 	f_off						getIndexOffset();
 	instrumentInfo	getInstrument();
@@ -461,6 +516,7 @@ public:
 	int							highScan();
 	bool						load(const char* fileName);
 	int							lowScan();
+	bool						readChromat(int num=-1);
 	bool						readHeader(int num=-1);
 	bool						readSpectrum(int num=-1);
 	
@@ -468,12 +524,12 @@ protected:
 
 private:
 
-	//  SAXMzxmlHandler private functions
+	//  mzpSAXMzxmlHandler private functions
 	void	pushSpectrum();	// Load current data into pvSpec, may have to guess charge
 	f_off readIndexOffset();
 	void	stopParser();
 
-	//  SAXMzxmlHandler Base64 conversion functions
+	//  mzpSAXMzxmlHandler Base64 conversion functions
 	void decode32();
 	void decode64();
 	void decompress32();
@@ -481,7 +537,7 @@ private:
 	unsigned long dtohl(uint32_t l, bool bNet);
 	uint64_t dtohl(uint64_t l, bool bNet);
 
-	//  SAXMzxmlHandler Flags indicating parser is inside a particular tag.
+	//  mzpSAXMzxmlHandler Flags indicating parser is inside a particular tag.
 	bool m_bInDataProcessing;
 	bool m_bInIndex;
 	bool m_bInMsInstrument;
@@ -490,7 +546,7 @@ private:
 	bool m_bInPrecursorMz;
 	bool m_bInScan;
 
-	//  SAXMzxmlHandler procedural flags.
+	//  mzpSAXMzxmlHandler procedural flags.
 	bool m_bCompressedData;
 	bool m_bHeaderOnly;
 	bool m_bLowPrecision;
@@ -498,13 +554,13 @@ private:
 	bool m_bNoIndex;
 	bool m_bScanIndex;
 	
-	//  SAXMzxmlHandler index data members.
+	//  mzpSAXMzxmlHandler index data members.
 	vector<cindex>		m_vIndex;
 	cindex						curIndex;
 	int								posIndex;
 	f_off							indexOffset;
 
-	//  SAXMzxmlHandler data members.
+	//  mzpSAXMzxmlHandler data members.
 	uLong										m_compressLen;	// For compressed data
 	instrumentInfo					m_instrument;
 	int											m_peaksCount;		// Count of peaks in spectrum
@@ -517,11 +573,562 @@ private:
 };
 
 //------------------------------------------------
+// mz5 Support
+//------------------------------------------------
+
+//mz5 constants
+#define CVL 128
+#define USRVL 128
+#define USRNL 256
+#define USRTL 64
+
+static unsigned short MZ5_FILE_MAJOR_VERSION = 0;
+static unsigned short MZ5_FILE_MINOR_VERSION = 9;
+
+//forward declarations
+class mzpMz5Config;
+
+enum MZ5DataSets {
+	ControlledVocabulary,
+	FileContent,
+	Contact,
+	CVReference,
+	CVParam,
+	UserParam,
+	RefParam,
+	ParamGroups,
+	SourceFiles,
+	Samples,
+	Software,
+	ScanSetting,
+	InstrumentConfiguration,
+	DataProcessing,
+	Run,
+	SpectrumMetaData,
+	SpectrumBinaryMetaData,
+	SpectrumIndex,
+	SpectrumMZ,
+	SpectrumIntensity,
+	ChromatogramMetaData,
+	ChromatogramBinaryMetaData,
+	ChromatogramIndex,
+	ChromatogramTime,
+	ChromatogramIntensity,
+	FileInformation
+};
+
+enum SpectrumLoadPolicy {
+	SLP_InitializeAllOnCreation,
+	SLP_InitializeAllOnFirstCall
+};
+
+enum ChromatogramLoadPolicy {
+	CLP_InitializeAllOnCreation,
+	CLP_InitializeAllOnFirstCall
+};
+
+struct FileInformationMZ5Data	{
+	unsigned short majorVersion;
+	unsigned short minorVersion;
+	unsigned short didFiltering;
+	unsigned short deltaMZ;
+	unsigned short translateInten;
+};
+	
+struct FileInformationMZ5: public FileInformationMZ5Data {
+	FileInformationMZ5();
+	FileInformationMZ5(const FileInformationMZ5&);
+	FileInformationMZ5(const mzpMz5Config&);
+	~FileInformationMZ5();
+	FileInformationMZ5& operator=(const FileInformationMZ5&);
+	void init(const unsigned short majorVersion, const unsigned short minorVersion, const unsigned didFiltering, const unsigned deltaMZ, const unsigned translateInten);
+	static CompType getType();
+};
+
+struct ContVocabMZ5Data	{
+	char* uri;
+	char* fullname;
+	char* id;
+	char* version;
+};
+
+struct ContVocabMZ5: public ContVocabMZ5Data {
+	ContVocabMZ5();
+	ContVocabMZ5(const string& uri, const string& fullname, const string& id, const string& version);
+	ContVocabMZ5(const char* uri, const char* fullname, const char* id, const char* version);
+	ContVocabMZ5(const ContVocabMZ5&);
+	ContVocabMZ5& operator=(const ContVocabMZ5&);
+	~ContVocabMZ5();
+	void init(const string&, const string&, const string&, const string&);
+	static CompType getType();
+};
+
+struct CVRefMZ5Data {
+	char* name;
+	char* prefix;
+	unsigned long accession;
+};
+
+struct CVRefMZ5: public CVRefMZ5Data {
+	CVRefMZ5();
+	CVRefMZ5(const CVRefMZ5&);
+	CVRefMZ5& operator=(const CVRefMZ5&);
+	~CVRefMZ5();
+	void init(const char* name, const char* prefix,	const unsigned long accession);
+	static CompType getType();
+};
+
+struct UserParamMZ5Data {
+	char name[USRNL];
+	char value[USRVL];
+	char type[USRTL];
+	unsigned long unitCVRefID;
+};
+
+struct UserParamMZ5: public UserParamMZ5Data {
+	UserParamMZ5();
+	UserParamMZ5(const UserParamMZ5&);
+	UserParamMZ5& operator=(const UserParamMZ5&);
+	~UserParamMZ5();
+	void init(const char* name, const char* value, const char* type, const unsigned long urefid);
+	static CompType getType();
+};
+
+struct CVParamMZ5Data {
+	char value[CVL];
+	unsigned long typeCVRefID;
+	unsigned long unitCVRefID;
+};
+
+struct CVParamMZ5: public CVParamMZ5Data {
+	CVParamMZ5();
+	CVParamMZ5(const CVParamMZ5&);
+	CVParamMZ5& operator=(const CVParamMZ5&);
+	~CVParamMZ5();
+	void init(const char* value, const unsigned long& cvrefid, const unsigned long& urefid);
+	static CompType getType();
+};
+
+struct RefMZ5Data {
+	unsigned long refID;
+};
+
+struct RefMZ5: public RefMZ5Data {
+	RefMZ5();
+	RefMZ5(const RefMZ5&);
+	RefMZ5& operator=(const RefMZ5&);
+	~RefMZ5();
+	static CompType getType();
+};
+
+struct RefListMZ5Data {
+	size_t len;
+	RefMZ5* list;
+};
+
+struct RefListMZ5: RefListMZ5Data {
+	RefListMZ5();
+	RefListMZ5(const RefListMZ5&);
+	RefListMZ5& operator=(const RefListMZ5&);
+	~RefListMZ5();
+	void init(const RefMZ5* list, const size_t len);
+	static VarLenType getType();
+};
+
+struct ParamListMZ5Data {
+	unsigned long cvParamStartID;
+	unsigned long cvParamEndID;
+	unsigned long userParamStartID;
+	unsigned long userParamEndID;
+	unsigned long refParamGroupStartID;
+	unsigned long refParamGroupEndID;
+};
+
+struct ParamListMZ5: ParamListMZ5Data {
+	ParamListMZ5();
+	ParamListMZ5(const ParamListMZ5&);
+	ParamListMZ5& operator=(const ParamListMZ5&);
+	~ParamListMZ5();
+	void init(const unsigned long cvstart, const unsigned long cvend, const unsigned long usrstart, const unsigned long usrend, const unsigned long refstart, const unsigned long refend);
+	static CompType getType();
+};
+
+struct ParamGroupMZ5 {
+	char* id;
+	ParamListMZ5 paramList;
+	ParamGroupMZ5();
+	ParamGroupMZ5(const ParamGroupMZ5&);
+	ParamGroupMZ5& operator=(const ParamGroupMZ5&);
+	~ParamGroupMZ5();
+	void init(const ParamListMZ5& params, const char* id);
+	static CompType getType();
+};
+
+struct SourceFileMZ5 {
+	char* id;
+	char* location;
+	char* name;
+	ParamListMZ5 paramList;
+	SourceFileMZ5();
+	SourceFileMZ5(const SourceFileMZ5&);
+	SourceFileMZ5& operator=(const SourceFileMZ5&);
+	~SourceFileMZ5();
+	void init(const ParamListMZ5& params, const char* id, const char* location, const char* name);
+	static CompType getType();
+};
+
+struct SampleMZ5 {
+	char* id;
+	char* name;
+	ParamListMZ5 paramList;
+	SampleMZ5();
+	SampleMZ5(const SampleMZ5&);
+	SampleMZ5& operator=(const SampleMZ5&);
+	~SampleMZ5();
+	void init(const ParamListMZ5& params, const char* id, const char* name);
+	static CompType getType();
+};
+
+struct SoftwareMZ5 {
+	char* id;
+	char* version;
+	ParamListMZ5 paramList;
+	SoftwareMZ5();
+	SoftwareMZ5(const SoftwareMZ5&);
+	SoftwareMZ5& operator=(const SoftwareMZ5&);
+	~SoftwareMZ5();
+	void init(const ParamListMZ5& params, const char* id, const char* version);
+	static CompType getType();
+};
+
+struct ParamListsMZ5 {
+	size_t len;
+	ParamListMZ5* lists;
+	ParamListsMZ5();
+	ParamListsMZ5(const ParamListsMZ5&);
+	ParamListsMZ5& operator=(const ParamListsMZ5&);
+	~ParamListsMZ5();
+	void init(const ParamListMZ5* list, const size_t len);
+	static VarLenType getType();
+};
+
+struct ScanSettingMZ5 {
+	char* id;
+	ParamListMZ5 paramList;
+	RefListMZ5 sourceFileIDs;
+	ParamListsMZ5 targetList;
+	ScanSettingMZ5();
+	ScanSettingMZ5(const ScanSettingMZ5&);
+	ScanSettingMZ5& operator=(const ScanSettingMZ5&);
+	~ScanSettingMZ5();
+	void init(const ParamListMZ5& params, const RefListMZ5& refSourceFiles, const ParamListsMZ5 targets, const char* id);
+	static CompType getType();
+};
+
+struct ComponentMZ5 {
+	ParamListMZ5 paramList;
+	unsigned long order;
+	ComponentMZ5();
+	ComponentMZ5(const ComponentMZ5&);
+	ComponentMZ5& operator=(const ComponentMZ5&);
+	~ComponentMZ5();
+	void init(const ParamListMZ5&, const unsigned long order);
+	static CompType getType();
+};
+
+struct ComponentListMZ5 {
+	size_t len;
+	ComponentMZ5* list;
+	ComponentListMZ5();
+	ComponentListMZ5(const ComponentListMZ5&);
+	ComponentListMZ5(const vector<ComponentMZ5>&);
+	ComponentListMZ5& operator=(const ComponentListMZ5&);
+	~ComponentListMZ5();
+	void init(const ComponentMZ5*, const size_t&);
+	static VarLenType getType();
+};
+
+struct ComponentsMZ5 {
+	ComponentListMZ5 sources;
+	ComponentListMZ5 analyzers;
+	ComponentListMZ5 detectors;
+	ComponentsMZ5();
+	ComponentsMZ5(const ComponentsMZ5&);
+	ComponentsMZ5& operator=(const ComponentsMZ5&);
+	~ComponentsMZ5();
+	void init(const ComponentListMZ5& sources, const ComponentListMZ5& analyzers,	const ComponentListMZ5& detectors);
+	static CompType getType();
+};
+
+struct InstrumentConfigurationMZ5 {
+	char* id;
+	ParamListMZ5 paramList;
+	ComponentsMZ5 components;
+	RefMZ5 scanSettingRefID;
+	RefMZ5 softwareRefID;
+	InstrumentConfigurationMZ5();
+	InstrumentConfigurationMZ5(const InstrumentConfigurationMZ5&);
+	InstrumentConfigurationMZ5& operator=(const InstrumentConfigurationMZ5&);
+	~InstrumentConfigurationMZ5();
+	void init(const ParamListMZ5& params, const ComponentsMZ5& components, const RefMZ5& refScanSetting, const RefMZ5& refSoftware, const char* id);
+	static CompType getType();
+};
+
+struct ProcessingMethodMZ5 {
+	ParamListMZ5 paramList;
+	RefMZ5 softwareRefID;
+	unsigned long order;
+	ProcessingMethodMZ5();
+	ProcessingMethodMZ5(const ProcessingMethodMZ5&);
+	ProcessingMethodMZ5& operator=(const ProcessingMethodMZ5&);
+	~ProcessingMethodMZ5();
+	void init(const ParamListMZ5& params, const RefMZ5& refSoftware, const unsigned long order);
+	static CompType getType();
+};
+
+struct ProcessingMethodListMZ5 {
+	size_t len;
+	ProcessingMethodMZ5* list;
+	ProcessingMethodListMZ5();
+	ProcessingMethodListMZ5(const ProcessingMethodListMZ5&);
+	ProcessingMethodListMZ5& operator=(const ProcessingMethodListMZ5&);
+	~ProcessingMethodListMZ5();
+	void init(const ProcessingMethodMZ5* list, const size_t len);
+	static VarLenType getType();
+};
+
+struct DataProcessingMZ5	{
+	char* id;
+	ProcessingMethodListMZ5 processingMethodList;
+	DataProcessingMZ5();
+	DataProcessingMZ5(const DataProcessingMZ5&);
+	DataProcessingMZ5& operator=(const DataProcessingMZ5&);
+	~DataProcessingMZ5();
+	void init(const ProcessingMethodListMZ5&, const char* id);
+	static CompType getType();
+};
+
+struct PrecursorMZ5	{
+	char* externalSpectrumId;
+	ParamListMZ5 activation;
+	ParamListMZ5 isolationWindow;
+	ParamListsMZ5 selectedIonList;
+	RefMZ5 spectrumRefID;
+	RefMZ5 sourceFileRefID;
+	PrecursorMZ5();
+	PrecursorMZ5(const PrecursorMZ5&);
+	PrecursorMZ5& operator=(const PrecursorMZ5&);
+	~PrecursorMZ5();
+	void init(const ParamListMZ5& activation,	const ParamListMZ5& isolationWindow, const ParamListsMZ5 selectedIonList, const RefMZ5& refSpectrum, const RefMZ5& refSourceFile, const char* externalSpectrumId);
+	static CompType getType();
+};
+
+struct PrecursorListMZ5 {
+	size_t len;
+	PrecursorMZ5* list;
+	PrecursorListMZ5();
+	PrecursorListMZ5(const PrecursorListMZ5&);
+	PrecursorListMZ5& operator=(const PrecursorListMZ5&);
+	~PrecursorListMZ5();
+	void init(const PrecursorMZ5*, const size_t len);
+	static VarLenType getType();
+};
+
+struct ChromatogramMZ5 {
+	char* id;
+	ParamListMZ5 paramList;
+	PrecursorMZ5 precursor;
+	ParamListMZ5 productIsolationWindow;
+	RefMZ5 dataProcessingRefID;
+	unsigned long index;
+	ChromatogramMZ5();
+	ChromatogramMZ5(const ChromatogramMZ5&);
+	ChromatogramMZ5& operator=(const ChromatogramMZ5&);
+	~ChromatogramMZ5();
+	void init(const ParamListMZ5& params, const PrecursorMZ5& precursor, const ParamListMZ5& productIsolationWindow, const RefMZ5& refDataProcessing, const unsigned long index, const char* id);
+	static CompType getType();
+};
+
+struct ScanMZ5 {
+	char* externalSpectrumID;
+	ParamListMZ5 paramList;
+	ParamListsMZ5 scanWindowList;
+	RefMZ5 instrumentConfigurationRefID;
+	RefMZ5 sourceFileRefID;
+	RefMZ5 spectrumRefID;
+	ScanMZ5();
+	ScanMZ5(const ScanMZ5&);
+	ScanMZ5& operator=(const ScanMZ5&);
+	~ScanMZ5();
+	void init(const ParamListMZ5& params, const ParamListsMZ5& scanWindowList, const RefMZ5& refInstrument, const RefMZ5& refSourceFile, const RefMZ5& refSpectrum, const char* externalSpectrumID);
+	static CompType getType();
+};
+
+struct ScanListMZ5 {
+	size_t len;
+	ScanMZ5* list;
+	ScanListMZ5();
+	ScanListMZ5(const ScanListMZ5&);
+	ScanListMZ5(const vector<ScanMZ5>&);
+	ScanListMZ5& operator=(const ScanListMZ5&);
+	~ScanListMZ5();
+	void init(const ScanMZ5* list, const size_t len);
+	static VarLenType getType();
+};
+
+struct ScansMZ5 {
+	ParamListMZ5 paramList;
+	ScanListMZ5 scanList;
+	ScansMZ5();
+	ScansMZ5(const ScansMZ5&);
+	ScansMZ5& operator=(const ScansMZ5&);
+	~ScansMZ5();
+	void init(const ParamListMZ5& params, const ScanListMZ5& scanList);
+	static CompType getType();
+};
+
+struct SpectrumMZ5 {
+	char* id;
+	char* spotID;
+	ParamListMZ5 paramList;
+	ScansMZ5 scanList;
+	PrecursorListMZ5 precursorList;
+	ParamListsMZ5 productList;
+	RefMZ5 dataProcessingRefID;
+	RefMZ5 sourceFileRefID;
+	unsigned int index;
+	SpectrumMZ5();
+	SpectrumMZ5(const SpectrumMZ5&);
+	SpectrumMZ5& operator=(const SpectrumMZ5&);
+	~SpectrumMZ5();
+	void init(const ParamListMZ5& params, const ScansMZ5& scanList, const PrecursorListMZ5& precursors, const ParamListsMZ5& productIonIsolationWindows, const RefMZ5& refDataProcessing, const RefMZ5& refSourceFile, const unsigned long index, const char* id, const char* spotID);
+	static CompType getType();
+};
+
+struct RunMZ5 {
+	char* id;
+	char* startTimeStamp;
+	char* fid;
+	char* facc;
+	ParamListMZ5 paramList;
+	RefMZ5 defaultSpectrumDataProcessingRefID;
+	RefMZ5 defaultChromatogramDataProcessingRefID;
+	RefMZ5 defaultInstrumentConfigurationRefID;
+	RefMZ5 sourceFileRefID;
+	RefMZ5 sampleRefID;
+	RunMZ5();
+	RunMZ5(const RunMZ5&);
+	RunMZ5& operator=(const RunMZ5&);
+	~RunMZ5();
+	void init(const ParamListMZ5& params, const RefMZ5& refSpectrumDP, const RefMZ5& refChromatogramDP, const RefMZ5& refDefaultInstrument, const RefMZ5& refSourceFile, const RefMZ5& refSample, const char* id, const char* startTimeStamp, const char* fid, const char* facc);
+	static CompType getType();
+};
+
+struct BinaryDataMZ5 {
+	ParamListMZ5 xParamList;
+	ParamListMZ5 yParamList;
+	RefMZ5 xDataProcessingRefID;
+	RefMZ5 yDataProcessingRefID;
+	BinaryDataMZ5();
+	BinaryDataMZ5(const BinaryDataMZ5&);
+	BinaryDataMZ5& operator=(const BinaryDataMZ5&);
+	~BinaryDataMZ5();
+	void init(const ParamListMZ5& xParams, const ParamListMZ5& yParams, const RefMZ5& refDPx, const RefMZ5& refDPy);
+	static CompType getType();
+};
+
+class mzpMz5Config{
+public:
+	mzpMz5Config();
+	~mzpMz5Config();
+
+	static bool PRINT_HDF5_EXCEPTIONS;
+
+	const bool			doFiltering() const;
+	const bool			doTranslating() const;
+	const size_t		getBufferInB();
+	const DataType& getDataTypeFor(const MZ5DataSets v);
+	const string&		getNameFor(const MZ5DataSets v);
+	const size_t&		getRdccSlots();
+	MZ5DataSets			getVariableFor(const string& name);
+	void						setFiltering(const bool flag) const;
+	void						setTranslating(const bool flag) const;
+
+protected:
+
+private:
+
+	size_t											bufferInMB_;
+	ChromatogramLoadPolicy			chromatogramLoadPolicy_;
+	int													deflateLvl_;
+	mutable bool								doFiltering_;
+	mutable bool								doTranslating_;
+	size_t											rdccSolts_;
+	SpectrumLoadPolicy					spectrumLoadPolicy_;
+	map<MZ5DataSets, size_t>		variableBufferSizes_;
+	map<MZ5DataSets, hsize_t>		variableChunkSizes_;
+	map<MZ5DataSets, string>		variableNames_;
+	map<MZ5DataSets, DataType>	variableTypes_;
+	map<string, MZ5DataSets>		variableVariables_; //Really? variableVariables? Was this written by Donald Rumsfeld?
+
+	void init(const bool filter, const bool deltamz, const bool translateinten);
+
+};
+
+class cMz5Index : public cindex	{
+public:
+	unsigned long cvStart;
+	unsigned long cvLen;
+};
+
+class mzpMz5Handler{
+public:
+	mzpMz5Handler(mzpMz5Config* c, BasicSpectrum* s);
+	mzpMz5Handler(mzpMz5Config* c, BasicSpectrum* s, BasicChromatogram* bc);
+	~mzpMz5Handler();
+
+	vector<cMz5Index>*							getChromatIndex();
+	void														getData(vector<double>& data, const MZ5DataSets v, const hsize_t start, const hsize_t end);
+	const map<MZ5DataSets, size_t>&	getFields();
+	vector<cMz5Index>*							getSpecIndex();
+	int															highChromat();
+	int															highScan();
+	int															lowScan();
+	void														processCVParams(unsigned long index);
+	bool														readChromatogram(int num=-1);
+	void*														readDataSet(const MZ5DataSets v, size_t& dsend, void* ptr);
+	bool														readFile(const string filename);
+	bool														readHeader(int num=-1);
+	bool														readSpectrum(int num=-1);
+
+protected:
+
+private:
+
+	//  mzpMz5Handler index data members.
+	cMz5Index					curIndex;
+	f_off							indexOffset;
+	int								m_scanIDXCount;
+	vector<cMz5Index>	m_vIndex;
+	int								posIndex;
+
+	cMz5Index					curChromatIndex;
+	vector<cMz5Index>	m_vChromatIndex;
+	int								posChromatIndex;
+
+	map<MZ5DataSets, DataSet> bufferMap_;
+	BasicChromatogram*				chromat;
+	bool											closed_;
+	mzpMz5Config*							config_;
+	vector<CVParamMZ5>				cvParams_;
+	map<MZ5DataSets, size_t>	fields_;
+	H5File*										file_;
+	BasicSpectrum*						spec;
+};
+
+//------------------------------------------------
 // RAMP API
 //------------------------------------------------
-#ifndef _RAMPFACE_H
-#define _RAMPFACE_H
-
 #define INSTRUMENT_LENGTH 2000
 #define SCANTYPE_LENGTH 32
 #define CHARGEARRAY_LENGTH 128
@@ -531,14 +1138,18 @@ typedef f_off ramp_fileoffset_t;
 
 typedef struct RAMPFILE{
 	BasicSpectrum* bs;
-	SAXMzmlHandler* mzML;
-	SAXMzxmlHandler* mzXML;
+	mzpSAXMzmlHandler* mzML;
+	mzpSAXMzxmlHandler* mzXML;
+	mzpMz5Config* mz5Config;
+	mzpMz5Handler* mz5;
 	int fileType;
 	int bIsMzData;
 	RAMPFILE(){
 		bs=NULL;
 		mzML=NULL;
 		mzXML=NULL;
+		mz5=NULL;
+		mz5Config=NULL;
 		fileType=0;
 		bIsMzData=0;
 	}
@@ -546,10 +1157,13 @@ typedef struct RAMPFILE{
 		if(bs!=NULL) delete bs;
 		if(mzML!=NULL) delete mzML;
 		if(mzXML!=NULL) delete mzXML;
+		if(mz5!=NULL) delete mz5;
+		if(mz5Config!=NULL) delete mz5Config;
 		bs=NULL;
 		mzML=NULL;
 		mzXML=NULL;
-		
+		mz5=NULL;
+		mz5Config=NULL;
 	}
 } RAMPFILE;
 
@@ -585,6 +1199,7 @@ struct ScanHeaderStruct {
    char								activationMethod[SCANTYPE_LENGTH];
    char								possibleCharges[SCANTYPE_LENGTH];
    char								scanType[SCANTYPE_LENGTH];
+   char								idString[CHARGEARRAY_LENGTH];
    
    bool								possibleChargesArray[CHARGEARRAY_LENGTH]; /* NOTE: does NOT include "precursorCharge" information; only from "possibleCharges" */
    
@@ -657,7 +1272,71 @@ double							readEndMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void								setRampOption(long option);
 
 
-#endif
+//------------------------------------------------
+// PWiz API
+//------------------------------------------------
+class Chromatogram{
+public:
+	Chromatogram();
+	~Chromatogram();
+
+	BasicChromatogram*	bc;
+	string							id;
+
+	void getTimeIntensityPairs(vector<TimeIntensityPair>& v);
+};
+typedef class Chromatogram* ChromatogramPtr;
+
+class ChromatogramList{
+public:
+	ChromatogramList();
+	ChromatogramList(mzpSAXMzmlHandler* ml, mzpMz5Handler* m5, BasicChromatogram* bc);
+	~ChromatogramList();
+
+	ChromatogramPtr		chromatogram(int index, bool binaryData = false);
+	bool							get();
+	unsigned int			size();
+
+	vector<cindex>*			vChromatIndex;
+	vector<cMz5Index>*	vMz5Index;
+
+private:
+	mzpSAXMzmlHandler*	mzML;
+	mzpMz5Handler*			mz5;
+	ChromatogramPtr			chromat;
+};
+typedef class ChromatogramList* ChromatogramListPtr;
+
+class PwizRun{
+public:
+	PwizRun();
+	PwizRun(mzpSAXMzmlHandler* ml, mzpMz5Handler* m5, BasicChromatogram* b);
+	~PwizRun();
+
+	ChromatogramListPtr chromatogramListPtr;
+
+	void set(mzpSAXMzmlHandler* ml, mzpMz5Handler* m5, BasicChromatogram* b);
+
+private:
+	mzpSAXMzmlHandler*	mzML;
+	mzpMz5Handler*			mz5;
+	BasicChromatogram*	bc;
+};
+
+class MSDataFile{
+public:
+	MSDataFile(string s);
+	~MSDataFile();
+
+	PwizRun run;
+
+private:
+	BasicSpectrum*			bs;
+	BasicChromatogram*	bc;
+	mzpSAXMzmlHandler*	mzML;
+	mzpMz5Config*				mz5Config;
+	mzpMz5Handler*			mz5;
+};
 
 //------------------------------------------------
 // MzParser Interface
@@ -666,26 +1345,32 @@ class MzParser {
 public:
 	//Constructors and Destructors
 	MzParser(BasicSpectrum* s);
+	MzParser(BasicSpectrum* s, BasicChromatogram* c);
 	~MzParser();
 
 	//User functions
+	int		highChromat();
 	int		highScan();
 	bool	load(char* fname);
 	int		lowScan();
-	bool	readSpectrum(int num=0);
-	bool  readSpectrumHeader(int num=0);
+	bool	readChromatogram(int num=-1);
+	bool	readSpectrum(int num=-1);
+	bool  readSpectrumHeader(int num=-1);
 
 protected:
-	SAXMzmlHandler* mzML;
-	SAXMzxmlHandler* mzXML;
+	mzpSAXMzmlHandler*		mzML;
+	mzpSAXMzxmlHandler*		mzXML;
+	mzpMz5Handler*				mz5;
+	mzpMz5Config*					mz5Config;
 
 private:
 	//private functions
 	int checkFileType(char* fname);
 
 	//private data members
-	int							fileType;
-	BasicSpectrum*	spec;
+	BasicChromatogram*	chromat;
+	int									fileType;
+	BasicSpectrum*			spec;
 
 };
 

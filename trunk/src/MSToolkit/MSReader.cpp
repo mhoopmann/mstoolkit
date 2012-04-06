@@ -101,11 +101,11 @@ int MSReader::openFile(const char *c,bool text){
       fread(&iFType,4,1,fileIn);
       fread(&iVersion,4,1,fileIn);
 			fread(&header,sizeof(MSHeader),1,fileIn);
-		};
+		}
 
 	  return 0;
-  };
-};
+  }
+}
 
 MSSpectrumType MSReader::getFileType(){
   return fileType;

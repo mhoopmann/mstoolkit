@@ -1,11 +1,10 @@
 /*	
 	BasicSpectrum.cpp
-	Copyright (C) 2010-2011, Mike Hoopmann
+	Copyright (C) 2010-2012, Mike Hoopmann
 	Institute for Systems Biology
-	Version 1.0, Dec. 29, 2010
+	Version 1.1, Mar. 28, 2012
 */
 
-//#include "BasicSpectrum.h"
 #include "mzParser.h"
 
 
@@ -31,6 +30,7 @@ BasicSpectrum::BasicSpectrum() {
 	scanIndex=0;
 	scanNum=-1;
 	totalIonCurrent=0.0;
+	idString[0]='\0';
 	vData.clear();
 }
 BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
@@ -54,6 +54,7 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
 	scanIndex=s.scanIndex;
 	scanNum=s.scanNum;
 	totalIonCurrent=s.totalIonCurrent;
+	strcpy(idString,s.idString);
 }
 BasicSpectrum::~BasicSpectrum() { }
 
@@ -82,6 +83,7 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
 		scanIndex=s.scanIndex;
 		scanNum=s.scanNum;
 		totalIonCurrent=s.totalIonCurrent;
+		strcpy(idString,s.idString);
 	}
 	return *this;
 }
@@ -121,6 +123,7 @@ void BasicSpectrum::setCentroid(bool b){ centroid=b;}
 void BasicSpectrum::setCollisionEnergy(double d){ collisionEnergy=d;}
 void BasicSpectrum::setCompensationVoltage(double d){ compensationVoltage=d; }
 void BasicSpectrum::setHighMZ(double d){ highMZ=d;}
+void BasicSpectrum::setIDString(char* str) { strcpy(idString,str); } //WARNING: no boundary check
 void BasicSpectrum::setLowMZ(double d){ lowMZ=d;}
 void BasicSpectrum::setMSLevel(int level){ msLevel=level;}
 void BasicSpectrum::setPeaksCount(int i){ peaksCount=i;}
@@ -144,6 +147,10 @@ bool BasicSpectrum::getCentroid(){ return centroid;}
 double BasicSpectrum::getCollisionEnergy(){ return collisionEnergy;}
 double BasicSpectrum::getCompensationVoltage(){ return compensationVoltage;}
 double BasicSpectrum::getHighMZ(){ return highMZ;}
+int BasicSpectrum::getIDString(char* str) { 
+	strcpy(str,idString);
+	return strlen(str);
+}
 double BasicSpectrum::getLowMZ(){ return lowMZ;}
 int BasicSpectrum::getMSLevel(){ return msLevel;}
 int BasicSpectrum::getPeaksCount(){ return peaksCount;}

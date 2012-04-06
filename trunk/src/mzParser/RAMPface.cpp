@@ -1,4 +1,3 @@
-//#include "RAMPface.h"
 #include "mzParser.h"
 
 int checkFileType(const char* fname){
@@ -23,6 +22,7 @@ int checkFileType(const char* fname){
 
 	if(!strcmp(ext,"MZML")) return 1;
 	if(!strcmp(ext,"MZXML")) return 2;
+	if(!strcmp(ext,"MZ5")) return 5;
 	if(!strcmp(ext,"GZ")) {
 		if(!strcmp(preExt,"MZML")) return 3;
 		if(!strcmp(preExt,"MZXML")) return 4;
@@ -82,6 +82,7 @@ InstrumentStruct* getInstrumentStruct(RAMPFILE *pFI){
 			if(pFI->mzXML->getInstrument().model.size()>1) strcpy(r->model,&pFI->mzXML->getInstrument().model[0]);
 			break;
 
+		case 5:
 		default:
 			break;
 	}
@@ -134,7 +135,7 @@ char* rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const 
 
 	//Try opening the base name first, then with directory:
 	for(int j=0;j<2;j++){
-		for(int i=0;i<4;i++){
+		for(int i=0;i<5;i++){
 
 			if(j==1){
 				strcpy(buf,dir_in);
@@ -149,6 +150,7 @@ char* rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const 
 				case 1:	strcat(buf,".mzXML"); break;
 				case 2:	strcat(buf,".mzML.gz"); break;
 				case 3:	strcat(buf,".mzXML.gz");	break;
+				case 4: strcat(buf,".mz5"); break;
 				default: break;
 			}
 			
@@ -176,6 +178,7 @@ const char** rampListSupportedFileTypes(){
 		data_Ext.push_back(".mzML");
 		data_Ext.push_back(".mzXML.gz");
 		data_Ext.push_back(".mzML.gz");
+		data_Ext.push_back(".mz5");
 		data_Ext.push_back(NULL); // end of list
 	}
 	return &(data_Ext[0]);
@@ -192,7 +195,7 @@ RAMPFILE* rampOpenFile(const char* filename){
 		switch(i){
 			case 1: //mzML
 			case 3:
-				r->mzML=new SAXMzmlHandler(r->bs);
+				r->mzML=new mzpSAXMzmlHandler(r->bs);
 				if(i==3)r->mzML->setGZCompression(true);
 				else r->mzML->setGZCompression(false);
 				if(!r->mzML->load(filename)){
@@ -203,10 +206,19 @@ RAMPFILE* rampOpenFile(const char* filename){
 				}
 			case 2: //mzXML
 			case 4:
-				r->mzXML=new SAXMzxmlHandler(r->bs);
+				r->mzXML=new mzpSAXMzxmlHandler(r->bs);
 				if(i==4) r->mzXML->setGZCompression(true);
 				else r->mzXML->setGZCompression(false);
 				if(!r->mzXML->load(filename)){
+					delete r;
+					return NULL;
+				} else {
+					return r;
+				}
+			case 5: //mz5
+				r->mz5Config = new mzpMz5Config();
+				r->mz5=new mzpMz5Handler(r->mz5Config, r->bs);
+				if(!r->mz5->readFile(filename)){
 					delete r;
 					return NULL;
 				} else {
@@ -249,13 +261,14 @@ char* rampValidFileType(const char *buf){
 
 	if(!strcmp(ext,".MZML")) return (char*) result;
 	if(!strcmp(ext,".MZXML")) return (char*) result;
+	if(!strcmp(ext,".MZ5")) return (char*) result;
 	if(!strcmp(ext,".GZ")) {
 		if(!strcmp(preExt,".MZML.GZ")) return (char*) result2;
 		if(!strcmp(preExt,".MZXML.GZ")) return (char*) result2;
 		cout << "Unknown .gz file. Only .mzML.gz and .mzXML.gz allowed. No file loaded." << endl;
 	}
 	if(!strcmp(ext,".MZDATA")) {
-		cout << ".mzData is not supported. Please convert to mzXML or mzML." << endl;
+		cout << ".mzData is not supported. Please convert to mz5, mzXML, or mzML." << endl;
 	}
 	result=NULL;
 	return (char*) result;
@@ -266,6 +279,7 @@ char* rampValidFileType(const char *buf){
 void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader){
 
 	vector<cindex>* v;
+	vector<cMz5Index>* v2;
 	unsigned int i;
 
 	//memset(scanHeader,0,sizeof(struct ScanHeaderStruct));
@@ -274,11 +288,18 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->basePeakIntensity=0.0;
 	scanHeader->basePeakMZ=0.0;
 	scanHeader->collisionEnergy=0.0;
+	scanHeader->compensationVoltage=0.0;
 	scanHeader->filePosition=0;
 	scanHeader->highMZ=0.0;
+	scanHeader->idString[0]='\0';
 	scanHeader->ionisationEnergy=0.0;
 	scanHeader->lowMZ=0.0;
+	scanHeader->mergedScan=0;
+	scanHeader->mergedResultScanNum=0;
+	scanHeader->mergedResultStartScanNum=0;
+	scanHeader->mergedResultEndScanNum=0;
 	scanHeader->msLevel=0;
+	scanHeader->numPossibleCharges=0;
 	scanHeader->precursorCharge=0;
 	scanHeader->precursorIntensity=0.0;
 	scanHeader->precursorMZ=0.0;
@@ -293,7 +314,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	switch(pFI->fileType){
 		case 1:
 		case 3:
-			v=pFI->mzML->getIndex();
+			v=pFI->mzML->getSpecIndex();
 			for(i=0;i<v->size();i++) {
 				if(v->at(i).offset==(f_off)lScanIndex) {
 					if(!pFI->mzML->readHeader(v->at(i).scanNum)){
@@ -317,12 +338,26 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 				}
 			}
 			break;
+		case 5:
+			v2=pFI->mz5->getSpecIndex();
+			for(i=0;i<v2->size();i++) {
+				if(v2->at(i).offset==(f_off)lScanIndex) {
+					if(!pFI->mz5->readHeader(v2->at(i).scanNum)){
+						v2=NULL;
+						return;
+					}
+					break;
+				}
+			}
+			break;
 		default:
 			pFI->bs->clear();
 			v=NULL;
+			v2=NULL;
 			return;
 	}
 	v=NULL;
+	v2=NULL;
 
 	scanHeader->acquisitionNum=pFI->bs->getScanNum();
 	scanHeader->basePeakIntensity=pFI->bs->getBasePeakIntensity();
@@ -341,6 +376,8 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->totIonCurrent=pFI->bs->getTotalIonCurrent();
 	scanHeader->scanIndex=pFI->bs->getScanIndex();
 	scanHeader->seqNum=pFI->bs->getScanIndex();
+	
+	pFI->bs->getIDString(scanHeader->idString);
 
 	switch(pFI->bs->getActivation()){
 		case 1: strcpy(scanHeader->activationMethod,"CID"); break;
@@ -357,12 +394,13 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 //if the scan number does not exist.
 ramp_fileoffset_t* readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan){
 	vector<cindex>* v;
+	vector<cMz5Index>* v2;
 	ramp_fileoffset_t* rIndex;
 	unsigned int i;
 	switch(pFI->fileType){
 		case 1:
 		case 3:
-			v=pFI->mzML->getIndex();
+			v=pFI->mzML->getSpecIndex();
 			rIndex = (ramp_fileoffset_t *) malloc((pFI->mzML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			memset(rIndex,-1,(pFI->mzML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			for(i=0;i<v->size();i++) rIndex[v->at(i).scanNum]=(ramp_fileoffset_t)v->at(i).offset;
@@ -372,13 +410,19 @@ ramp_fileoffset_t* readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *
 		case 2:
 		case 4:
 			v=pFI->mzXML->getIndex();
-			//cout << v->size() << endl;
-			//cout << pFI->mzXML->highScan() << endl;
 			rIndex = (ramp_fileoffset_t *) malloc((pFI->mzXML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			memset(rIndex,-1,(pFI->mzXML->highScan()+2)*sizeof(ramp_fileoffset_t));
 			for(i=0;i<v->size();i++) rIndex[v->at(i).scanNum]=(ramp_fileoffset_t)v->at(i).offset;
 			rIndex[v->at(i-1).scanNum+1]=-1;
 			*iLastScan=v->at(i-1).scanNum;
+			break;
+		case 5:
+			v2=pFI->mz5->getSpecIndex();
+			rIndex = (ramp_fileoffset_t *) malloc((pFI->mz5->highScan()+2)*sizeof(ramp_fileoffset_t));
+			memset(rIndex,-1,(pFI->mz5->highScan()+2)*sizeof(ramp_fileoffset_t));
+			for(i=0;i<v2->size();i++) rIndex[v2->at(i).scanNum]=(ramp_fileoffset_t)v2->at(i).offset;
+			rIndex[v2->at(i-1).scanNum+1]=-1;
+			*iLastScan=v2->at(i-1).scanNum;
 			break;
 		default:
 			rIndex=NULL;
@@ -386,11 +430,13 @@ ramp_fileoffset_t* readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *
 			break;
 	}
 	v=NULL;
+	v2=NULL;
 	return rIndex;
 }
 
 int readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
 	vector<cindex>* v;
+	vector<cMz5Index>* v2;
 	unsigned int i;
 	
 	if(lScanIndex<0) return 0;
@@ -398,7 +444,7 @@ int readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
 	switch(pFI->fileType){
 		case 1:
 		case 3:
-			v=pFI->mzML->getIndex();
+			v=pFI->mzML->getSpecIndex();
 			for(i=0;i<v->size();i++) {
 				if(v->at(i).offset==(f_off)lScanIndex) {
 					pFI->mzML->readSpectrum(v->at(i).scanNum);
@@ -416,11 +462,21 @@ int readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
 				}
 			}
 			break;
+		case 5:
+			v2=pFI->mz5->getSpecIndex();
+			for(i=0;i<v2->size();i++) {
+				if(v2->at(i).offset==(f_off)lScanIndex) {
+					pFI->mz5->readSpectrum(v2->at(i).scanNum);
+					break;
+				}
+			}
+			break;
 		default:
 			pFI->bs->clear();
 			break;
 	}
 	v=NULL;
+	v2=NULL;
 
 	return pFI->bs->getMSLevel();
 }
@@ -428,6 +484,7 @@ int readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
 void readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
 
 	vector<cindex>* v;
+	vector<cMz5Index>* v2;
 
 	//memset(scanHeader,0,sizeof(struct ScanHeaderStruct));
 	runHeader->dEndTime=0.0;
@@ -441,7 +498,7 @@ void readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
 	switch(pFI->fileType){
 		case 1:
 		case 3:
-			v=pFI->mzML->getIndex();
+			v=pFI->mzML->getSpecIndex();
 			runHeader->scanCount=v->size();
 			pFI->mzML->readHeader(v->at(0).scanNum);
 			runHeader->dStartTime=pFI->bs->getRTime(false);
@@ -461,6 +518,16 @@ void readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
 			pFI->bs->clear();
 			v=NULL;
 			break;
+		case 5:
+			v2=pFI->mz5->getSpecIndex();
+			runHeader->scanCount=v2->size();
+			pFI->mz5->readHeader(v2->at(0).scanNum);
+			runHeader->dStartTime=pFI->bs->getRTime(false);
+			pFI->mz5->readHeader(v2->at(v2->size()-1).scanNum);
+			runHeader->dEndTime=pFI->bs->getRTime(false);
+			pFI->bs->clear();
+			v2=NULL;
+			break;
 		default:
 			break;
 	}
@@ -471,6 +538,7 @@ void readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
 //making this wrapper much easier to read
 RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex){
 	vector<cindex>* v;
+	vector<cMz5Index>* v2;
 	unsigned int i;
 	RAMPREAL* pPeaks=NULL;
 
@@ -479,7 +547,7 @@ RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex){
 	switch(pFI->fileType){
 		case 1:
 		case 3:
-			v=pFI->mzML->getIndex();
+			v=pFI->mzML->getSpecIndex();
 			for(i=0;i<v->size();i++) {
 				if(v->at(i).offset==(f_off)lScanIndex) {
 					pFI->mzML->readSpectrum(v->at(i).scanNum);
@@ -497,12 +565,21 @@ RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex){
 				}
 			}
 			break;
+		case 5:
+			v2=pFI->mz5->getSpecIndex();
+			for(i=0;i<v2->size();i++) {
+				if(v2->at(i).offset==(f_off)lScanIndex) {
+					pFI->mz5->readSpectrum(v2->at(i).scanNum);
+					break;
+				}
+			}
+			break;
 		default:
 			pFI->bs->clear();
 			break;
 	}
 	v=NULL;
-
+	v2=NULL;
 
 	unsigned int j=0;
 	if(pFI->bs->size()>0){
@@ -527,6 +604,7 @@ int readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex){
 
 void readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan){
 	vector<cindex>* v;
+	vector<cMz5Index>* v2;
 	unsigned int i;
 
 	runHeader->scanCount=0;
@@ -540,7 +618,7 @@ void readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeade
 	switch(pFI->fileType){
 		case 1:
 		case 3:
-			v=pFI->mzML->getIndex();
+			v=pFI->mzML->getSpecIndex();
 			runHeader->scanCount=v->size();
 			
 			pFI->mzML->readHeader(v->at(0).scanNum);
@@ -590,12 +668,39 @@ void readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeade
 			pFI->mzXML->readHeader(v->at(v->size()-1).scanNum);
 			break;
 
+		case 5:
+			v2=pFI->mz5->getSpecIndex();
+			runHeader->scanCount=v2->size();
+			
+			pFI->mz5->readHeader(v2->at(0).scanNum);
+			runHeader->dStartTime=(double)pFI->bs->getRTime(false);
+			runHeader->lowMZ=pFI->bs->getLowMZ();
+			runHeader->highMZ=pFI->bs->getHighMZ();
+			runHeader->startMZ=runHeader->lowMZ;
+			runHeader->endMZ=runHeader->highMZ;
+			
+			for(i=1;i<v2->size();i++) {
+				pFI->mz5->readHeader(v2->at(i).scanNum);
+				if(pFI->bs->getLowMZ()<runHeader->lowMZ) {
+					runHeader->lowMZ=pFI->bs->getLowMZ();
+					runHeader->startMZ=runHeader->lowMZ;
+				}
+				if(pFI->bs->getHighMZ()>runHeader->highMZ){
+					runHeader->highMZ=pFI->bs->getHighMZ();
+					runHeader->endMZ=runHeader->highMZ;
+				}
+			}
+			pFI->mz5->readHeader(v2->at(v2->size()-1).scanNum);
+			break;
+
 		default:
 			pFI->bs->clear();
 			v=NULL;
+			v2=NULL;
 			return;
 	}
 	v=NULL;
+	v2=NULL;
 
 }
 
