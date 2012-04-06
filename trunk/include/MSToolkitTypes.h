@@ -23,7 +23,7 @@ enum MSFileFormat {
   ms2,
   msmat_ff,
   mzXML,
-  mzData,
+  mz5,
 	mzML,
   raw,
   sqlite,
