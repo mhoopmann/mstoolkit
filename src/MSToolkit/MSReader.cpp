@@ -565,9 +565,9 @@ void MSReader::writeFile(const char* c, MSFileFormat ff, MSObject& m, char* sha1
     #endif
     break;
   case mzXML:
-  case mzData:
+  case mz5:
 	case mzML:
-    cout << "Cannot write mzXML or mzData or mzML formats. Nothing written." << endl;
+    cout << "Cannot write mzXML or mz5 or mzML formats. Nothing written." << endl;
     break;
   case bms1:
     exportMGF=false;
@@ -1358,7 +1358,7 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
     return readFile(c,false,s,scNum);
     break;
   case mzXML:
-  case mzData:
+  case mz5:
 	case mzML:
     break;
   case raw:
@@ -1386,7 +1386,7 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
     break;
   }
 
-	//if we got here, it's because we're reading mz(X)ML format
+	//if we got here, it's because we're reading mz(X)ML or mz5 format
 	ramp_fileoffset_t indexOffset;
 	ScanHeaderStruct scanHeader;
 	RAMPREAL *pPeaks;
@@ -1978,7 +1978,7 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
 
   //For now, trust mzXML & mzData also
   if(strcmp(fn+(i-6),".mzXML")==0 || strcmp(fn+(i-6),".mzxml")==0 || strcmp(fn+(i-6),".MZXML")==0 ) return mzXML;
-  if(strcmp(fn+(i-7),".mzData")==0 || strcmp(fn+(i-7),".mzdata")==0 || strcmp(fn+(i-7),".MZDATA")==0 ) return mzData;
+  if(strcmp(fn+(i-4),".mz5")==0 || strcmp(fn+(i-7),".MZ5")==0 ) return mz5;
 	if(strcmp(fn+(i-5),".mzML")==0 || strcmp(fn+(i-5),".mzml")==0 || strcmp(fn+(i-5),".MZML")==0 ) return mzML;
 
   //MGF format
