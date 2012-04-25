@@ -1506,6 +1506,10 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 
   } else /* if scnum == 0 */ {
 
+		if(rampIndex>rampLastScan) {
+			return false;
+    }
+
 		//read next index
 	  while(true){
 	    rampIndex++;
