@@ -118,6 +118,17 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
 		if(s.length()>0) spec->setPrecursorScanNum(atoi(&s[0]));
 		else spec->setPrecursorScanNum(0);
 		m_bInPrecursorMz = true;
+		
+		s=getAttrValue("activationMethod", attr);
+		if(s.length()>0){
+			if(!strcmp("CID",&s[0])) spec->setActivation(CID);
+			else if(!strcmp("ETD",&s[0])) spec->setActivation(ETD);
+			else if(!strcmp("HCD",&s[0])) spec->setActivation(HCD);
+			else if(!strcmp("ECD",&s[0])) spec->setActivation(ECD);
+			else if(!strcmp("ETD+SA",&s[0])) spec->setActivation(ETDSA);
+		} else {
+			spec->setActivation(none);
+		}
 
 	}	else if (isElement("scan", el)) {
 		if(m_bInScan){
@@ -145,17 +156,6 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
 			} else {
 				spec->setRTime(0.0f);
 			}
-		}
-
-		s=getAttrValue("activationMethod", attr);
-		if(s.length()>0){
-			if(!strcmp("CID",&s[0])) spec->setActivation(CID);
-			else if(!strcmp("ETD",&s[0])) spec->setActivation(ETD);
-			else if(!strcmp("HCD",&s[0])) spec->setActivation(HCD);
-			else if(!strcmp("ECD",&s[0])) spec->setActivation(ECD);
-			else if(!strcmp("ETD+SA",&s[0])) spec->setActivation(ETDSA);
-		} else {
-			spec->setActivation(none);
 		}
 
 	}
