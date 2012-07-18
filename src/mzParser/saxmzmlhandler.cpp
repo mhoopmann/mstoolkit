@@ -301,7 +301,7 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
 	} else if(!strcmp(name,"electron multiplier") || !strcmp(accession,"MS:1000253")) {
 		m_instrument.detector=name;
 
-	}	else if(!strcmp(name, "electron transfer dissociation") || !strcmp(accession,"MS:1000133"))	{
+	}	else if(!strcmp(name, "electron transfer dissociation") || !strcmp(accession,"MS:1000598"))	{
 		if(spec->getActivation()==CID) spec->setActivation(ETDSA);
 		else spec->setActivation(ETD);
 
