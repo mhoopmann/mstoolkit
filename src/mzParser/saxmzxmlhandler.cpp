@@ -86,9 +86,8 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
 		m_strData.clear();
 		m_bInPeaks=true;
 
-		//It appears "network" means little-endian to mzXML...
-		if(!strcmp("network",getAttrValue("byteOrder", attr))) m_bNetworkData=false;
-		else m_bNetworkData=false; //make it false anyway. //m_bNetworkData=true;
+		if(!strcmp("network",getAttrValue("byteOrder", attr))) m_bNetworkData=true;
+		else m_bNetworkData=true; //make it true anyway.
 		if(!strcmp("64",getAttrValue("precision", attr))) m_bLowPrecision=false;
 		else m_bLowPrecision=true;
 
@@ -118,17 +117,17 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
 		if(s.length()>0) spec->setPrecursorScanNum(atoi(&s[0]));
 		else spec->setPrecursorScanNum(0);
 		m_bInPrecursorMz = true;
-		
+
 		s=getAttrValue("activationMethod", attr);
-		if(s.length()>0){
-			if(!strcmp("CID",&s[0])) spec->setActivation(CID);
-			else if(!strcmp("ETD",&s[0])) spec->setActivation(ETD);
-			else if(!strcmp("HCD",&s[0])) spec->setActivation(HCD);
-			else if(!strcmp("ECD",&s[0])) spec->setActivation(ECD);
-			else if(!strcmp("ETD+SA",&s[0])) spec->setActivation(ETDSA);
-		} else {
-			spec->setActivation(none);
-		}
+    if(s.length()>0){
+      if(!strcmp("CID",&s[0])) spec->setActivation(CID);
+      else if(!strcmp("ETD",&s[0])) spec->setActivation(ETD);
+      else if(!strcmp("HCD",&s[0])) spec->setActivation(HCD);
+      else if(!strcmp("ECD",&s[0])) spec->setActivation(ECD);
+      else if(!strcmp("ETD+SA",&s[0])) spec->setActivation(ETDSA);
+    } else {
+      spec->setActivation(none);
+    }
 
 	}	else if (isElement("scan", el)) {
 		if(m_bInScan){
@@ -144,6 +143,8 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
 			spec->setCompensationVoltage(atof(getAttrValue("CompensationVoltage", attr)));
 			spec->setHighMZ(atof(getAttrValue("highMz", attr)));
 			spec->setLowMZ(atof(getAttrValue("lowMz", attr)));
+			if(spec->getHighMZ()==0) spec->setHighMZ(atof(getAttrValue("endMz", attr)));
+			if(spec->getLowMZ()==0) spec->setLowMZ(atof(getAttrValue("startMz", attr)));
 			spec->setTotalIonCurrent(atof(getAttrValue("totIonCurrent",attr)));
 			m_peaksCount = atoi(getAttrValue("peaksCount", attr));
 			spec->setPeaksCount(m_peaksCount);
@@ -485,19 +486,14 @@ void mzpSAXMzxmlHandler::decode64(){
 
 unsigned long mzpSAXMzxmlHandler::dtohl(uint32_t l, bool bNet) {
 
-	// mzData allows little-endian data format, so...
-	// If it is not network (i.e. big-endian) data, reverse the byte
-	// order to make it network format, and then use ntohl (network to host)
-	// to get it into the host format.
-	//if compiled on OSX the reverse is true
 #ifdef OSX
-	if (bNet)
+	if (!bNet)
 	{
 		l = (l << 24) | ((l << 8) & 0xFF0000) |
 			(l >> 24) | ((l >> 8) & 0x00FF00);
 	}
 #else
-	if (!bNet)
+	if (bNet)
 	{
 		l = (l << 24) | ((l << 8) & 0xFF0000) |
 			(l >> 24) | ((l >> 8) & 0x00FF00);
@@ -508,19 +504,14 @@ unsigned long mzpSAXMzxmlHandler::dtohl(uint32_t l, bool bNet) {
 
 uint64_t mzpSAXMzxmlHandler::dtohl(uint64_t l, bool bNet) {
 
-	// mzData allows little-endian data format, so...
-	// If it is not network (i.e. big-endian) data, reverse the byte
-	// order to make it network format, and then use ntohl (network to host)
-	// to get it into the host format.
-	//if compiled on OSX the reverse is true
 #ifdef OSX
-	if (bNet)
+	if (!bNet)
 	{
 		l = (l << 56) | ((l << 40) & 0xFF000000000000LL) | ((l << 24) & 0x0000FF0000000000LL) | ((l << 8) & 0x000000FF00000000LL) |
 			(l >> 56) | ((l >> 40) & 0x0000000000FF00LL) | ((l >> 24) & 0x0000000000FF0000LL) | ((l >> 8) & 0x00000000FF000000LL) ;
 	}
 #else
-	if (!bNet)
+	if (bNet)
 	{
 		l = (l << 56) | ((l << 40) & 0x00FF000000000000LL) | ((l << 24) & 0x0000FF0000000000LL) | ((l << 8) & 0x000000FF00000000LL) |
 			(l >> 56) | ((l >> 40) & 0x000000000000FF00LL) | ((l >> 24) & 0x0000000000FF0000LL) | ((l >> 8) & 0x00000000FF000000LL) ;
@@ -539,11 +530,12 @@ f_off mzpSAXMzxmlHandler::readIndexOffset() {
 	char* start;
 	char* stop;
 	int readBytes;
+	size_t sz;
 
 	if(!m_bGZCompression){
 		FILE* f=fopen(&m_strFileName[0],"r");
 		mzpfseek(f,-200,SEEK_END);
-		fread(buffer,1,200,f);
+		sz = fread(buffer,1,200,f);
 		fclose(f);
 		start=strstr(buffer,"<indexOffset>");
 		stop=strstr(buffer,"</indexOffset>");
