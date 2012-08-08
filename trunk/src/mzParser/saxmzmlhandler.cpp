@@ -40,7 +40,7 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs){
 	m_bInmzArrayBinary = false;
 	m_bInintenArrayBinary = false;
 	m_bInRefGroup = false;
-	m_bNetworkData = true;
+	m_bNetworkData = false; //always little-endian for mzML
 	m_bLowPrecision = false;
 	m_bInSpectrumList=false;
 	m_bInChromatogramList=false;
@@ -63,7 +63,7 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs, BasicChromatogram* cs){
 	m_bInmzArrayBinary = false;
 	m_bInintenArrayBinary = false;
 	m_bInRefGroup = false;
-	m_bNetworkData = true;
+	m_bNetworkData = false; //always little-endian for mzML
 	m_bLowPrecision = false;
 	m_bInSpectrumList=false;
 	m_bInChromatogramList=false;
@@ -689,19 +689,14 @@ void mzpSAXMzmlHandler::decode64(vector<double>& d){
 
 unsigned long mzpSAXMzmlHandler::dtohl(uint32_t l, bool bNet) {
 
-	// mzData allows little-endian data format, so...
-	// If it is not network (i.e. big-endian) data, reverse the byte
-	// order to make it network format, and then use ntohl (network to host)
-	// to get it into the host format.
-	//if compiled on OSX the reverse is true
 #ifdef OSX
-	if (bNet)
+	if (!bNet)
 	{
 		l = (l << 24) | ((l << 8) & 0xFF0000) |
 			(l >> 24) | ((l >> 8) & 0x00FF00);
 	}
 #else
-	if (!bNet)
+	if (bNet)
 	{
 		l = (l << 24) | ((l << 8) & 0xFF0000) |
 			(l >> 24) | ((l >> 8) & 0x00FF00);
@@ -712,19 +707,14 @@ unsigned long mzpSAXMzmlHandler::dtohl(uint32_t l, bool bNet) {
 
 uint64_t mzpSAXMzmlHandler::dtohl(uint64_t l, bool bNet) {
 
-	// mzData allows little-endian data format, so...
-	// If it is not network (i.e. big-endian) data, reverse the byte
-	// order to make it network format, and then use ntohl (network to host)
-	// to get it into the host format.
-	//if compiled on OSX the reverse is true
 #ifdef OSX
-	if (bNet)
+	if (!bNet)
 	{
 		l = (l << 56) | ((l << 40) & 0xFF000000000000LL) | ((l << 24) & 0x0000FF0000000000LL) | ((l << 8) & 0x000000FF00000000LL) |
 			(l >> 56) | ((l >> 40) & 0x0000000000FF00LL) | ((l >> 24) & 0x0000000000FF0000LL) | ((l >> 8) & 0x00000000FF000000LL) ;
 	}
 #else
-	if (!bNet)
+	if (bNet)
 	{
 		l = (l << 56) | ((l << 40) & 0x00FF000000000000LL) | ((l << 24) & 0x0000FF0000000000LL) | ((l << 8) & 0x000000FF00000000LL) |
 			(l >> 56) | ((l >> 40) & 0x000000000000FF00LL) | ((l >> 24) & 0x0000000000FF0000LL) | ((l >> 8) & 0x00000000FF000000LL) ;
@@ -743,11 +733,12 @@ f_off mzpSAXMzmlHandler::readIndexOffset() {
 	char* start;
 	char* stop;
 	int readBytes;
+	size_t sz;
 
 	if(!m_bGZCompression){
 		FILE* f=fopen(&m_strFileName[0],"r");
 		mzpfseek(f,-200,SEEK_END);
-		fread(buffer,1,200,f);
+		sz = fread(buffer,1,200,f);
 		fclose(f);
 		start=strstr(buffer,"<indexListOffset>");
 		stop=strstr(buffer,"</indexListOffset>");
