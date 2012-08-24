@@ -58,6 +58,7 @@ MSReader::~MSReader(){
   #endif
 }
 
+#ifdef _MSC_VER
 bool MSReader::InitRaw(){
 
 	int raw=0;
@@ -132,6 +133,7 @@ bool MSReader::InitRaw(){
 	if(raw>0) return true;
 	return false;
 }
+#endif
 
 void MSReader::closeFile(){
   if(fileIn!=NULL) fclose(fileIn);
