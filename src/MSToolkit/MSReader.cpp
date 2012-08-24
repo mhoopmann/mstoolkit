@@ -20,9 +20,7 @@ MSReader::MSReader(){
 
   #ifdef _MSC_VER
   CoInitialize( NULL );
-	HRESULT hr = m_Raw.CreateInstance("XRawfile.XRawfile.1");
-  if (!FAILED(hr)) bRaw=true;
-  else bRaw=false;
+	bRaw = InitRaw();
   rawCurSpec=0;
   rawTotSpec=0;
   rawAvg=false;
@@ -58,6 +56,81 @@ MSReader::~MSReader(){
   #ifndef _NOSQLITE
   if(db != NULL)  sqlite3_close(db);
   #endif
+}
+
+bool MSReader::InitRaw(){
+
+	int raw=0;
+
+	IXRawfile2Ptr m_Raw2;
+	IXRawfile3Ptr m_Raw3;
+	IXRawfile4Ptr m_Raw4;
+	IXRawfile5Ptr m_Raw5;
+
+	//Try Xcalibur/Foundation first
+	/*
+	if(FAILED(m_Raw5.CreateInstance("XRawfile.XRawfile.1"))){
+		cout << "FAIL Foundation 5" << endl;
+		if(FAILED(m_Raw4.CreateInstance("XRawfile.XRawfile.1"))){
+			cout << "FAIL Foundation 4" << endl;
+			if(FAILED(m_Raw3.CreateInstance("XRawfile.XRawfile.1"))){
+				cout << "FAIL Foundation 3" << endl;
+				if(FAILED(m_Raw2.CreateInstance("XRawfile.XRawfile.1"))){
+					cout << "FAIL Foundation 2" << endl;
+					if(FAILED(m_Raw.CreateInstance("XRawfile.XRawfile.1"))){
+						cout << "FAIL Foundation 1" << endl;
+					} else {
+						raw=1;
+					}
+				} else {
+					m_Raw=m_Raw2;
+					raw=2;
+				}
+			} else {
+				m_Raw=m_Raw3;
+				raw=3;
+			}
+		} else {
+			m_Raw=m_Raw4;
+			raw=4;
+		}
+	} else {
+		m_Raw=m_Raw5;
+		raw=5;
+	}
+
+	if(raw>0) return true;
+	*/
+
+	//Try MSFileReader
+	if(FAILED(m_Raw5.CreateInstance("MSFileReader.XRawfile.1"))){
+		if(FAILED(m_Raw4.CreateInstance("MSFileReader.XRawfile.1"))){
+			if(FAILED(m_Raw3.CreateInstance("MSFileReader.XRawfile.1"))){
+				if(FAILED(m_Raw2.CreateInstance("MSFileReader.XRawfile.1"))){
+					if(FAILED(m_Raw.CreateInstance("MSFileReader.XRawfile.1"))){
+						cout << "Cannot load Thermo MSFileReader. Cannot read .RAW files." << endl;
+					} else {
+						raw=1;
+					}
+				} else {
+					m_Raw=m_Raw2;
+					raw=2;
+				}
+			} else {
+				m_Raw=m_Raw3;
+				raw=3;
+			}
+		} else {
+			m_Raw=m_Raw4;
+			raw=4;
+		}
+	} else {
+		m_Raw=m_Raw5;
+		raw=5;
+	}
+	
+	if(raw>0) return true;
+	return false;
 }
 
 void MSReader::closeFile(){
@@ -2240,15 +2313,15 @@ bool MSReader::readRawFile(const char *c, Spectrum &s, int scNum){
     rawFilter=NULL;
 
   } else {
-    if(rawLabel) {
-      j=m_Raw->GetLabelData(&varMassList, &varPeakFlags, &rawCurSpec);
-    } else {
+    //if(rawLabel) {
+    //  j=m_Raw->GetLabelData(&varMassList, &varPeakFlags, &rawCurSpec);
+    //} else {
 			sl=lstrlenA("");
 			testStr = SysAllocStringLen(NULL,sl);
 			MultiByteToWideChar(CP_ACP,0,"",sl,testStr,sl);
 			j=m_Raw->GetMassListFromScanNum(&rawCurSpec,testStr,0,0,0,FALSE,&pw,&varMassList,&varPeakFlags,&lArraySize);
 			SysFreeString(testStr);
-    }
+    //}
   }
 
 	//Handle MS2 and MS3 files differently to create Z-lines
@@ -2313,17 +2386,17 @@ bool MSReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	VariantClear(&ConversionE);
   VariantClear(&ConversionI);
 
-  if(rawLabel){
-    psa = varMassList.parray;
-    lArraySize = psa->rgsabound[0].cElements;
-    pdval = (double *) psa->pvData;
-    for(j=0;j<lArraySize;j++) s.add((double)pdval[j*6],(float)pdval[j*6+1]);
-  } else {
+  //if(rawLabel){
+  //  psa = varMassList.parray;
+  //  lArraySize = psa->rgsabound[0].cElements;
+  //  pdval = (double *) psa->pvData;
+  //  for(j=0;j<lArraySize;j++) s.add((double)pdval[j*6],(float)pdval[j*6+1]);
+  //} else {
 	  psa = varMassList.parray;
 	  SafeArrayAccessData( psa, (void**)(&pDataPeaks) );
 	  for(j=0;j<lArraySize;j++)	s.add(pDataPeaks[j].dMass,(float)pDataPeaks[j].dIntensity);
 	  SafeArrayUnaccessData( psa );
-  }
+  //}
 
 	//Clear Xcalibur structures
 	VariantClear(&varMassList);
