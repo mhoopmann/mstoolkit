@@ -15,11 +15,14 @@
 
 #ifdef _MSC_VER
 //#include <atlstr.h>
-#import "XRawfile2.dll"
+//#import "XRawfile2.dll" rename_namespace("XRawfile")
+//using namespace XRAWFILE2Lib;
 
 //Explicit path is needed on systems where Xcalibur installs with errors
 //For example, Vista-64bit
-//#import "C:\Xcalibur\system\programs\XRawfile2.dll"
+//#import "C:\Xcalibur\system\programs\XRawfile2.dll" 
+#import "MSFileReader.XRawfile2.dll" rename_namespace("XRawfile")
+using namespace XRawfile;
 #endif
 
 #ifndef _NOSQLITE
@@ -166,10 +169,11 @@ class MSReader {
   bool rawLabel;
   char rawUserFilter[256];
   bool rawUserFilterExact;
-  XRAWFILE2Lib::IXRawfile3Ptr m_Raw;
+  IXRawfilePtr m_Raw;
   int CalcChargeState(double precursormz, double highmass, VARIANT* varMassList, long nArraySize);
   double CalcPepMass(int chargestate, double precursormz);
   MSSpectrumType EvaluateFilter(long scan, double *precursormz, char* chFilter, int &thermoCharge, double &thermoMZ);
+	bool InitRaw();
   bool readRawFile(const char* c, Spectrum& s, int scNum=0);
   #endif
 
