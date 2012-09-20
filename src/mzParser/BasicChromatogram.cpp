@@ -34,3 +34,4 @@ int BasicChromatogram::getIDString(char* str){
 	return strlen(str);
 }
 unsigned int BasicChromatogram::size(){	return vData.size(); }
+

@@ -167,3 +167,4 @@ int BasicSpectrum::getScanIndex(){ return scanIndex;}
 int BasicSpectrum::getScanNum(){ return scanNum;}
 double BasicSpectrum::getTotalIonCurrent(){ return totalIonCurrent;}
 unsigned int BasicSpectrum::size(){ return vData.size();}
+
