@@ -69,9 +69,11 @@ typedef __int64 f_off;
 #ifdef __MINGW__
 #undef GCC
 typedef __int64 f_off;
+#define __int64_t int64_t
 #define mzpfseek(h,p,o) fseeko64(h,p,o)
 #define mzpftell(h) ftello64(h)
 #define mzpatoi64(h) _atoi64(h)
+#include <stdexcept>
 #endif
 
 #if defined(GCC) || defined(__LINUX__)
@@ -1037,6 +1039,11 @@ struct BinaryDataMZ5 {
 	static CompType getType();
 };
 
+struct CVRefItem {
+	int group; //0=MS, 1=UO, don't know what others there are.
+	int ref;
+};
+
 class mzpMz5Config{
 public:
 	mzpMz5Config();
@@ -1087,6 +1094,7 @@ public:
 	mzpMz5Handler(mzpMz5Config* c, BasicSpectrum* s, BasicChromatogram* bc);
 	~mzpMz5Handler();
 
+	void														clean(const MZ5DataSets v, void* data, const size_t dsend);
 	vector<cMz5Index>*							getChromatIndex();
 	void														getData(vector<double>& data, const MZ5DataSets v, const hsize_t start, const hsize_t end);
 	const map<MZ5DataSets, size_t>&	getFields();
@@ -1096,7 +1104,7 @@ public:
 	int															lowScan();
 	void														processCVParams(unsigned long index);
 	bool														readChromatogram(int num=-1);
-	void*														readDataSet(const MZ5DataSets v, size_t& dsend, void* ptr);
+	void*														readDataSet(const MZ5DataSets v, size_t& dsend, void* ptr=0);
 	bool														readFile(const string filename);
 	bool														readHeader(int num=-1);
 	bool														readSpectrum(int num=-1);
@@ -1120,6 +1128,7 @@ private:
 	BasicChromatogram*				chromat;
 	bool											closed_;
 	mzpMz5Config*							config_;
+	vector<CVRefItem>					cvRef;
 	vector<CVParamMZ5>				cvParams_;
 	map<MZ5DataSets, size_t>	fields_;
 	H5File*										file_;
