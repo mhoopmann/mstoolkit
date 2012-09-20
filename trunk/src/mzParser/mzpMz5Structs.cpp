@@ -110,6 +110,34 @@ void CVParamMZ5::init(const char* value, const unsigned long& cvrefid, const uns
 	this->unitCVRefID = urefid;
 }
 
+CVRefMZ5::CVRefMZ5() {
+	init("","",ULONG_MAX);
+}
+
+CVRefMZ5::CVRefMZ5(const CVRefMZ5& cvref) {
+	init(cvref.name, cvref.prefix, cvref.accession);
+}
+
+CVRefMZ5::~CVRefMZ5() {
+	delete [] name;
+	delete [] prefix;
+}
+
+CVRefMZ5& CVRefMZ5::operator=(const CVRefMZ5& cvp) {
+	if (this != &cvp){
+		delete [] name;
+		delete [] prefix;
+		init(cvp.name, cvp.prefix, cvp.accession);
+	}
+	return *this;
+}
+
+void CVRefMZ5::init(const char* name, const char* prefix,	const unsigned long accession){
+	if(name) strcpy(this->name,name);
+	strcpy(this->prefix,prefix);
+	this->accession=accession;
+}
+
 CompType CVRefMZ5::getType() {
 	CompType ret(sizeof(CVRefMZ5Data));
 	StrType stringtype = getStringType();

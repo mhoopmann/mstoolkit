@@ -17,6 +17,16 @@ mzpMz5Handler::~mzpMz5Handler(){
 	chromat=NULL;
 }
 
+void mzpMz5Handler::clean(const MZ5DataSets v, void* data, const size_t dsend) {
+    hsize_t dim[1] =
+    { static_cast<hsize_t> (dsend) };
+    DataSpace dsp(1, dim);
+    DataSet::vlenReclaim(data, config_->getDataTypeFor(v), dsp);
+    free(data);
+    data = 0;
+    dsp.close();
+}
+
 vector<cMz5Index>* mzpMz5Handler::getChromatIndex(){
 	return &m_vChromatIndex;
 }
@@ -85,45 +95,50 @@ int mzpMz5Handler::lowScan() {
 }
 
 void mzpMz5Handler::processCVParams(unsigned long index){
-	switch(cvParams_[index].typeCVRefID){
-		case 22:
-			spec->setMSLevel(atoi(cvParams_[index].value));
-			break;
-		case 26:
-			spec->setBasePeakMZ(atof(cvParams_[index].value));
-			break;
-		case 27:
-			spec->setBasePeakIntensity(atof(cvParams_[index].value));
-			break;
-		case 28:
-			spec->setTotalIonCurrent(atof(cvParams_[index].value));
-			break;
-		case 29:
-			spec->setLowMZ(atof(cvParams_[index].value));
-			break;
-		case 30:
-			spec->setHighMZ(atof(cvParams_[index].value));
-			break;
-		case 32:
-			if(cvParams_[index].unitCVRefID==20) spec->setRTime((float)atof(cvParams_[index].value));
-			else spec->setRTime((float)atof(cvParams_[index].value)/60.0f); //assume seconds if not minutes
-			break;
-		case 43:
-			spec->setCollisionEnergy(atof(cvParams_[index].value));
-			break;
-		case 47:
-			spec->setPrecursorMZ(atof(cvParams_[index].value));
-			break;
-		case 48:
-			spec->setPrecursorCharge(atoi(cvParams_[index].value));
-			break;
-		case 49:
-			spec->setPrecursorIntensity(atof(cvParams_[index].value));
-			break;
-		default:
-			//param is not mapped in mzParser
-			break;
+	if(cvRef[cvParams_[index].typeCVRefID].group==0){ //MS:
+		switch(cvRef[cvParams_[index].typeCVRefID].ref) {
+			case 1000016:
+				if(cvRef[cvParams_[index].unitCVRefID].ref==31) spec->setRTime((float)atof(cvParams_[index].value));
+				else spec->setRTime((float)atof(cvParams_[index].value)/60.0f); //assume seconds if not minutes
+				break;
+			case 1000041:
+				spec->setPrecursorCharge(atoi(cvParams_[index].value));
+				break;
+			case 1000042:
+				spec->setPrecursorIntensity(atof(cvParams_[index].value));
+				break;
+			case 1000045:
+				spec->setCollisionEnergy(atof(cvParams_[index].value));
+				break;
+			case 1000285:
+				spec->setTotalIonCurrent(atof(cvParams_[index].value));
+				break;
+			case 1000504:
+				spec->setBasePeakMZ(atof(cvParams_[index].value));
+				break;
+			case 1000505:
+				spec->setBasePeakIntensity(atof(cvParams_[index].value));
+				break;
+			case 1000511:
+				spec->setMSLevel(atoi(cvParams_[index].value));
+				break;	
+			case 1000527:
+				spec->setHighMZ(atof(cvParams_[index].value));
+				break;
+			case 1000528:
+				spec->setLowMZ(atof(cvParams_[index].value));
+				break;
+			case 1000744:
+				spec->setPrecursorMZ(atof(cvParams_[index].value));
+				break;
+			default:
+				//cout << "Unknown/Unparsed CV: " << cvRef[cvParams_[index].typeCVRefID].group << ":" << cvRef[cvParams_[index].typeCVRefID].ref << endl;
+				break;
+		}
+	} else { //unknown:
+		//cout << "Unknown/Unparsed CV: " << cvRef[cvParams_[index].typeCVRefID].group << ":" << cvRef[cvParams_[index].typeCVRefID].ref << endl;
 	}
+
 }
 
 bool mzpMz5Handler::readChromatogram(int num){
@@ -249,6 +264,21 @@ bool mzpMz5Handler::readFile(const string filename){
 		}
 	}
 
+	//Read the CV Reference List
+	size_t numberOfRef = fields_.find(CVReference)->second;
+	CVRefMZ5* cvrl = (CVRefMZ5*) readDataSet(CVReference, dsend);
+	cvRef.clear();
+	CVRefItem cvr;
+	for(int xx=0;xx<numberOfRef;xx++){
+		if(strcmp(cvrl[xx].prefix,"MS")==0) cvr.group=0;
+		else if(strcmp(cvrl[xx].prefix,"UO")==0) cvr.group=1;
+		else cvr.group=2;
+		cvr.ref=cvrl[xx].accession;
+		cvRef.push_back(cvr);
+		//cout << cvrl[xx].name << "\t" << cvrl[xx].prefix << ":" << cvrl[xx].accession << endl;
+	}
+	clean(CVReference, cvrl, dsend);
+	
 	//Read the CVParams
 	size_t numberOfCV = fields_.find(CVParam)->second;
 	cvParams_.resize(numberOfCV);

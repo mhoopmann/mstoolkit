@@ -100,7 +100,7 @@ bool MzParser::load(char* fname){
 		case 5:
 			mz5Config = new mzpMz5Config();
 			mz5 = new mzpMz5Handler(mz5Config,spec,chromat);
-			mz5->readFile(fname);
+			return mz5->readFile(fname);
 			break;
 		default:
 			break;
