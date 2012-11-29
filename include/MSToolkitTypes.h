@@ -31,6 +31,8 @@ enum MSFileFormat {
   psm,
   uzs,
   zs,
+	mzXMLgz,
+	mzMLgz,
   dunno
 };
 
