@@ -18,7 +18,7 @@ MSReader::MSReader(){
   for(int i=0;i<16;i++)	strcpy(header.header[i],"\0");
   headerIndex=0;
 
-  #ifdef _MSC_VER
+  /*#ifdef _MSC_VER
   CoInitialize( NULL );
 	bRaw = InitRaw();
   rawCurSpec=0;
@@ -29,7 +29,7 @@ MSReader::MSReader(){
   rawLabel=false;
   rawUserFilterExact=true;
   strcpy(rawUserFilter,"");
-  #endif
+	#endif*/
 
   #ifndef _NOSQLITE
   db = NULL;
@@ -45,98 +45,31 @@ MSReader::~MSReader(){
     free(pScanIndex);
   }
 
-  #ifdef _MSC_VER
+  /*#ifdef _MSC_VER
   if(bRaw){
     if(rawFileOpen) m_Raw->Close();
     m_Raw.Release();
     m_Raw=NULL;
   }
-  #endif
+  #endif*/
 
   #ifndef _NOSQLITE
   if(db != NULL)  sqlite3_close(db);
   #endif
 }
 
-#ifdef _MSC_VER
-bool MSReader::InitRaw(){
-
-	int raw=0;
-
-	IXRawfile2Ptr m_Raw2;
-	IXRawfile3Ptr m_Raw3;
-	IXRawfile4Ptr m_Raw4;
-	IXRawfile5Ptr m_Raw5;
-
-	//Try Xcalibur/Foundation first
-	/*
-	if(FAILED(m_Raw5.CreateInstance("XRawfile.XRawfile.1"))){
-		cout << "FAIL Foundation 5" << endl;
-		if(FAILED(m_Raw4.CreateInstance("XRawfile.XRawfile.1"))){
-			cout << "FAIL Foundation 4" << endl;
-			if(FAILED(m_Raw3.CreateInstance("XRawfile.XRawfile.1"))){
-				cout << "FAIL Foundation 3" << endl;
-				if(FAILED(m_Raw2.CreateInstance("XRawfile.XRawfile.1"))){
-					cout << "FAIL Foundation 2" << endl;
-					if(FAILED(m_Raw.CreateInstance("XRawfile.XRawfile.1"))){
-						cout << "FAIL Foundation 1" << endl;
-					} else {
-						raw=1;
-					}
-				} else {
-					m_Raw=m_Raw2;
-					raw=2;
-				}
-			} else {
-				m_Raw=m_Raw3;
-				raw=3;
-			}
-		} else {
-			m_Raw=m_Raw4;
-			raw=4;
-		}
-	} else {
-		m_Raw=m_Raw5;
-		raw=5;
-	}
-
-	if(raw>0) return true;
-	*/
-
-	//Try MSFileReader
-	if(FAILED(m_Raw5.CreateInstance("MSFileReader.XRawfile.1"))){
-		if(FAILED(m_Raw4.CreateInstance("MSFileReader.XRawfile.1"))){
-			if(FAILED(m_Raw3.CreateInstance("MSFileReader.XRawfile.1"))){
-				if(FAILED(m_Raw2.CreateInstance("MSFileReader.XRawfile.1"))){
-					if(FAILED(m_Raw.CreateInstance("MSFileReader.XRawfile.1"))){
-						cout << "Cannot load Thermo MSFileReader. Cannot read .RAW files." << endl;
-					} else {
-						raw=1;
-					}
-				} else {
-					m_Raw=m_Raw2;
-					raw=2;
-				}
-			} else {
-				m_Raw=m_Raw3;
-				raw=3;
-			}
-		} else {
-			m_Raw=m_Raw4;
-			raw=4;
-		}
-	} else {
-		m_Raw=m_Raw5;
-		raw=5;
-	}
-	
-	if(raw>0) return true;
-	return false;
+void MSReader::addFilter(MSSpectrumType m){
+	filter.push_back(m);
 }
-#endif
 
 void MSReader::closeFile(){
-  if(fileIn!=NULL) fclose(fileIn);
+	if(fileIn!=NULL) fclose(fileIn);
+	if(rampFileOpen) {
+		rampCloseFile(rampFileIn);
+		rampFileIn=NULL;
+		rampFileOpen=false;
+		free(pScanIndex);
+	}
 }
 
 MSHeader& MSReader::getHeader(){
@@ -187,7 +120,7 @@ MSSpectrumType MSReader::getFileType(){
 }
 
 
-bool MSReader::readFile(const char *c, bool text, Spectrum& s, int scNum){
+bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
   MSScanInfo ms;
   Peak_T p;
   ZState z;
@@ -201,7 +134,6 @@ bool MSReader::readFile(const char *c, bool text, Spectrum& s, int scNum){
   char tstr[256];
   char ch;
   char *tok;
-  //off_t fpoint;
 
   //variables for compressed files
   uLong mzLen, intensityLen;
@@ -295,7 +227,10 @@ bool MSReader::readFile(const char *c, bool text, Spectrum& s, int scNum){
     s.setScanNumber(ms.scanNumber[0]);
     s.setScanNumber(ms.scanNumber[1],true);
     s.setRTime(ms.rTime);
-    s.setMZ(ms.mz);
+		for(i=0;i<ms.mzCount;i++){
+			if(i==0) s.setMZ(ms.mz[i]);
+			else s.addMZ(ms.mz[i]);
+		}
     s.setBPI(ms.BPI);
     s.setBPM(ms.BPM);
     s.setConversionA(ms.convA);
@@ -443,6 +378,11 @@ bool MSReader::readFile(const char *c, bool text, Spectrum& s, int scNum){
 	        s.setScanNumber(atoi(tok),true);
 	        tok=strtok(NULL," \t\n\r");
 	        if(tok!=NULL)	s.setMZ(atof(tok));
+					tok=strtok(NULL," \t\n\r");
+					while(tok!=NULL) {
+						s.addMZ(atof(tok));
+						tok=strtok(NULL," \t\n\r");
+					}
 	        if(scNum != 0){
 	          if(s.getScanNumber() != scNum) {
 	            if(s.getScanNumber()<scNum) bScan=findSpectrum(1);
@@ -543,17 +483,36 @@ int MSReader::getLastScan(){
 }
 
 int MSReader::getPercent(){
-  if(fileIn!=NULL){
-    return (int)((double)ftell(fileIn)/lEnd*100);
+	switch(lastFileFormat){
+		case ms1:
+		case ms2:
+		case  zs:
+		case uzs:
+		case bms1:
+		case bms2:
+		case cms1:
+		case cms2:
+			if(fileIn!=NULL) {
+				return (int)((double)ftell(fileIn)/lEnd*100);
+			}
+			break;
+		case mzXML:
+		case mz5:
+		case mzML:
+			if(rampFileIn!=NULL){
+				return (int)((double)rampIndex/rampLastScan*100);
+			}
+			break;
+		case raw:
+			#ifdef _MSC_VER
+			if(cRAW.getStatus()){
+				return (int)((double)cRAW.getLastScanNumber()/cRAW.getScanCount()*100);
+			}
+			#endif
+			break;
+		default:
+			break;
   }
-  if(rampFileIn!=NULL){
-    return (int)((double)rampIndex/rampLastScan*100);
-  }
-#ifdef _MSC_VER
-  if(rawFileOpen){
-    return (int)((double)rawCurSpec/rawTotSpec*100);
-  }
-#endif
   return -1;
 }
 
@@ -591,8 +550,9 @@ void MSReader::writeFile(const char* c, bool text, MSObject& m){
     //version 2 adds BPI,BPM,TIC,IIT,ConvA,ConvB
     //version 3 adds EZ lines
 		//version 4 adds ConvC,ConvD,ConvE,ConvI
+		//version 5 adds MSX support (multiple mz values per spectrum)
     fwrite(&iFType,4,1,fileOut); //file type
-    i=4;
+    i=5;
     fwrite(&i,4,1,fileOut); //version number - in case we change formats
 		fwrite(&m.getHeader(),sizeof(MSHeader),1,fileOut);
 	}
@@ -1156,7 +1116,59 @@ void MSReader::setPrecisionMZ(int i){
 bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 
   if(c!=NULL) lastFileFormat = checkFileFormat(c);
-  return readFile(c,lastFileFormat,s,scNum);
+  switch(lastFileFormat){
+		case ms1:
+		case ms2:
+		case  zs:
+		case uzs:
+			return readMSTFile(c,true,s,scNum);
+			break;
+		case bms1:
+		case bms2:
+			setCompression(false);
+			return readMSTFile(c,false,s,scNum);
+			break;
+		case cms1:
+		case cms2:
+			setCompression(true);
+			return readMSTFile(c,false,s,scNum);
+			break;
+		case mzXML:
+		case mz5:
+		case mzML:
+			return readMZPFile(c,s,scNum);
+			break;
+		case raw:
+			#ifdef _MSC_VER
+			//only read the raw file if the dll was present and loaded.
+			if(cRAW.getStatus()) {
+				cRAW.setMSLevelFilter(&filter);
+				return cRAW.readRawFile(c,s,scNum);
+			} else {
+				cerr << "Could not read Thermo RAW file. The Thermo .dll likely was not loaded." << endl;
+				return false;
+			}
+			#else
+				cerr << "Thermo RAW file format not supported." << endl;
+				return false;
+			#endif
+			break;
+		case sqlite:
+		case psm:
+			#ifndef _NOSQLITE
+			return readSqlite(c,s,scNum);
+			#else
+			//sqlite support disabled
+			cerr << "SQLite support disabled." << endl;
+			return false;
+			#endif
+			break;
+		case dunno:
+		default:
+			return false;
+			break;
+  }
+	return false;
 
 }
 
@@ -1411,57 +1423,8 @@ void MSReader::sql_stmt(const char* stmt)
 
 #endif
 
-bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
+bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 
-  //Redirect functions to appropriate places, if possible.
-  lastFileFormat = f;
-  switch(f){
-  case ms1:
-  case ms2:
-  case  zs:
-  case uzs:
-    return readFile(c,true,s,scNum);
-    break;
-  case bms1:
-  case bms2:
-    setCompression(false);
-    return readFile(c,false,s,scNum);
-    break;
-  case cms1:
-  case cms2:
-    setCompression(true);
-    return readFile(c,false,s,scNum);
-    break;
-  case mzXML:
-  case mz5:
-	case mzML:
-    break;
-  case raw:
-    #ifdef _MSC_VER
-    //only read the raw file if the dll was present and loaded.
-      if(bRaw) return readRawFile(c,s,scNum);
-      else return false;
-    #else
-      //raw file is not supported
-      return false;
-    #endif
-    break;
-  case sqlite:
-  case psm:
-    #ifndef _NOSQLITE
-    return readSqlite(c,s,scNum);
-    #else
-    //sqlite support disabled
-    return false;
-    #endif
-    break;
-  case dunno:
-  default:
-    return false;
-    break;
-  }
-
-	//if we got here, it's because we're reading mz(X)ML or mz5 format
 	ramp_fileoffset_t indexOffset;
 	ScanHeaderStruct scanHeader;
 	RAMPREAL *pPeaks;
@@ -1469,11 +1432,7 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 
 	if(c!=NULL) {
 		//open the file if new file was requested
-		if(rampFileOpen) {
-			rampCloseFile(rampFileIn);
-			rampFileOpen=false;
-			free(pScanIndex);
-		}
+		if(rampFileOpen) closeFile();
 		rampFileIn = rampOpenFile(c);
 		if (rampFileIn == NULL) {
       cerr << "ERROR: Failure reading input file " << c << endl;
@@ -1491,7 +1450,6 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 		if (rampFileIn == NULL) return false;
 	}
 
-
 	//clear any spectrum data
 	s.clear();
 
@@ -1500,42 +1458,11 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 	//read scan header
 	if(scNum!=0) {
     rampIndex=scNum;
-    /* Henry Lam fixed ramp to take scan numbers as indexes,
-       see ramp.cpp commments marked HENRY
-		rampIndex=0;
-		for(i=1;i<rampLastScan;i++){
-			readHeader(rampFileIn, pScanIndex[i], &scanHeader);
-			if(scanHeader.acquisitionNum==scNum) {
-				rampIndex=i;
-				break;
-			};
-		};
-		if(rampIndex==0) return false;
-    */
-    // Make sure Henry's code works as expected.  Consider making this debug only.
     readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
-    if (scanHeader.acquisitionNum != scNum && scanHeader.acquisitionNum != -1)
-    {
+    if (scanHeader.acquisitionNum != scNum && scanHeader.acquisitionNum != -1) {
       cerr << "ERROR: Failure reading scan, index corrupted.  Line endings may have changed during transfer." << flush;
       exit(1);
     }
-
-		/*
-		switch(filter){
-		case MS1:
-			if(scanHeader.msLevel!=1)	return false;
-			break;
-		case MS2:
-			if(scanHeader.msLevel!=2)	return false;
-			break;
-		case MS3:
-			if(scanHeader.msLevel!=3)	return false;
-			break;
-		default:
-			//no filter
-			break;
-		};
-		*/
 		switch(scanHeader.msLevel){
 		case 1:
 		  mslevel = MS1;
@@ -1550,8 +1477,7 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 		  break;
 		}
 
-		if(find(filter.begin(), filter.end(), mslevel) != filter.end())
-		{
+		if(find(filter.begin(), filter.end(), mslevel) != filter.end())	{
 		  s.setMsLevel(scanHeader.msLevel);
 		  s.setScanNumber(scanHeader.acquisitionNum);
 		  s.setScanNumber(scanHeader.acquisitionNum,true);
@@ -1568,53 +1494,30 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 				s.setMZ(scanHeader.precursorMZ);
 				s.setCharge(scanHeader.precursorCharge);
 			}
-		  if(scanHeader.precursorCharge>0) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.00727649);
+		  if(scanHeader.precursorCharge>0) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
 		  pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex]);
 		  j=0;
 		  for(i=0;i<scanHeader.peaksCount;i++){
 		  	s.add((double)pPeaks[j],(float)pPeaks[j+1]);
 			  j+=2;
 		  }
-		}
-		else
+		}	else {
 		  return false;
+		}
 
   } else /* if scnum == 0 */ {
 
-		if(rampIndex>rampLastScan) {
-			return false;
-    }
+		if(rampIndex>rampLastScan) return false;
 
 		//read next index
 	  while(true){
 	    rampIndex++;
 			if(pScanIndex[rampIndex]<0) continue;
 
-			//cout << rampIndex << " " << rampLastScan << " " << pScanIndex[rampIndex] << endl;
-
 	    //reached end of file
-	    if(rampIndex>rampLastScan) {
-				//rampCloseFile(rampFileIn);
-				//rampFileIn = NULL;
-				return false;
-			}
+	    if(rampIndex>rampLastScan) return false;
+
 			readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
-			/*
-			switch(filter){
-			case MS1:
-				if(scanHeader.msLevel!=1)	continue;
-				break;
-			case MS2:
-				if(scanHeader.msLevel!=2)	continue;
-				break;
-			case MS3:
-				if(scanHeader.msLevel!=3)	continue;
-				break;
-			default:
-				//no filter
-				break;
-			};
-			*/
 			switch(scanHeader.msLevel){
 			case 1:
 			  mslevel = MS1;
@@ -1628,11 +1531,9 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 			default:
 			  break;
 			}
-			if(find(filter.begin(), filter.end(), mslevel) != filter.end())
-			  break;
-			//if we got here, we passed the filter.
-
+			if(find(filter.begin(), filter.end(), mslevel) != filter.end()) break;
 		}
+
 		s.setMsLevel(scanHeader.msLevel);
 		s.setScanNumber(scanHeader.acquisitionNum);
 		s.setScanNumber(scanHeader.acquisitionNum,true);
@@ -1649,17 +1550,14 @@ bool MSReader::readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum){
 			s.setMZ(scanHeader.precursorMZ);
 			s.setCharge(scanHeader.precursorCharge);
 		}
-		if(scanHeader.precursorCharge>0) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.00727649);
-		//cout << "Before readpeaks" << endl;
+		if(scanHeader.precursorCharge>0) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
 		pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex]);
-		//cout << "After readpeaks" << endl;
 		j=0;
 		for(i=0;i<scanHeader.peaksCount;i++){
 			s.add((double)pPeaks[j],(float)pPeaks[j+1]);
 			j+=2;
 		}
-
-   }
+	}
 
 	free(pPeaks);
 	return true;
@@ -1680,7 +1578,7 @@ void MSReader::setCompression(bool b){
 	compressMe=b;
 }
 
-
+/*
 void MSReader::setAverageRaw(bool b, int width, long cutoff){
   #ifdef _MSC_VER
   rawAvg=b;
@@ -1695,10 +1593,11 @@ void MSReader::setLabel(bool b){
   #endif
 }
 
+*/
 void MSReader::setRawFilter(char *c){
-  #ifdef _MSC_VER
-  strcpy(rawUserFilter,c);
-  #endif
+	#ifdef _MSC_VER
+	cRAW.setRawFilter(c);
+	#endif
 }
 
 void MSReader::setHighResMGF(bool b){
@@ -1901,7 +1800,11 @@ void MSReader::writeSpecHeader(FILE* fileOut, bool text, Spectrum& s) {
     //MSx spectrum header is here
 		mft=s.getFileType();
    	if(mft==MS2 || mft==MS3 || mft==SRM){
-    	fprintf(fileOut,"S\t%d\t%d\t%.*f\n",s.getScanNumber(),s.getScanNumber(true),4,s.getMZ());
+    	fprintf(fileOut,"S\t%d\t%d",s.getScanNumber(),s.getScanNumber(true));
+			for(i=0;i<s.sizeMZ();i++){
+				fprintf(fileOut,"\t%.*lf",4,s.getMZ());
+			}
+			fprintf(fileOut,"\n");
 		} else {
 	  	fprintf(fileOut,"S\t%d\t%d\n",s.getScanNumber(),s.getScanNumber(true));
 		}
@@ -1930,8 +1833,12 @@ void MSReader::writeSpecHeader(FILE* fileOut, bool text, Spectrum& s) {
     i=s.getScanNumber(true);
     fwrite(&i,4,1,fileOut);
 
-    d=s.getMZ();
-    fwrite(&d,8,1,fileOut);
+		i=s.sizeMZ();
+		fwrite(&i,4,1,fileOut);
+		for(i=0;i<s.sizeMZ();i++){
+			d=s.getMZ(i);
+			fwrite(&d,8,1,fileOut);
+		}
 
     f=s.getRTime();
     fwrite(&f,4,1,fileOut);
@@ -1997,11 +1904,22 @@ void MSReader::writeSpecHeader(FILE* fileOut, bool text, Spectrum& s) {
 }
 
 void MSReader::readSpecHeader(FILE *fileIn, MSScanInfo &ms){
+	double d;
 
   fread(&ms.scanNumber[0],4,1,fileIn);
   if(feof(fileIn)) return;
   fread(&ms.scanNumber[1],4,1,fileIn);
-  fread(&ms.mz,8,1,fileIn);
+	if(iVersion>=5){
+		fread(&ms.mzCount,4,1,fileIn);
+		if(ms.mz!=NULL) delete [] ms.mz;
+		ms.mz = new double[ms.mzCount];
+		for(int i=0;i<ms.mzCount;i++){
+			fread(&d,8,1,fileIn);
+			ms.mz[i]=d;
+		}
+	} else {
+		fread(&ms.mz,8,1,fileIn);
+	}
   fread(&ms.rTime,4,1,fileIn);
 
   if(iVersion>=2){
@@ -2030,623 +1948,39 @@ void MSReader::readSpecHeader(FILE *fileIn, MSScanInfo &ms){
 
 MSFileFormat MSReader::checkFileFormat(const char *fn){
 
-  int i;
+  unsigned int i;
+	char ext[32];
+
+	//extract extension & capitalize
+	strcpy(ext,strrchr(fn,'.'));
+	for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
 
   //check extension first - we must trust MS1 & MS2 & ZS & UZS
-  i=strlen(fn);
-  if(strcmp(fn+(i-4),".ms1")==0 || strcmp(fn+(i-4),".MS1")==0 ) return ms1;
-  if(strcmp(fn+(i-4),".ms2")==0 || strcmp(fn+(i-4),".MS2")==0 ) return ms2;
-  if(strcmp(fn+(i-3),".zs")==0 || strcmp(fn+(i-3),".ZS")==0 ) return zs;
-  if(strcmp(fn+(i-4),".uzs")==0 || strcmp(fn+(i-4),".UZS")==0 ) return uzs;
-  if(strcmp(fn+(i-6),".msmat")==0 || strcmp(fn+(i-6),".MSMAT")==0 ) return msmat_ff;
-
-  //RAW could mean anything, Thermo should know better
-  if(strcmp(fn+(i-4),".raw")==0 || strcmp(fn+(i-4),".RAW")==0 ) {
-    #ifdef _MSC_VER
-    if(bRaw) {
-      return raw;
-    } else {
-      cout << "Thermo RAW files not suppored on this computer. Please check for Xcalibur installation." << endl;
-      return dunno;
-    }
-    #else
-      cout << "Thermo RAW files are only supported on Windows operating system with Xcalibur installed." << endl;
-      return dunno;
-    #endif
-  }
-
-  //For now, trust mzXML & mzData also
-  if(strcmp(fn+(i-6),".mzXML")==0 || strcmp(fn+(i-6),".mzxml")==0 || strcmp(fn+(i-6),".MZXML")==0 ) return mzXML;
-  if(strcmp(fn+(i-4),".mz5")==0 || strcmp(fn+(i-7),".MZ5")==0 ) return mz5;
-	if(strcmp(fn+(i-5),".mzML")==0 || strcmp(fn+(i-5),".mzml")==0 || strcmp(fn+(i-5),".MZML")==0 ) return mzML;
-
-  //MGF format
-  if(strcmp(fn+(i-4),".mgf")==0 || strcmp(fn+(i-4),".MGF")==0 ) return mgf;
+  if(strcmp(ext,".MS1")==0 ) return ms1;
+  if(strcmp(ext,".MS2")==0 ) return ms2;
+	if(strcmp(ext,".BMS1")==0 ) return bms1;
+  if(strcmp(ext,".BMS2")==0 ) return bms2;
+	if(strcmp(ext,".CMS1")==0 ) return cms1;
+  if(strcmp(ext,".CMS2")==0 ) return cms2;
+  if(strcmp(ext,".ZS")==0 ) return zs;
+  if(strcmp(ext,".UZS")==0 ) return uzs;
+  if(strcmp(ext,".MSMAT")==0 ) return msmat_ff;
+  if(strcmp(ext,".RAW")==0 ) return raw;
+  if(strcmp(ext,".MZXML")==0 ) return mzXML;
+  if(strcmp(ext,".MZ5")==0 ) return mz5;
+	if(strcmp(ext,".MZML")==0 ) return mzML;
+  if(strcmp(ext,".MGF")==0 ) return mgf;
 
   //add the sqlite3 format
-  if(strcmp(fn+(i-8),".sqlite3")==0 || strcmp(fn+(i-8),".SQlite3")==0 || strcmp(fn+(i-8),".SQLite3")==0 ) return sqlite;
-
-  if(strcmp(fn+(i-4), ".psm") == 0 || strcmp(fn+(i-4), ".PSM") == 0) return psm;
-
-  //We can check headers for other formats
-  FILE *f;
-  f=fopen(fn,"rb");
-  if(f==NULL) {
-    cout << "Error! Cannot open file to check file format." << endl;
-    return dunno;
-  }
-  fread(&i,4,1,f);
-  fread(&iVersion,4,1,f);
-  fclose(f);
-
-  //cout << fn << "  FType = " << i << endl;
-  switch(i){
-    case 1: return bms1;
-    case 2: return cms1;
-    case 3: return bms2;
-    case 4: return cms2;
-    default: return dunno;
-  }
+  if(strcmp(ext,".SQLITE3")==0 ) return sqlite;
+  if(strcmp(ext,".PSM") == 0) return psm;
 
   return dunno;
 
 }
 
+/*
 #ifdef _MSC_VER
-bool MSReader::readRawFile(const char *c, Spectrum &s, int scNum){
-  HRESULT lRet;
-  TCHAR pth[MAX_PATH];
-  VARIANT varMassList;
-	VARIANT varPeakFlags;
-  SAFEARRAY FAR* psa;
-  DataPeak* pDataPeaks = NULL;
-	long lArraySize=0;
-	double dRTime;
-	double precursorMZ,highmass=0.0;
-	MSSpectrumType MSn;
-	int Charge;
-  int rawCharge;
-  double rawMZ;
-  long j;
-  long i;
-  int k;
-  double pw;
-  double pm1;
-  double d;
-  char chFilter[256];
-  char curFilter[256];
-  strcpy(chFilter,"");
-  strcpy(curFilter,"");
-
-  //For gathering averaged scans
-  long FirstBkg1=0;
-  long LastBkg1=0;
-  long FirstBkg2=0;
-  long LastBkg2=0;
-  int widthCount;
-  long lowerBound;
-  long upperBound;
-  BSTR rawFilter=NULL;
-
-  //Additional Scan Information
-  VARIANT ConversionA;
-  VARIANT ConversionB;
-	VARIANT ConversionC;
-  VARIANT ConversionD;
-	VARIANT ConversionE;
-  VARIANT ConversionI;
-  double TIC;
-  VARIANT IIT;  //ion injection time
-  double BPM;   //Base peak mass
-  double BPI;   //Base peak intensity
-  long tl;      //temp long value
-  double td;    //temp double value
-
-	//Needed where ATL and MFC support is not available
-	int sl;
-  BSTR testStr;
-
-  bool bCheckNext;
-
-  double* pdval;
-
-  s.clear();
-
-  if(c==NULL){
-    if(scNum>0) rawCurSpec=scNum;
-    else rawCurSpec++;
-    if(rawCurSpec>rawTotSpec) {
-      if(rawFileOpen) lRet = m_Raw->Close();
-      rawFileOpen=false;
-      return false;
-    }
-  } else {
-    if(rawFileOpen) {
-      lRet = m_Raw->Close();
-      rawFileOpen=false;
-    }
-    MultiByteToWideChar(CP_ACP,0,c,-1,(LPWSTR)pth,MAX_PATH);
-    lRet = m_Raw->Open((LPWSTR)pth);
-	  if(lRet != ERROR_SUCCESS) return false;
-	  else lRet = m_Raw->SetCurrentController(0,1);
-    rawFileOpen=true;
-    m_Raw->GetNumSpectra(&rawTotSpec);
-    if(scNum>0) rawCurSpec=scNum;
-    else rawCurSpec=1;
-    if(rawCurSpec>rawTotSpec) {
-      if(rawFileOpen) lRet = m_Raw->Close();
-      rawFileOpen=false;
-      return false;
-    }
-  }
-
-	//Initialize structures for excalibur
-	VariantInit(&varMassList);
-	VariantInit(&varPeakFlags);
-
-  //if the filter was set, make sure we pass the filter
-  while(true){
-    //cout << rawCurSpec << endl;
-	  MSn = EvaluateFilter(rawCurSpec, &precursorMZ, curFilter, rawCharge, rawMZ);
-
-    //check for spectrum filter
-    if(strlen(rawUserFilter)>0){
-      bCheckNext=false;
-      if(rawUserFilterExact) {
-        if(strcmp(curFilter,rawUserFilter)!=0)bCheckNext=true;
-      } else {
-        if(strstr(curFilter,rawUserFilter)==NULL) bCheckNext=true;
-      }
-
-      //if string doesn't match, get next scan until it does match or EOF
-      if(bCheckNext){
-        if(scNum>0) return false;
-        rawCurSpec++;
-        if(rawCurSpec>rawTotSpec) {
-          if(rawFileOpen) lRet = m_Raw->Close();
-          rawFileOpen=false;
-          return false;
-        }
-        continue;
-      }
-    }
-
-    //check for charge state filter
-    if(filter.size()>0 && find(filter.begin(), filter.end(), MSn) == filter.end()) {
-      if(scNum>0) return false;
-      rawCurSpec++;
-      if(rawCurSpec>rawTotSpec) {
-        if(rawFileOpen) lRet = m_Raw->Close();
-        rawFileOpen=false;
-        return false;
-      }
-    } else {
-      break;
-    }
-  }
-
-  //Get any additional information
-  VariantInit(&IIT);
-  VariantInit(&ConversionA);
-  VariantInit(&ConversionB);
-	VariantInit(&ConversionC);
-  VariantInit(&ConversionD);
-	VariantInit(&ConversionE);
-  VariantInit(&ConversionI);
-  
-	sl=lstrlenA("Ion Injection Time (ms):");
-  testStr = SysAllocStringLen(NULL,sl);
-  MultiByteToWideChar(CP_ACP,0,"Ion Injection Time (ms):",sl,testStr,sl);
-  m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &IIT);
-  SysFreeString(testStr);
-
-	sl=lstrlenA("Conversion Parameter A:");
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Conversion Parameter A:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &ConversionA);
-	SysFreeString(testStr);
-
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Conversion Parameter B:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &ConversionB);
-	SysFreeString(testStr);
-
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Conversion Parameter C:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &ConversionC);
-	SysFreeString(testStr);
-
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Conversion Parameter D:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &ConversionD);
-	SysFreeString(testStr);
-
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Conversion Parameter E:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &ConversionE);
-	SysFreeString(testStr);
-
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Conversion Parameter I:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &ConversionI);
-	SysFreeString(testStr);
-
-  //m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, _T("Ion Injection Time (ms):") , &IIT);
-  //m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, _T("Conversion Parameter A:") , &ConversionA);
-  //m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, _T("Conversion Parameter B:") , &ConversionB);
-  m_Raw->GetScanHeaderInfoForScanNum(rawCurSpec, &tl, &td, &td, &td, &TIC, &BPM, &BPI, &tl, &tl, &td);
-  m_Raw->RTFromScanNum(rawCurSpec,&dRTime);
-
-  //Get the peaks
-  if(rawAvg){
-    widthCount=0;
-    lowerBound=0;
-    upperBound=0;
-    for(i=rawCurSpec-1;i>0;i--){
-      EvaluateFilter(i, &d, chFilter, k, d);
-      if(strcmp(curFilter,chFilter)==0){
-        widthCount++;
-        if(widthCount==rawAvgWidth) {
-          lowerBound=i;
-          break;
-        }
-      }
-    }
-    if(lowerBound==0) lowerBound=rawCurSpec; //this will have "edge" effects
-
-    widthCount=0;
-    for(i=rawCurSpec+1;i<rawTotSpec;i++){
-      EvaluateFilter(i, &d, chFilter, k, d);
-      if(strcmp(curFilter,chFilter)==0){
-        widthCount++;
-        if(widthCount==rawAvgWidth) {
-          upperBound=i;
-          break;
-        }
-      }
-    }
-    if(upperBound==0) upperBound=rawCurSpec; //this will have "edge" effects
-
-    m_Raw->GetFilterForScanNum(i, &rawFilter);
-    //cout << lowerBound << " xx " << upperBound << endl;
-    j=m_Raw->GetAverageMassList(&lowerBound, &upperBound, &FirstBkg1, &LastBkg1, &FirstBkg2, &LastBkg2,
-      rawFilter, 1, rawAvgCutoff, 0, FALSE, &pw, &varMassList, &varPeakFlags, &lArraySize );
-    SysFreeString(rawFilter);
-    rawFilter=NULL;
-
-  } else {
-    //if(rawLabel) {
-    //  j=m_Raw->GetLabelData(&varMassList, &varPeakFlags, &rawCurSpec);
-    //} else {
-			sl=lstrlenA("");
-			testStr = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"",sl,testStr,sl);
-			j=m_Raw->GetMassListFromScanNum(&rawCurSpec,testStr,0,0,0,FALSE,&pw,&varMassList,&varPeakFlags,&lArraySize);
-			SysFreeString(testStr);
-    //}
-  }
-
-	//Handle MS2 and MS3 files differently to create Z-lines
-	if(MSn==MS2 || MSn==MS3){
-
-    if(rawCharge>0){
-      if(rawMZ>0.0) pm1 = CalcPepMass(rawCharge, rawMZ);
-      else pm1 = CalcPepMass(rawCharge, precursorMZ);
-      s.addZState(rawCharge,pm1);
-			s.setMZ(rawMZ);
-			s.setCharge(rawCharge);
-    } else {
-      Charge = CalcChargeState(precursorMZ, highmass, &varMassList, lArraySize);
-
-      //Charge greater than 0 means the charge state is known
-      if(Charge>0){
-        pm1 = CalcPepMass(Charge, precursorMZ);
-  	    s.addZState(Charge,pm1);
-
-      //Charge of 0 means unknown charge state, therefore, compute +2 and +3 states.
-      } else {
-        pm1 = CalcPepMass(2, precursorMZ);
-        s.addZState(2,pm1);
-        pm1 = CalcPepMass(3, precursorMZ);
-        s.addZState(3,pm1);
-      }
-
-    }
-
-  } //endif MS2 and MS3
-
-	//Set basic scan info
-  s.setRawFilter(curFilter);
-	s.setScanNumber((int)rawCurSpec);
-  s.setScanNumber((int)rawCurSpec,true);
-	s.setRTime((float)dRTime);
-	s.setFileType(MSn);
-  s.setBPI((float)BPI);
-  s.setBPM(BPM);
-  s.setConversionA(ConversionA.dblVal);
-  s.setConversionB(ConversionB.dblVal);
-	s.setConversionC(ConversionC.dblVal);
-  s.setConversionD(ConversionD.dblVal);
-	s.setConversionE(ConversionE.dblVal);
-  s.setConversionI(ConversionI.dblVal);
-  s.setTIC(TIC);
-  s.setIonInjectionTime(IIT.fltVal);
-	if(MSn==MS2 || MSn==MS3 || MSn==SRM) s.setMZ(precursorMZ);
-  switch(MSn){
-    case MS1: s.setMsLevel(1); break;
-    case MS2: s.setMsLevel(2); break;
-    case MS3: s.setMsLevel(3); break;
-    default: s.setMsLevel(0); break;
-  }
-
-  //Clean up memory
-  VariantClear(&IIT);
-  VariantClear(&ConversionA);
-  VariantClear(&ConversionB);
-	VariantClear(&ConversionC);
-  VariantClear(&ConversionD);
-	VariantClear(&ConversionE);
-  VariantClear(&ConversionI);
-
-  //if(rawLabel){
-  //  psa = varMassList.parray;
-  //  lArraySize = psa->rgsabound[0].cElements;
-  //  pdval = (double *) psa->pvData;
-  //  for(j=0;j<lArraySize;j++) s.add((double)pdval[j*6],(float)pdval[j*6+1]);
-  //} else {
-	  psa = varMassList.parray;
-	  SafeArrayAccessData( psa, (void**)(&pDataPeaks) );
-	  for(j=0;j<lArraySize;j++)	s.add(pDataPeaks[j].dMass,(float)pDataPeaks[j].dIntensity);
-	  SafeArrayUnaccessData( psa );
-  //}
-
-	//Clear Xcalibur structures
-	VariantClear(&varMassList);
-	VariantClear(&varPeakFlags);
-
-  return true;
-
-}
-
-MSSpectrumType MSReader::EvaluateFilter(long scan, double *precursormz, char* chFilter, int &thermoCharge, double &thermoMZ) {
-
-  //USES_CONVERSION;
-
-  BSTR Filter = NULL;
-	string cFilter;
-	string tStr;
-	int start,stop;
-  bool bSRM;
-  int i;
-  VARIANT RAWCharge;
-  VARIANT RAWmz;
-
-	//For non-ATL and non-MFC conversions
-	int sl;
-
-  //Initialize raw values to default
-  thermoCharge=0;
-  thermoMZ=0.0;
-
-  m_Raw->GetFilterForScanNum(scan, &Filter);
-	sl = SysStringLen(Filter)+1;
-	WideCharToMultiByte(CP_ACP,0,Filter,-1,chFilter,sl,NULL,NULL);
-  //strcpy(chFilter,W2A(Filter));
-  cFilter=chFilter;
-	SysFreeString(Filter);
-
-  //Check for SRM tag - this isn't used yet, but keeping it for future needs
-  bSRM=false;
-  stop=cFilter.find("SRM");
-  if(stop>-1)bSRM=true;
-
-	//search for ms2/ms3/msn
-	stop=cFilter.find("@");
-  if(stop > -1){
-    //GF:moved SRM ms2 to the else block, as it does not have a '@' symbol (with data generated 05/18/08 on quantum)
-    //MH:Data generated 09/06/07 on the quantum has both SRM and '@' symbol. Will check for SRM in both blocks
-
-		start=cFilter.find("Full ms2",0);
-		if(start>-1){
-			start+=9;
-			tStr=cFilter.substr(start,stop-start);
-			*precursormz=atof(&tStr[0]);
-      VariantInit(&RAWCharge);
-      VariantInit(&RAWmz);
-
-			sl=lstrlenA("Monoisotopic M/Z:");
-			Filter = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"Monoisotopic M/Z:",sl,Filter,sl);
-			m_Raw->GetTrailerExtraValueForScanNum(scan, Filter , &RAWmz);
-			SysFreeString(Filter);
-
-			sl=lstrlenA("Charge State:");
-			Filter = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"Charge State:",sl,Filter,sl);
-			m_Raw->GetTrailerExtraValueForScanNum(scan, Filter , &RAWCharge);
-			SysFreeString(Filter);
-
-      //m_Raw->GetTrailerExtraValueForScanNum(scan, _T("Monoisotopic M/Z:") , &RAWmz);
-      //m_Raw->GetTrailerExtraValueForScanNum(scan, _T("Charge State:") , &RAWCharge);
-      thermoCharge=RAWCharge.iVal;
-      thermoMZ=RAWmz.dblVal;
-      VariantClear(&RAWmz);
-      VariantClear(&RAWCharge);
-			return MS2;
-    }
-
-    start=cFilter.find("SRM ms2",0);
-		if(start>-1){
-			start+=9;
-			tStr=cFilter.substr(start,stop-start);
-			*precursormz=atof(&tStr[0]);
-			return SRM;
-		} else {
-			start=cFilter.find(" ",stop+1);
-			stop=cFilter.find("@",stop+1);
-			tStr=cFilter.substr(start,stop-start);
-			*precursormz=atof(&tStr[0]);
-			return MS3;
-	  }
-
-	//search for Ultra/Zoom scans,
-  //and SRM scans (GF 05/18/08)
-  } else {
-		if(cFilter.find("u Z ms")>-1) {
-      VariantInit(&RAWCharge);
-      VariantInit(&RAWmz);
-
-			sl=lstrlenA("Monoisotopic M/Z:");
-			Filter = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"Monoisotopic M/Z:",sl,Filter,sl);
-			m_Raw->GetTrailerExtraValueForScanNum(scan, Filter , &RAWmz);
-			SysFreeString(Filter);
-
-			sl=lstrlenA("Charge State:");
-			Filter = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"Charge State:",sl,Filter,sl);
-			m_Raw->GetTrailerExtraValueForScanNum(scan, Filter , &RAWCharge);
-			SysFreeString(Filter);
-
-      //m_Raw->GetTrailerExtraValueForScanNum(scan, _T("Monoisotopic M/Z:") , &RAWmz);
-      //m_Raw->GetTrailerExtraValueForScanNum(scan, _T("Charge State:") , &RAWCharge);
-      thermoCharge=RAWCharge.iVal;
-      thermoMZ=RAWmz.dblVal;
-      VariantClear(&RAWmz);
-      VariantClear(&RAWCharge);
-			return UZS;
-    }
-		if(cFilter.find("Z ms")>-1){
-      VariantInit(&RAWCharge);
-      VariantInit(&RAWmz);
-
-			sl=lstrlenA("Monoisotopic M/Z:");
-			Filter = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"Monoisotopic M/Z:",sl,Filter,sl);
-			m_Raw->GetTrailerExtraValueForScanNum(scan, Filter , &RAWmz);
-			SysFreeString(Filter);
-
-			sl=lstrlenA("Charge State:");
-			Filter = SysAllocStringLen(NULL,sl);
-			MultiByteToWideChar(CP_ACP,0,"Charge State:",sl,Filter,sl);
-			m_Raw->GetTrailerExtraValueForScanNum(scan, Filter , &RAWCharge);
-			SysFreeString(Filter);
-
-      //m_Raw->GetTrailerExtraValueForScanNum(scan, _T("Monoisotopic M/Z:") , &RAWmz);
-      //m_Raw->GetTrailerExtraValueForScanNum(scan, _T("Charge State:") , &RAWCharge);
-      thermoCharge=RAWCharge.iVal;
-      thermoMZ=RAWmz.dblVal;
-      VariantClear(&RAWmz);
-      VariantClear(&RAWCharge);
-			return ZS;
-    }
-
-    i=cFilter.find("Full ms");
-    if( i > -1)	return MS1;
-
-		i=cFilter.find("Full lock ms");
-    if( i > -1)	return MS1;
-   
-    if(cFilter.find("SRM ms2")>-1) {
-			start = cFilter.find("SRM ms2",0);
-      stop = cFilter.find("[",start);
-		  start+=8;
-			tStr=cFilter.substr(start,stop-start);
-		  *precursormz=atof(&tStr[0]);
-			return SRM;
-    }
-	}
-
-	//When all else fails, just set Unknown
-	return Unspecified;
-}
-
-int MSReader::CalcChargeState(double precursormz, double highmass, VARIANT* varMassList, long nArraySize) {
-// Assumes spectrum is +1 or +2.  Figures out charge by
-// seeing if signal is present above the parent mass
-// indicating +2 (by taking ratio above/below precursor)
-
-	bool bFound;
-	long i, iStart;
-	double dLeftSum,dRightSum;
-	double FractionWindow;
-	double CorrectionFactor;
-
-	dLeftSum = 0.00001;
-	dRightSum = 0.00001;
-
-	DataPeak* pDataPeaks = NULL;
-	SAFEARRAY FAR* psa = varMassList->parray;
-	SafeArrayAccessData( psa, (void**)(&pDataPeaks) );
-
-//-------------
-// calc charge
-//-------------
-	bFound=false;
-	i=0;
-	while(i<nArraySize && !bFound){
-    if(pDataPeaks[i].dMass < precursormz - 20){
-			//do nothing
-		} else {
-			bFound = true;
-      iStart = i;
-    }
-    i++;
-	}
-	if(!bFound) iStart = nArraySize;
-
-	for(i=0;i<iStart;i++)	dLeftSum = dLeftSum + pDataPeaks[i].dIntensity;
-
-	bFound=false;
-	i=0;
-	while(i<nArraySize && !bFound){
-    if(pDataPeaks[i].dMass < precursormz + 20){
-			//do nothing
-		} else {
-      bFound = true;
-      iStart = i;
-    }
-    i++;
-	}
-
-	if(!bFound) {
-		SafeArrayUnaccessData( psa );
-		psa = NULL;
-		pDataPeaks = NULL;
-		return 1;
-	}
-	if(iStart = 0) iStart++;
-
-	for(i=iStart;i<nArraySize;i++) dRightSum = dRightSum + pDataPeaks[i].dIntensity;
-
-	if(precursormz * 2 < highmass){
-    CorrectionFactor = 1;
-	} else {
-    FractionWindow = (precursormz * 2) - highmass;
-    CorrectionFactor = (precursormz - FractionWindow) / precursormz;
-	}
-
-	if(dLeftSum > 0 && (dRightSum / dLeftSum) < (0.2 * CorrectionFactor)){
-		SafeArrayUnaccessData( psa );
-		psa=NULL;
-		pDataPeaks=NULL;
-		return 1;
-	} else {
-		SafeArrayUnaccessData( psa );
-		psa=NULL;
-		pDataPeaks=NULL;
-    return 0;  //Set charge to 0 to indicate that both +2 and +3 spectra should be created
-	}
-
-  //When all else fails, return 0
-  return 0;
-}
-
-double MSReader::CalcPepMass(int chargestate, double precursormz){
-  double MplusH=0.0;
-  MplusH = precursormz * chargestate - ((chargestate-1)*1.00727649);
-	return MplusH;
-}
 
 void MSReader::setRawFilterExact(bool b){
   rawUserFilterExact=b;
@@ -2688,23 +2022,5 @@ bool MSReader::lookupRT(char* c, int scanNum, float& rt){
 }
 
 #endif
-
-/*
-void MSReader::createMZXML(char* fn, bool isCentroid, bool accPrecursor){
-	mstI.setAccuratePrecursor(accPrecursor);
-	mstI.setCentroiding(true);
-	msWriter = new mzXMLWriter("MSToolkit", "Noversion", &mstI); 
-	msWriter->setOutputFile(fn);
-	msWriter->createDocument();
-}
-
-void MSReader::writeMZXML(MSObject* o){
-	mstI.setMSTObject(o);
-	msWriter->writeDocument();
-}
-
-void MSReader::closeMZXML() {
-	msWriter->closeDocument();
-	delete msWriter;
-}
 */
+

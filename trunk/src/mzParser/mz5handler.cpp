@@ -205,7 +205,11 @@ bool mzpMz5Handler::readFile(const string filename){
 	rdcc_nelmts = config_->getRdccSlots();
 	faparm.setCache(mds_nelemts, rdcc_nelmts, rdcc_nbytes, rdcc_w0);
 
-	file_ = new H5File(filename, H5F_ACC_RDONLY, fcparm, faparm);
+	try {
+		file_ = new H5File(filename, H5F_ACC_RDONLY, fcparm, faparm);
+	} catch (FileIException&){
+		return false;
+	}
 	closed_ = false;
 
 	hsize_t start[1], end[1];
