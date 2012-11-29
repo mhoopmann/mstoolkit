@@ -499,6 +499,8 @@ int MSReader::getPercent(){
 		case mzXML:
 		case mz5:
 		case mzML:
+		case mzXMLgz:
+		case mzMLgz:
 			if(rampFileIn!=NULL){
 				return (int)((double)rampIndex/rampLastScan*100);
 			}
@@ -602,6 +604,8 @@ void MSReader::writeFile(const char* c, MSFileFormat ff, MSObject& m, char* sha1
   case mzXML:
   case mz5:
 	case mzML:
+	case mzXMLgz:
+	case mzMLgz:
     cout << "Cannot write mzXML or mz5 or mzML formats. Nothing written." << endl;
     break;
   case bms1:
@@ -1136,6 +1140,8 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 		case mzXML:
 		case mz5:
 		case mzML:
+		case mzXMLgz:
+		case mzMLgz:
 			return readMZPFile(c,s,scNum);
 			break;
 		case raw:
@@ -1950,9 +1956,13 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
 
   unsigned int i;
 	char ext[32];
+	char tmp[1024];
+	char* c;
 
 	//extract extension & capitalize
-	strcpy(ext,strrchr(fn,'.'));
+	c=(char*)strrchr(fn,'.');
+	if(c==NULL) return dunno;
+	strcpy(ext,c);
 	for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
 
   //check extension first - we must trust MS1 & MS2 & ZS & UZS
@@ -1970,10 +1980,21 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
   if(strcmp(ext,".MZ5")==0 ) return mz5;
 	if(strcmp(ext,".MZML")==0 ) return mzML;
   if(strcmp(ext,".MGF")==0 ) return mgf;
-
-  //add the sqlite3 format
+	//add the sqlite3 format
   if(strcmp(ext,".SQLITE3")==0 ) return sqlite;
   if(strcmp(ext,".PSM") == 0) return psm;
+	
+	if(strcmp(ext,".GZ")==0 ) {
+		i=c-fn;
+		strncpy(tmp,fn,i);
+		tmp[i]='\0';
+		c=strrchr(tmp,'.');
+		if(c==NULL) return dunno;
+		strcpy(ext,c);
+		for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
+		if(strcmp(ext,".MZXML")==0 ) return mzXMLgz;
+		if(strcmp(ext,".MZML")==0 ) return mzMLgz;
+	}
 
   return dunno;
 
