@@ -10,7 +10,8 @@ enum MSSpectrumType {
   IonSpec,
   SRM,
   REFERENCE,
-  Unspecified
+  Unspecified,
+	MSX
 };
 
 enum MSFileFormat {
@@ -64,7 +65,8 @@ struct MSScanInfo {
   float rTime;
   float IIT;
   float BPI;
-  double mz;
+  double* mz;
+	int mzCount;
   double convA;
   double convB;
 	double convC;
@@ -77,8 +79,11 @@ struct MSScanInfo {
 		scanNumber[0]=scanNumber[1]=0;
 		numDataPoints=numEZStates=numZStates=0;
 		rTime=IIT=BPI=0.0f;
-		mz=TIC=BPM=0.0;
+		TIC=BPM=0.0;
 		convA=convB=convC=convD=convE=convI=0.0;
+	}
+	~MSScanInfo(){
+		if(mz!=0) delete [] mz;
 	}
 };
 

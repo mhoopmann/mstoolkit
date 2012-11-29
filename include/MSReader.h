@@ -32,6 +32,7 @@ using namespace XRawfile;
 
 //Macros for 64-bit file support
 #ifdef _MSC_VER
+#include "RAWReader.h"
 //extern "C" int __cdecl _fseeki64(FILE *, __int64, int);
 //extern "C" __int64 __cdecl _ftelli64(FILE *);
 typedef __int64 f_off;
@@ -59,6 +60,7 @@ class MSReader {
   ~MSReader();
 
   //Functions
+	void addFilter(MSSpectrumType m);
   void appendFile(char* c, bool text, Spectrum& s);
   void appendFile(char* c, bool text, MSObject& m);
   void appendFile(char* c, Spectrum& s);
@@ -67,9 +69,6 @@ class MSReader {
   MSFileFormat checkFileFormat(const char *fn);
 
   MSHeader& getHeader();
-  //Spectrum readBinaryFile(char* c, Spectrum& s, int scNum=0);
-  //Spectrum readMSFile(char* c,int scNum=0);
-	
   MSSpectrumType getFileType();
   int getPercent();
   int getLastScan();
@@ -81,8 +80,8 @@ class MSReader {
   void writeFile(const char* c, bool text, MSObject& m);
   void writeFile(const char* c, MSFileFormat ff, MSObject& m, char* sha1Report='\0');
 
-  bool readFile(const char* c, bool text, Spectrum& s, int scNum=0);
-  bool readFile(const char* c, MSFileFormat f, Spectrum& s, int scNum=0);
+  bool readMSTFile(const char* c, bool text, Spectrum& s, int scNum=0);
+  bool readMZPFile(const char* c, Spectrum& s, int scNum=0);
   bool readFile(const char* c, Spectrum& s, int scNum=0);
   
   void setFilter(vector<MSSpectrumType>& m);
@@ -103,13 +102,6 @@ class MSReader {
 
   //for Sqlite
   void createIndex(); 
-
-	//for mzXML writing
-	//MassSpecXMLWriter* msWriter;
-	//MSToolkitInterface mstI;
-	//void createMZXML(char* fn, bool isCentroid, bool accPrecursor);
-	//void writeMZXML(MSObject* o);
-	//void closeMZXML();
 
  protected:
 
@@ -160,21 +152,7 @@ class MSReader {
   
   //support for rawfiles
   #ifdef _MSC_VER
-  bool bRaw;
-  long rawTotSpec;
-  long rawCurSpec;
-  bool rawAvg;
-  int rawAvgWidth;
-  long rawAvgCutoff;
-  bool rawLabel;
-  char rawUserFilter[256];
-  bool rawUserFilterExact;
-  IXRawfilePtr m_Raw;
-  int CalcChargeState(double precursormz, double highmass, VARIANT* varMassList, long nArraySize);
-  double CalcPepMass(int chargestate, double precursormz);
-  MSSpectrumType EvaluateFilter(long scan, double *precursormz, char* chFilter, int &thermoCharge, double &thermoMZ);
-	bool InitRaw();
-  bool readRawFile(const char* c, Spectrum& s, int scNum=0);
+	RAWReader cRAW;
   #endif
 
   //support for sqlite

@@ -27,6 +27,7 @@ class Spectrum {
   void			    	add(double,float);
   void            addEZState(int,double,float,float);
   void            addEZState(EZState&);
+	void						addMZ(double);
   void    				addZState(int,double);
   void		    		addZState(ZState&);
   Peak_T&			    at(const int&);
@@ -36,6 +37,7 @@ class Spectrum {
   ZState&			    atZ(const int&);
   ZState&	    		atZ(const unsigned int&);
   void			    	clear();
+	void						clearMZ();
 	void						clearPeaks();
   void				    erase(unsigned int);
   void				    erase(unsigned int, unsigned int);
@@ -56,7 +58,7 @@ class Spectrum {
   double          getConversionI();
   MSSpectrumType  getFileType();
   float           getIonInjectionTime();
-  double    			getMZ();
+  double    			getMZ(int index=0);
   bool            getRawFilter(char*,int,bool bLock=false);
   float		    		getRTime();
   float           getRTimeApex();
@@ -85,6 +87,7 @@ class Spectrum {
   void            setMsLevel(int level);
   int			      	size();
   int             sizeEZ();
+	int							sizeMZ();
   int     				sizeZ();
   void		    		sortIntensity();
   void				    sortIntensityRev();
@@ -115,7 +118,7 @@ class Spectrum {
   int		           scanNumber;
   int              scanNumber2;
   int              msLevel;
-  double	         mz;
+  vector<double>   *mz;
   MSSpectrumType   fileType;
   MSActivation     actMethod;
   int              scanID;       //index for sqlite
