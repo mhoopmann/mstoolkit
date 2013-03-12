@@ -1196,11 +1196,11 @@ struct ScanHeaderStruct {
    double							basePeakIntensity;
    double							basePeakMZ;
    double							collisionEnergy;
+   double							compensationVoltage;  /* only if MS level > 1 */
    double							highMZ;
    double							ionisationEnergy;
    double							lowMZ;
 	 double							precursorIntensity;  /* only if MS level > 1 */
-	 double							compensationVoltage;  /* only if MS level > 1 */
    double							precursorMZ;  /* only if MS level > 1 */
    double							retentionTime;        /* in seconds */
 	 double							totIonCurrent;
@@ -1210,6 +1210,7 @@ struct ScanHeaderStruct {
    char								scanType[SCANTYPE_LENGTH];
    char								idString[CHARGEARRAY_LENGTH];
    
+   bool               centroid; //true if spectrum is centroided
    bool								possibleChargesArray[CHARGEARRAY_LENGTH]; /* NOTE: does NOT include "precursorCharge" information; only from "possibleCharges" */
    
 	 ramp_fileoffset_t	filePosition; /* where in the file is this header? */
