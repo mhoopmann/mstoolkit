@@ -62,7 +62,7 @@ private:
 	//Private Functions
   int							calcChargeState(double precursormz, double highmass, VARIANT* varMassList, long nArraySize);
   double					calcPepMass(int chargestate, double precursormz);
-  MSSpectrumType	evaluateFilter(long scan, char* chFilter, vector<double>& MZs);
+  MSSpectrumType	evaluateFilter(long scan, char* chFilter, vector<double>& MZs, bool& bCentroid);
 	bool						initRaw();
   
 
