@@ -1,6 +1,8 @@
 #ifndef _MSTOOLKITTYPES_H
 #define _MSTOOLKITTYPES_H
 
+#include <stddef.h>
+
 enum MSSpectrumType {
   MS1,
   MS2,
