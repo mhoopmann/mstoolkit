@@ -78,6 +78,7 @@ struct MSScanInfo {
   double TIC;
   double BPM;
 	MSScanInfo(){
+    mz=NULL;
 		scanNumber[0]=scanNumber[1]=0;
 		numDataPoints=numEZStates=numZStates=0;
 		rTime=IIT=BPI=0.0f;
@@ -85,7 +86,7 @@ struct MSScanInfo {
 		convA=convB=convC=convD=convE=convI=0.0;
 	}
 	~MSScanInfo(){
-		if(mz!=0) delete [] mz;
+		if(mz!=NULL) delete [] mz;
 	}
 };
 
