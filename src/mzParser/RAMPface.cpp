@@ -287,10 +287,11 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->activationMethod[0]='\0';
 	scanHeader->basePeakIntensity=0.0;
 	scanHeader->basePeakMZ=0.0;
-  scanHeader->centroid=false;
+	scanHeader->centroid=false;
 	scanHeader->collisionEnergy=0.0;
 	scanHeader->compensationVoltage=0.0;
 	scanHeader->filePosition=0;
+	scanHeader->filterLine[0]='\0';
 	scanHeader->highMZ=0.0;
 	scanHeader->idString[0]='\0';
 	scanHeader->ionisationEnergy=0.0;
@@ -363,7 +364,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->acquisitionNum=pFI->bs->getScanNum();
 	scanHeader->basePeakIntensity=pFI->bs->getBasePeakIntensity();
 	scanHeader->basePeakMZ=pFI->bs->getBasePeakMZ();
-  scanHeader->centroid=pFI->bs->getCentroid();
+	scanHeader->centroid=pFI->bs->getCentroid();
 	scanHeader->collisionEnergy=pFI->bs->getCollisionEnergy();
 	scanHeader->highMZ=pFI->bs->getHighMZ();
 	scanHeader->lowMZ=pFI->bs->getLowMZ();
@@ -379,6 +380,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->scanIndex=pFI->bs->getScanIndex();
 	scanHeader->seqNum=pFI->bs->getScanIndex();
 	
+	pFI->bs->getFilterLine(scanHeader->filterLine);
 	pFI->bs->getIDString(scanHeader->idString);
 
 	switch(pFI->bs->getActivation()){
