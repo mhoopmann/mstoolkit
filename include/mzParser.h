@@ -192,6 +192,7 @@ public:
 	void setCentroid(bool b);
 	void setCollisionEnergy(double d);
 	void setCompensationVoltage(double d);
+	void setFilterLine(char* str);
 	void setHighMZ(double d);
 	void setIDString(char* str);
 	void setLowMZ(double d);
@@ -214,6 +215,7 @@ public:
 	bool					getCentroid();
 	double				getCollisionEnergy();
 	double				getCompensationVoltage();
+	int					getFilterLine(char* str);
 	double				getHighMZ();
 	int						getIDString(char* str);
 	double				getLowMZ();
@@ -239,6 +241,7 @@ protected:
 	bool						centroid;
 	double					collisionEnergy;
 	double					compensationVoltage;	//FAIMS compensation voltage
+	char					filterLine[128];
 	double					highMZ;
 	char						idString[128];
 	double					lowMZ;
@@ -1180,40 +1183,41 @@ static vector<const char *> data_Ext;
 
 struct ScanHeaderStruct {
    
-   int								acquisitionNum; // scan number as declared in File (may be gaps)
-	 int								mergedScan;  /* only if MS level > 1 */
-   int								mergedResultScanNum; /* scan number of the resultant merged scan */
-   int								mergedResultStartScanNum; /* smallest scan number of the scanOrigin for merged scan */
-   int								mergedResultEndScanNum; /* largest scan number of the scanOrigin for merged scan */
-   int								msLevel;
-	 int								numPossibleCharges;
-   int								peaksCount;
-	 int								precursorCharge;  /* only if MS level > 1 */
-	 int								precursorScanNum; /* only if MS level > 1 */
-	 int								scanIndex; //a sequential index for non-sequential scan numbers (1-based)
-   int								seqNum; // number in sequence observed file (1-based)
+	int						acquisitionNum; // scan number as declared in File (may be gaps)
+	int						mergedScan;  /* only if MS level > 1 */
+	int						mergedResultScanNum; /* scan number of the resultant merged scan */
+	int						mergedResultStartScanNum; /* smallest scan number of the scanOrigin for merged scan */
+	int						mergedResultEndScanNum; /* largest scan number of the scanOrigin for merged scan */
+	int						msLevel;
+	int						numPossibleCharges;
+	int						peaksCount;
+	int						precursorCharge;  /* only if MS level > 1 */
+	int						precursorScanNum; /* only if MS level > 1 */
+	int						scanIndex; //a sequential index for non-sequential scan numbers (1-based)
+	int						seqNum; // number in sequence observed file (1-based)
 	 
-   double							basePeakIntensity;
-   double							basePeakMZ;
-   double							collisionEnergy;
-   double							compensationVoltage;  /* only if MS level > 1 */
-   double							highMZ;
-   double							ionisationEnergy;
-   double							lowMZ;
-	 double							precursorIntensity;  /* only if MS level > 1 */
-   double							precursorMZ;  /* only if MS level > 1 */
-   double							retentionTime;        /* in seconds */
-	 double							totIonCurrent;
+	double					basePeakIntensity;
+	double					basePeakMZ;
+	double					collisionEnergy;
+	double					compensationVoltage;  /* only if MS level > 1 */
+	double					highMZ;
+	double					ionisationEnergy;
+	double					lowMZ;
+	double					precursorIntensity;  /* only if MS level > 1 */
+	double					precursorMZ;  /* only if MS level > 1 */
+	double					retentionTime;        /* in seconds */
+	double					totIonCurrent;
    
-   char								activationMethod[SCANTYPE_LENGTH];
-   char								possibleCharges[SCANTYPE_LENGTH];
-   char								scanType[SCANTYPE_LENGTH];
-   char								idString[CHARGEARRAY_LENGTH];
+	char					activationMethod[SCANTYPE_LENGTH];
+	char					filterLine[CHARGEARRAY_LENGTH];
+	char					possibleCharges[SCANTYPE_LENGTH];
+	char					scanType[SCANTYPE_LENGTH];
+	char					idString[CHARGEARRAY_LENGTH];
    
-   bool               centroid; //true if spectrum is centroided
-   bool								possibleChargesArray[CHARGEARRAY_LENGTH]; /* NOTE: does NOT include "precursorCharge" information; only from "possibleCharges" */
+	bool					centroid; //true if spectrum is centroided
+	bool					possibleChargesArray[CHARGEARRAY_LENGTH]; /* NOTE: does NOT include "precursorCharge" information; only from "possibleCharges" */
    
-	 ramp_fileoffset_t	filePosition; /* where in the file is this header? */
+	ramp_fileoffset_t		filePosition; /* where in the file is this header? */
 };
 
 struct RunHeaderStruct {
