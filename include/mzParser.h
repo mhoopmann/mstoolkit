@@ -31,11 +31,15 @@
 #include <string.h>
 #include "expat.h"
 #include "zlib.h"
+#ifdef MZP_MZ5
 #include "hdf5.h"
 #include "H5Cpp.h"
+#endif
 
 using namespace std;
+#ifdef MZP_MZ5
 using namespace H5;
+#endif
 
 //------------------------------------------------
 // MACROS
@@ -580,6 +584,8 @@ private:
 //------------------------------------------------
 // mz5 Support
 //------------------------------------------------
+
+#ifdef MZP_MZ5
 
 //mz5 constants
 #define CVL 128
@@ -1138,6 +1144,8 @@ private:
 	BasicSpectrum*						spec;
 };
 
+#endif
+
 //------------------------------------------------
 // RAMP API
 //------------------------------------------------
@@ -1152,16 +1160,20 @@ typedef struct RAMPFILE{
 	BasicSpectrum* bs;
 	mzpSAXMzmlHandler* mzML;
 	mzpSAXMzxmlHandler* mzXML;
-	mzpMz5Config* mz5Config;
-	mzpMz5Handler* mz5;
+  #ifdef MZP_MZ5
+	  mzpMz5Config* mz5Config;
+	  mzpMz5Handler* mz5;
+  #endif
 	int fileType;
 	int bIsMzData;
 	RAMPFILE(){
 		bs=NULL;
 		mzML=NULL;
 		mzXML=NULL;
+    #ifdef MZP_MZ5
 		mz5=NULL;
 		mz5Config=NULL;
+    #endif
 		fileType=0;
 		bIsMzData=0;
 	}
@@ -1169,13 +1181,15 @@ typedef struct RAMPFILE{
 		if(bs!=NULL) delete bs;
 		if(mzML!=NULL) delete mzML;
 		if(mzXML!=NULL) delete mzXML;
-		if(mz5!=NULL) delete mz5;
-		if(mz5Config!=NULL) delete mz5Config;
-		bs=NULL;
+    bs=NULL;
 		mzML=NULL;
 		mzXML=NULL;
-		mz5=NULL;
+    #ifdef MZP_MZ5
+		if(mz5!=NULL) delete mz5;
+		if(mz5Config!=NULL) delete mz5Config;
+    mz5=NULL;
 		mz5Config=NULL;
+    #endif	
 	}
 } RAMPFILE;
 
@@ -1304,7 +1318,7 @@ typedef class Chromatogram* ChromatogramPtr;
 class ChromatogramList{
 public:
 	ChromatogramList();
-	ChromatogramList(mzpSAXMzmlHandler* ml, mzpMz5Handler* m5, BasicChromatogram* bc);
+	ChromatogramList(mzpSAXMzmlHandler* ml, void* m5, BasicChromatogram* bc);
 	~ChromatogramList();
 
 	ChromatogramPtr		chromatogram(int index, bool binaryData = false);
@@ -1312,11 +1326,15 @@ public:
 	unsigned int			size();
 
 	vector<cindex>*			vChromatIndex;
-	vector<cMz5Index>*	vMz5Index;
+  #ifdef MZP_MZ5
+	  vector<cMz5Index>*	vMz5Index;
+  #endif
 
 private:
 	mzpSAXMzmlHandler*	mzML;
-	mzpMz5Handler*			mz5;
+  #ifdef MZP_MZ5
+    mzpMz5Handler*			mz5;
+  #endif
 	ChromatogramPtr			chromat;
 };
 typedef class ChromatogramList* ChromatogramListPtr;
@@ -1324,16 +1342,18 @@ typedef class ChromatogramList* ChromatogramListPtr;
 class PwizRun{
 public:
 	PwizRun();
-	PwizRun(mzpSAXMzmlHandler* ml, mzpMz5Handler* m5, BasicChromatogram* b);
+	PwizRun(mzpSAXMzmlHandler* ml, void* m5, BasicChromatogram* b);
 	~PwizRun();
 
 	ChromatogramListPtr chromatogramListPtr;
 
-	void set(mzpSAXMzmlHandler* ml, mzpMz5Handler* m5, BasicChromatogram* b);
+	void set(mzpSAXMzmlHandler* ml, void* m5, BasicChromatogram* b);
 
 private:
 	mzpSAXMzmlHandler*	mzML;
-	mzpMz5Handler*			mz5;
+  #ifdef MZP_MZ5
+	  mzpMz5Handler*			mz5;
+  #endif
 	BasicChromatogram*	bc;
 };
 
@@ -1348,8 +1368,10 @@ private:
 	BasicSpectrum*			bs;
 	BasicChromatogram*	bc;
 	mzpSAXMzmlHandler*	mzML;
-	mzpMz5Config*				mz5Config;
-	mzpMz5Handler*			mz5;
+  #ifdef MZP_MZ5
+	  mzpMz5Config*				mz5Config;
+	  mzpMz5Handler*			mz5;
+  #endif
 };
 
 //------------------------------------------------
@@ -1374,8 +1396,10 @@ public:
 protected:
 	mzpSAXMzmlHandler*		mzML;
 	mzpSAXMzxmlHandler*		mzXML;
-	mzpMz5Handler*				mz5;
-	mzpMz5Config*					mz5Config;
+  #ifdef MZP_MZ5
+    mzpMz5Handler*			mz5;
+	  mzpMz5Config*				mz5Config;
+  #endif
 
 private:
 	//private functions
