@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="./include"
+				AdditionalIncludeDirectories="&quot;C:\Users\mhoopman\Documents\Software Development\HDF5-1.8.9\include&quot;;&quot;C:\Users\mhoopman\Documents\Software Development\HDF5-1.8.9\include\cpp&quot;;&quot;C:\Users\mhoopman\Documents\Software Development\MSToolkit-Google\includeCLR&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;COMPILED_FROM_DSP;_NOSQLITE;XML_STATIC"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -167,6 +167,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\MSToolkit\RAWReader.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\MSToolkit\Spectrum.cpp"
 					>
 				</File>
@@ -174,6 +178,10 @@
 			<Filter
 				Name="mzParser"
 				>
+				<File
+					RelativePath=".\src\mzParser\BasicChromatogram.cpp"
+					>
+				</File>
 				<File
 					RelativePath=".\src\mzParser\BasicSpectrum.cpp"
 					>
@@ -183,11 +191,27 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mzParser\mz5handler.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mzParser\mzp_base64.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\mzParser\mzParser.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\mzpMz5Config.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\mzpMz5Structs.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\PWIZface.cpp"
 					>
 				</File>
 				<File
@@ -220,70 +244,6 @@
 				</File>
 				<File
 					RelativePath=".\src\expat-2.0.1\xmltok.cpp"
-					>
-				</File>
-			</Filter>
-			<Filter
-				Name="zLib"
-				>
-				<File
-					RelativePath=".\src\zLib-1.2.5\adler32.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\compress.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\crc32.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\deflate.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\gzclose.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\gzlib.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\gzread.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\gzwrite.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\infback.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\inffast.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\inflate.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\inftrees.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\trees.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\uncompr.cpp"
-					>
-				</File>
-				<File
-					RelativePath=".\src\zLib-1.2.5\zutil.cpp"
 					>
 				</File>
 			</Filter>
