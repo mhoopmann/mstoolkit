@@ -19,6 +19,7 @@
 using namespace XRawfile;
 using namespace std;
 
+namespace MSToolkit {
 class RAWReader {
 public:
 	//Constructors & Destructors
@@ -68,5 +69,6 @@ private:
 
 };
 
+}
 #endif
 #endif
