@@ -106,7 +106,7 @@
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories="./include"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;COMPILED_FROM_DSP;XML_STATIC"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;COMPILED_FROM_DSP;XML_STATIC;MST_MZ5"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
@@ -163,6 +163,10 @@
 				</File>
 				<File
 					RelativePath=".\src\MSToolkit\MSReader.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\MSToolkit\RAWReader.cpp"
 					>
 				</File>
 				<File
