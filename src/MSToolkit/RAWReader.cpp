@@ -1,5 +1,7 @@
 #include "RAWReader.h"
 
+using namespace MSToolkit;
+
 // ==========================
 // Constructors & Destructors
 // ==========================
