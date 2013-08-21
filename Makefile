@@ -7,7 +7,7 @@ MST_PATH = ./src/MSToolkit
 
 HEADER_PATH = ./include
 
-MZPARSER = mzp_base64.o BasicSpectrum.o mzParser.o RAMPface.o saxhandler.o saxmzmlhandler.o saxmzxmlhandler.o Czran.o
+MZPARSER = mzp_base64.o BasicSpectrum.o BasicChromatogram.o mzParser.o RAMPface.o saxhandler.o saxmzmlhandler.o saxmzxmlhandler.o Czran.o
 EXPAT = xmlparse.o xmlrole.o xmltok.o
 ZLIB = adler32.o compress.o crc32.o deflate.o inffast.o inflate.o infback.o inftrees.o trees.o uncompr.o zutil.o
 MSTOOLKIT = Spectrum.o MSObject.o
