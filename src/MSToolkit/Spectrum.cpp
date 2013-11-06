@@ -13,10 +13,11 @@ Spectrum::Spectrum(){
   scanNumber=0;
   scanNumber2=0;
   msLevel = 2;
+  monoMZ=new vector<double>;
   mz=new vector<double>;
-	if(!mz) cout << "WTF" << endl;
   TIC=0;
   IIT=0;
+  compensationVoltage=0;
   convA=0;
   convB=0;
 	convC=0;
@@ -39,16 +40,15 @@ Spectrum::Spectrum(){
 
 
 Spectrum::~Spectrum(){
-	//cout<<"in Spectrum destructor!"<<endl;
   if(vPeaks) delete vPeaks;
   if(vEZ) delete vEZ;
   if(vZ) delete vZ;
 	if(mz) delete mz;
+  if(monoMZ) delete monoMZ;
 }
 
 Spectrum::Spectrum(const Spectrum& s){
 
-  //cout<<"in Spectrum copy constructor"<<endl;
   unsigned int i;
 
   rTime = s.rTime;
@@ -56,6 +56,10 @@ Spectrum::Spectrum(const Spectrum& s){
   scanNumber = s.scanNumber;
   scanNumber2 = s.scanNumber2;
   msLevel = s.msLevel;
+  monoMZ = new vector<double>;
+  for(i=0;i<s.monoMZ->size();i++){
+		monoMZ->push_back(s.monoMZ->at(i));
+	}
   mz = new vector<double>;
 	for(i=0;i<s.mz->size();i++){
 		mz->push_back(s.mz->at(i));
@@ -63,6 +67,7 @@ Spectrum::Spectrum(const Spectrum& s){
   fileType = s.fileType;
   IIT = s.IIT;
   TIC = s.TIC;
+  compensationVoltage = s.compensationVoltage;
   convA = s.convA;
   convB = s.convB;
   convC = s.convC;
@@ -94,7 +99,12 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     delete vPeaks;
     delete vEZ;
     delete vZ;
+    delete monoMZ;
 		delete mz;
+    monoMZ = new vector<double>;
+    for(i=0;i<s.monoMZ->size();i++){
+		  monoMZ->push_back(s.monoMZ->at(i));
+	  }
 		mz = new vector<double>;
 		for(i=0;i<s.mz->size();i++){
 			mz->push_back(s.mz->at(i));
@@ -118,6 +128,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     msLevel = s.msLevel;
     BPI = s.BPI;
     BPM = s.BPM;
+    compensationVoltage = s.compensationVoltage;
     convA = s.convA;
     convB = s.convB;
     convC = s.convC;
@@ -166,8 +177,9 @@ void Spectrum::addEZState(int i, double d, float f1, float f2){
 	vEZ->push_back(z);
 }
 
-void Spectrum::addMZ(double d){
+void Spectrum::addMZ(double d, double mono){
 	mz->push_back(d);
+  monoMZ->push_back(mono);
 }
 
 void Spectrum::addZState(ZState& z){
@@ -234,6 +246,8 @@ void Spectrum::clear(){
 void Spectrum::clearMZ(){
 	delete mz;
 	mz = new vector<double>;
+  delete monoMZ;
+	monoMZ = new vector<double>;
 }
 
 void Spectrum::clearPeaks(){
@@ -303,6 +317,10 @@ int Spectrum::getCharge(){
   return charge;
 }
 
+double Spectrum::getCompensationVoltage(){
+  return compensationVoltage;
+}
+
 double Spectrum::getConversionA(){
   return convA;
 }
@@ -333,6 +351,11 @@ MSSpectrumType Spectrum::getFileType(){
 
 float Spectrum::getIonInjectionTime(){
   return IIT;
+}
+
+double Spectrum::getMonoMZ(int index){
+	if(index>(int)monoMZ->size()) return -1.0;
+  return monoMZ->at(index);
 }
 
 double Spectrum::getMZ(int index){
@@ -382,6 +405,10 @@ void Spectrum::setCharge(int i){
   charge=i;
 }
 
+void Spectrum::setCompensationVoltage(double d){
+  compensationVoltage=d;
+}
+
 void Spectrum::setConversionA(double d){
   convA=d;
 }
@@ -414,9 +441,10 @@ void Spectrum::setIonInjectionTime(float f){
   IIT=f;
 }
 
-void Spectrum::setMZ(double d){
+void Spectrum::setMZ(double d, double mono){
 	clearMZ();
 	mz->push_back(d);
+  monoMZ->push_back(d);
 }
 
 void Spectrum::setRawFilter(char* c){
