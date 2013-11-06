@@ -28,7 +28,7 @@ class Spectrum {
   void			    	add(double,float);
   void            addEZState(int,double,float,float);
   void            addEZState(EZState&);
-	void						addMZ(double);
+	void						addMZ(double, double mono=0);
   void    				addZState(int,double);
   void		    		addZState(ZState&);
   Peak_T&			    at(const int&);
@@ -52,6 +52,7 @@ class Spectrum {
   double          getBPM();
   int             getCentroidStatus();
   int				      getCharge();
+  double          getCompensationVoltage();
   double          getConversionA();
   double          getConversionB();
   double          getConversionC();
@@ -60,6 +61,7 @@ class Spectrum {
   double          getConversionI();
   MSSpectrumType  getFileType();
   float           getIonInjectionTime();
+  double    			getMonoMZ(int index=0);
   double    			getMZ(int index=0);
   bool            getRawFilter(char*,int,bool bLock=false);
   float		    		getRTime();
@@ -73,6 +75,7 @@ class Spectrum {
   void            setBPM(double);
   void            setCentroidStatus(int);
   void			    	setCharge(int);
+  void            setCompensationVoltage(double);
   void            setConversionA(double);
   void            setConversionB(double);
   void            setConversionC(double);
@@ -81,7 +84,7 @@ class Spectrum {
   void            setConversionI(double);
   void    				setFileType(MSSpectrumType);
   void            setIonInjectionTime(float);
-  void		    		setMZ(double);
+  void		    		setMZ(double, double mono=0);
   void            setRawFilter(char*);
   void				    setRTime(float);
   void            setRTimeApex(float);
@@ -90,7 +93,7 @@ class Spectrum {
   void            setMsLevel(int level);
   int			      	size();
   int             sizeEZ();
-	int							sizeMZ();
+	int							sizeMZ();   //also returns size of monoMZ
   int     				sizeZ();
   void		    		sortIntensity();
   void				    sortIntensityRev();
@@ -121,12 +124,14 @@ class Spectrum {
   int		           scanNumber;
   int              scanNumber2;
   int              msLevel;
+  vector<double>   *monoMZ;
   vector<double>   *mz;
   MSSpectrumType   fileType;
   MSActivation     actMethod;
   int              scanID;       //index for sqlite
   float            IIT;
   float            BPI;          //Base Peak Intensity
+  double           compensationVoltage;
   double           convA;
   double           convB;
 	double           convC;
