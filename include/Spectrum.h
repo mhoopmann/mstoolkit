@@ -63,6 +63,7 @@ class Spectrum {
   float           getIonInjectionTime();
   double    			getMonoMZ(int index=0);
   double    			getMZ(int index=0);
+  bool            getNativeID(char*,int);
   bool            getRawFilter(char*,int,bool bLock=false);
   float		    		getRTime();
   float           getRTimeApex();
@@ -85,6 +86,7 @@ class Spectrum {
   void    				setFileType(MSSpectrumType);
   void            setIonInjectionTime(float);
   void		    		setMZ(double, double mono=0);
+  void            setNativeID(char*);
   void            setRawFilter(char*);
   void				    setRTime(float);
   void            setRTimeApex(float);
@@ -142,6 +144,7 @@ class Spectrum {
   double           BPM;          //Base Peak Mass
   float            rTimeApex;    //retention time of precursor apex (MS2)
   float            area;         //summed peak areas of precursor (MS2)
+  char             nativeID[256]; //spectrumNativeID in mzML files
   char             rawFilter[256]; //RAW file header line
   int              centroidStatus; //0=profile, 1=centroid, 2=unknown
 
