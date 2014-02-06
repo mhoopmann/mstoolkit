@@ -363,6 +363,16 @@ double Spectrum::getMZ(int index){
   return mz->at(index);
 }
 
+bool Spectrum::getNativeID(char* c, int sz){
+  if(sz<(int)strlen(nativeID)) {
+    cout << "Buffer too small to retrieve spectrumNativeID. " << sizeof(c) << " " << strlen(nativeID) << endl;
+    return false;
+  } else {
+    strcpy(c,nativeID);
+    return true;
+  }
+}
+
 bool Spectrum::getRawFilter(char* c, int sz, bool bLock){
   if(sz<(int)strlen(rawFilter)) {
     cout << "Buffer too small to retrieve RAW filter. " << sizeof(c) << " " << strlen(rawFilter) << endl;
@@ -445,6 +455,11 @@ void Spectrum::setMZ(double d, double mono){
 	clearMZ();
 	mz->push_back(d);
   monoMZ->push_back(d);
+}
+
+void Spectrum::setNativeID(char* c){
+  if(strlen(c)>256) cout << "Error - spectrumNativeID filter larger than 256 characters." << endl;
+  else strcpy(nativeID,c);
 }
 
 void Spectrum::setRawFilter(char* c){
