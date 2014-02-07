@@ -35,6 +35,7 @@ Spectrum::Spectrum(){
   actMethod=mstNA;
 
   strcpy(rawFilter,"");
+  strcpy(nativeID,"");
 }
 
 
@@ -90,6 +91,7 @@ Spectrum::Spectrum(const Spectrum& s){
     vZ->push_back(s.vZ->at(i));
   }
   strcpy(rawFilter,s.rawFilter);
+  strcpy(nativeID,s.nativeID);
 }
 
 Spectrum& Spectrum::operator=(const Spectrum& s){
@@ -140,6 +142,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     fileType = s.fileType;
     centroidStatus = s.centroidStatus;
     strcpy(rawFilter,s.rawFilter);
+    strcpy(nativeID,s.nativeID);
   }
   return *this;
 }
