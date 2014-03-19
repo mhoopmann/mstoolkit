@@ -208,6 +208,7 @@ public:
 	void setPositiveScan(bool b);
 	void setPrecursorCharge(int z);
 	void setPrecursorIntensity(double d);
+  void setPrecursorMonoMZ(double mz);
 	void setPrecursorMZ(double mz);
 	void setPrecursorScanNum(int i);
 	void setRTime(float t);
@@ -231,6 +232,7 @@ public:
 	bool					getPositiveScan();
 	int						getPrecursorCharge();
 	double				getPrecursorIntensity();
+  double        getPrecursorMonoMZ();
 	double				getPrecursorMZ();
 	int						getPrecursorScanNum();
 	float					getRTime(bool min=true);
@@ -257,6 +259,7 @@ protected:
 	bool						positiveScan;
 	int							precursorCharge;			//Precursor ion charge; 0 if no precursor or unknown
 	double					precursorIntensity;		//Precursor ion intensity; 0 if no precursor or unknown
+  double          precursorMonoMZ;      //Might be reported in Thermo data
 	double					precursorMZ;					//Precursor ion m/z value; 0 if no precursor or unknown
 	int							precursorScanNum;			//Precursor scan number; 0 if no precursor or unknown
 	float						rTime;								//always stored in minutes
@@ -1226,6 +1229,7 @@ struct ScanHeaderStruct {
 	double					ionisationEnergy;
 	double					lowMZ;
 	double					precursorIntensity;  /* only if MS level > 1 */
+  double          precursorMonoMZ;
 	double					precursorMZ;  /* only if MS level > 1 */
 	double					retentionTime;        /* in seconds */
 	double					totIonCurrent;
