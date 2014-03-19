@@ -221,6 +221,14 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 				processCVParam(&m_refGroupCvParams[i].name[0], &m_refGroupCvParams[i].accession[0], &m_refGroupCvParams[i].value[0], &m_refGroupCvParams[i].unitName[0], &m_refGroupCvParams[i].unitAccession[0]);
 			}
 		}
+
+  }	else if (isElement("userParam", el))	{
+		const char* name = getAttrValue("name", attr);
+		const char* dtype = getAttrValue("type", attr);
+		const char* value = getAttrValue("value", attr);
+    if(strcmp(name,"[Thermo Trailer Extra]Monoisotopic M/Z:")==0){
+      spec->setPrecursorMonoMZ(atof(value));
+		}
 	}
 
 	if(isElement("binary", el))	{

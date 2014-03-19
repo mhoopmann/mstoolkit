@@ -308,6 +308,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->numPossibleCharges=0;
 	scanHeader->precursorCharge=0;
 	scanHeader->precursorIntensity=0.0;
+  scanHeader->precursorMonoMZ=0.0;
 	scanHeader->precursorMZ=0.0;
 	scanHeader->precursorScanNum=-1;
 	scanHeader->retentionTime=0.0;
@@ -383,6 +384,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->precursorCharge=pFI->bs->getPrecursorCharge();
 	scanHeader->precursorIntensity=pFI->bs->getPrecursorIntensity();
 	scanHeader->compensationVoltage=pFI->bs->getCompensationVoltage();
+  scanHeader->precursorMonoMZ=pFI->bs->getPrecursorMonoMZ();
 	scanHeader->precursorMZ=pFI->bs->getPrecursorMZ();
 	scanHeader->precursorScanNum=pFI->bs->getPrecursorScanNum();
 	scanHeader->retentionTime=(double)pFI->bs->getRTime(false);
