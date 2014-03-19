@@ -1485,7 +1485,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		    else s.setActivationMethod(mstNA);
 		  }
 			if(scanHeader.msLevel>1) {
-				s.setMZ(scanHeader.precursorMZ);
+				s.setMZ(scanHeader.precursorMZ,scanHeader.precursorMonoMZ);
 				s.setCharge(scanHeader.precursorCharge);
 			} else {
 				s.setMZ(0);
@@ -1547,7 +1547,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		  else s.setActivationMethod(mstNA);
 		}
 		if(scanHeader.msLevel>1) {
-			s.setMZ(scanHeader.precursorMZ);
+			s.setMZ(scanHeader.precursorMZ,scanHeader.precursorMonoMZ);
 			s.setCharge(scanHeader.precursorCharge);
 		} else {
 			s.setMZ(0);
