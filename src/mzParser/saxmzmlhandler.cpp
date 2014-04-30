@@ -52,6 +52,7 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs){
 	m_bHeaderOnly=false;
 	m_bSpectrumIndex=false;
 	m_bNoIndex=true;
+	m_bIndexSorted = true;
   m_bZlib=false;
   m_iDataType=0;
 	spec=bs;
@@ -79,6 +80,7 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs, BasicChromatogram* cs){
 	m_bHeaderOnly=false;
 	m_bSpectrumIndex=false;
 	m_bNoIndex=true;
+	m_bIndexSorted = true;
   m_bZlib=false;
   m_iDataType=0;
 	spec=bs;
@@ -221,15 +223,14 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 				processCVParam(&m_refGroupCvParams[i].name[0], &m_refGroupCvParams[i].accession[0], &m_refGroupCvParams[i].value[0], &m_refGroupCvParams[i].unitName[0], &m_refGroupCvParams[i].unitAccession[0]);
 			}
 		}
-
-  }	else if (isElement("userParam", el))	{
-		const char* name = getAttrValue("name", attr);
-		const char* dtype = getAttrValue("type", attr);
-		const char* value = getAttrValue("value", attr);
+	} else if (isElement("userParam", el)) {
+    const char* name = getAttrValue("name", attr);
+    const char* dtype = getAttrValue("type", attr);
+    const char* value = getAttrValue("value", attr);
     if(strcmp(name,"[Thermo Trailer Extra]Monoisotopic M/Z:")==0){
       spec->setPrecursorMonoMZ(atof(value));
-		}
-	}
+    }
+  }
 
 	if(isElement("binary", el))	{
 		m_strData.clear();
@@ -266,10 +267,15 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
 	} else if(isElement("index",el)){
 		m_bSpectrumIndex=false;
 		m_bChromatogramIndex=false;
+		
 
 	} else if(isElement("indexList",el)){
 		m_bInIndexList=false;
 		stopParser();
+		if (!m_bIndexSorted) {
+      qsort(&m_vIndex[0],m_vIndex.size(),sizeof(cindex),cindex::compare);
+      m_bIndexSorted=true;
+		}
 
 	} else if(isElement("offset",el) && m_bChromatogramIndex){
 		curChromatIndex.offset=mzpatoi64(&m_strData[0]);
@@ -278,6 +284,11 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
 	} else if(isElement("offset",el) && m_bSpectrumIndex){
 		curIndex.offset=mzpatoi64(&m_strData[0]);
 		m_vIndex.push_back(curIndex);
+		if (m_bIndexSorted && m_vIndex.size() > 1) {
+		  if (m_vIndex[m_vIndex.size()-1].scanNum < m_vIndex[m_vIndex.size()-2].scanNum) {
+		    m_bIndexSorted = false;
+		  }
+		}
 
 	} else if(isElement("precursorList",el)){
 		
