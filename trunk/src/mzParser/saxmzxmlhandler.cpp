@@ -20,6 +20,8 @@
 
 #include "mzParser.h"
 
+
+
 mzpSAXMzxmlHandler::mzpSAXMzxmlHandler(BasicSpectrum* bs){
 	m_bInMsInstrument=false;
 	m_bInDataProcessing=false;
@@ -34,6 +36,7 @@ mzpSAXMzxmlHandler::mzpSAXMzxmlHandler(BasicSpectrum* bs){
 	m_bNetworkData=true;
 	m_bNoIndex=true;
 	m_bScanIndex=false;
+	m_bIndexSorted = true;
 	spec=bs;
 	indexOffset=-1;
 }
@@ -185,6 +188,10 @@ void mzpSAXMzxmlHandler::endElement(const XML_Char *el) {
 		m_bInIndex=false;
 		posIndex=-1;
 		stopParser();
+		if (!m_bIndexSorted) {
+      qsort(&m_vIndex[0],m_vIndex.size(),sizeof(cindex),cindex::compare);
+      m_bIndexSorted=true;
+		}
 
 	} else if(isElement("msInstrument",el)){
 		m_vInstrument.push_back(m_instrument);
@@ -201,6 +208,11 @@ void mzpSAXMzxmlHandler::endElement(const XML_Char *el) {
 		}
 		curIndex.offset=mzpatoi64(&m_strData[0]);
 		m_vIndex.push_back(curIndex);
+		if (m_bIndexSorted && m_vIndex.size() > 1) {
+		  if (m_vIndex[m_vIndex.size()-1].scanNum<m_vIndex[m_vIndex.size()-2].scanNum) {
+		    m_bIndexSorted = false;
+		  }
+		}
 
 	} else if(isElement("peaks",el)){
 		if(m_bLowPrecision && m_bCompressedData) decompress32();
