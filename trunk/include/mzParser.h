@@ -146,10 +146,19 @@ enum enumActivation {
 //For holding mzML and mzXML indexes
 class cindex	{
 public:
+
+  static int compare (const void* a, const void* b) {
+    if( *(int*)a < *(int*)b ) return -1;
+    if( *(int*)a > *(int*)b ) return 1;
+    return 0;
+  }
+
 	int scanNum;
 	string idRef;
 	f_off offset;
 };
+
+
 
 //For instrument information
 class instrumentInfo {
@@ -403,6 +412,7 @@ protected:
 	string  m_strFileName;
 	bool m_bStopParse;
 	bool m_bGZCompression;
+
 	FILE* fptr;
 	Czran gzObj;
 
@@ -486,7 +496,7 @@ private:
 	bool m_bSpectrumIndex;
   bool m_bZlib;
   int  m_iDataType;   //0=unspecified, 1=32-bit float, 2=64-bit float
-	
+  bool m_bIndexSorted;
 	//  mzpSAXMzmlHandler index data members.
 	vector<cindex>		m_vIndex;
 	cindex						curIndex;
@@ -573,7 +583,7 @@ private:
 	bool m_bNetworkData;	// i.e. big endian
 	bool m_bNoIndex;
 	bool m_bScanIndex;
-	
+	bool m_bIndexSorted;
 	//  mzpSAXMzxmlHandler index data members.
 	vector<cindex>		m_vIndex;
 	cindex						curIndex;
