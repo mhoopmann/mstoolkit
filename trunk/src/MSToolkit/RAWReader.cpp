@@ -219,7 +219,8 @@ bool RAWReader::initRaw(){
 			if(FAILED(m_Raw3.CreateInstance("MSFileReader.XRawfile.1"))){
 				if(FAILED(m_Raw2.CreateInstance("MSFileReader.XRawfile.1"))){
 					if(FAILED(m_Raw.CreateInstance("MSFileReader.XRawfile.1"))){
-						cout << "Cannot load Thermo MSFileReader. Cannot read .RAW files." << endl;
+            raw=0;
+						//cout << "Cannot load Thermo MSFileReader. Cannot read .RAW files." << endl;
 					} else {
 						raw=1;
 					}
@@ -306,6 +307,8 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   VARIANT ConversionI;
   VARIANT IIT;  //ion injection time
 	VARIANT MonoMZ;
+
+  if(!bRaw) return false;
 
 	//Clear spectrum object
   s.clear();

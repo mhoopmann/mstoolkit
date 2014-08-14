@@ -1961,12 +1961,8 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
   if(strcmp(ext,".RAW")==0 ) return raw;
   if(strcmp(ext,".MZXML")==0 ) return mzXML;
   if(strcmp(ext,".MZ5")==0 ) {
-#ifdef MST_MZ5
-    return mz5;
-#else
-    cerr << "MZ5 format not supported. Recompile with MZ5 support to use this format." << endl;
+    cerr << "MZ5 format is no longer supported." << endl;
     return dunno;
-#endif
   }
 	if(strcmp(ext,".MZML")==0 ) return mzML;
   if(strcmp(ext,".MGF")==0 ) return mgf;
