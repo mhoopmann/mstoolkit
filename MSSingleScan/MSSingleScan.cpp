@@ -9,16 +9,7 @@
 using namespace std;
 using namespace MSToolkit;
 
-//#ifdef _MSC_VER 
-//#ifndef MSSINGLESCAN_MAIN
-//int mssinglescan_main(int argc, char * argv[] ) {
-//#else
-//int main(int argc, char *argv[]){
-//#endif
-//#else
 int main(int argc, char *argv[]){
-//#endif
-
 
 	//Here are all the variable we are going to need
 	MSReader r;
@@ -31,64 +22,12 @@ int main(int argc, char *argv[]){
     exit(0);
   }
 
+
 	r.setFilter(MS1);
   r.addFilter(MS2);
 	r.addFilter(MSX);
   r.addFilter(SRM);
 
-  /*
-  float max=0;
-  r.readFile(argv[1],s);
-  while(s.getScanNumber()>0){
-    if(s.size()!=1) {
-      r.readFile(NULL,s);
-      continue;
-    }
-    //if(s[0].intensity>max){
-    if(fabs(881.5-s.getMZ())<0.5){
-      max=s[0].intensity;
-      printf("%d\t%lf\t%f\n",s.getScanNumber(),s[0].mz,s[0].intensity);
-    }
-    r.readFile(NULL,s);
-  }
-  exit(0);
-  */
-
-  /*
-  double precursor=atof(argv[2]);
-  double dif;
-  double target;
-  int best;
-  int i;
-  for(i=3;i<argc;i++){
-    target=atof(argv[i]);
-    r.readFile(argv[1],s);
-    while(s.getScanNumber()>0){
-      if(s.size()>1) {
-        r.readFile(NULL,s);
-        continue;
-      }
-      if(s.getMZ()>precursor-2.5 && s.getMZ()<precursor+2.5) {
-        dif=100.0;
-        for(j=0;j<s.size();j++) {
-          if(fabs(s[j].mz-target)<dif){
-            dif=fabs(s[j].mz-target);
-            best=j;
-          }
-        }
-        if(dif<1.0){
-          printf("%d\t%f\t%lf\t%f\n",s.getScanNumber(),s.getRTime(),s[best].mz,s[best].intensity);
-        }
-      }
-      r.readFile(NULL,s);
-    }
-  }
-  exit(0);
-  */
-
-
-
-	//r.readFile(argv[2],s);
   char nativeID[256];
 	r.readFile(argv[2],s,atoi(argv[1]));
   if(s.getScanNumber()==0) exit(-1);
