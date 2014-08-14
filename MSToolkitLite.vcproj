@@ -190,6 +190,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mzParser\MSNumpress.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mzParser\mz5handler.cpp"
 					>
 				</File>

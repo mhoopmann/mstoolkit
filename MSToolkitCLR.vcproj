@@ -191,6 +191,10 @@
 				Name="mzParser"
 				>
 				<File
+					RelativePath=".\src\mzParser\BasicChromatogram.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mzParser\BasicSpectrum.cpp"
 					>
 				</File>
@@ -199,11 +203,35 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\mzParser\MSNumpress.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\mz5handler.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\mzMLReader.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\mzParser\mzp_base64.cpp"
 					>
 				</File>
 				<File
 					RelativePath=".\src\mzParser\mzParser.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\mzpMz5Config.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\mzpMz5Structs.cpp"
+					>
+				</File>
+				<File
+					RelativePath=".\src\mzParser\PWIZface.cpp"
 					>
 				</File>
 				<File
