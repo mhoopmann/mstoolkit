@@ -1696,6 +1696,7 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
         fprintf(fileOut,"BEGIN IONS\n");
         fprintf(fileOut,"PEPMASS=%.*f\n",6,s.atZ(i).mz);
         fprintf(fileOut,"CHARGE=%d+\n",s.atZ(i).z);
+        fprintf(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
         fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(i).z,i,s.getRTime());
         for(j=0;j<s.size();j++){
 		      sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
@@ -1718,10 +1719,13 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
     } else {
       fprintf(fileOut,"BEGIN IONS\n");
       fprintf(fileOut,"PEPMASS=%.*f\n",6,s.getMZ());
+      fprintf(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
       if(s.sizeZ()==1){
         if(s.atZ(0).z==1) fprintf(fileOut,"CHARGE=1+\n");
+        fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(0).z,0,s.getRTime());
+      } else {
+        fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),0,0,s.getRTime());
       }
-      fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(0).z,0,s.getRTime());
       for(j=0;j<s.size();j++){
 		    sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
 		    k=strlen(t);
