@@ -17,6 +17,8 @@ MSReader::MSReader(){
   iVersion=0;
   for(int i=0;i<16;i++)	strcpy(header.header[i],"\0");
   headerIndex=0;
+  sInstrument="unknown";
+  sManufacturer="unknown";
 
   #ifndef _NOSQLITE
   db = NULL;
@@ -53,6 +55,14 @@ void MSReader::closeFile(){
 
 MSHeader& MSReader::getHeader(){
   return header;
+}
+
+void MSReader::getInstrument(char* str){
+  strcpy(str,&sInstrument[0]);
+}
+
+void MSReader::getManufacturer(char* str){
+  strcpy(str,&sManufacturer[0]);
 }
 
 /* 0 = File opened correctly
@@ -1110,7 +1120,11 @@ void MSReader::setPrecisionMZ(int i){
 
 bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 
-  if(c!=NULL) lastFileFormat = checkFileFormat(c);
+  if(c!=NULL) {
+    lastFileFormat = checkFileFormat(c);
+    sInstrument="unknown";
+    sManufacturer="unknown";
+  }
   switch(lastFileFormat){
 		case ms1:
 		case ms2:
@@ -1140,7 +1154,12 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 			//only read the raw file if the dll was present and loaded.
 			if(cRAW.getStatus()) {
 				cRAW.setMSLevelFilter(&filter);
-				return cRAW.readRawFile(c,s,scNum);
+        bool b=cRAW.readRawFile(c,s,scNum);
+        if(b && c!=NULL) {
+          cRAW.getInstrument(&sInstrument[0]);
+          cRAW.getManufacturer(&sManufacturer[0]);
+        }
+				return b;
 			} else {
 				cerr << "Could not read Thermo RAW file. The Thermo .dll likely was not loaded." << endl;
 				return false;
