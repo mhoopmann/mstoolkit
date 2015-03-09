@@ -14,21 +14,13 @@
 //#include "MSToolkitInterface.h"
 
 #ifdef _MSC_VER
-//#include <atlstr.h>
-//#import "XRawfile2.dll" rename_namespace("XRawfile")
-//using namespace XRAWFILE2Lib;
-
-//Explicit path is needed on systems where Xcalibur installs with errors
-//For example, Vista-64bit
-//#import "C:\Xcalibur\system\programs\XRawfile2.dll" 
-#import "MSFileReader.XRawfile2.dll" rename_namespace("XRawfile")
+#import "libid:F0C5F3E3-4F2A-443E-A74D-0AABE3237494" rename_namespace("XRawfile")
 using namespace XRawfile;
 #endif
 
 #ifndef _NOSQLITE
 #include <sqlite3.h>
 #endif
-
 
 //Macros for 64-bit file support
 #ifdef _MSC_VER

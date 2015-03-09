@@ -1140,7 +1140,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 		case cms1:
 		case cms2:
 			setCompression(true);
-			return readMSTFile(c,false,s,scNum);
+      return readMSTFile(c,false,s,scNum);
 			break;
 		case mz5:
     case mzXML:
@@ -1181,6 +1181,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 			break;
 		case dunno:
 		default:
+      cout << "Unknown file format" << endl;
 			return false;
 			break;
   }
