@@ -114,6 +114,7 @@ class MSReader {
   int iMZPrecision;
   int iVersion;
   int iFType;
+  int lastReadScanNum;
   MSFileFormat lastFileFormat;
   string sInstrument;
   string sManufacturer;

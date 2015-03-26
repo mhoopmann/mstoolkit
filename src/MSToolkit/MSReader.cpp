@@ -19,6 +19,7 @@ MSReader::MSReader(){
   headerIndex=0;
   sInstrument="unknown";
   sManufacturer="unknown";
+  lastReadScanNum=0;
 
   #ifndef _NOSQLITE
   db = NULL;
@@ -505,7 +506,7 @@ int MSReader::getPercent(){
 		case mzXMLgz:
 		case mzMLgz:
 			if(rampFileIn!=NULL){
-				return (int)((double)rampIndex/rampLastScan*100);
+				return (int)((double)lastReadScanNum/rampLastScan*100);
 			}
 			break;
 		case raw:
@@ -1461,6 +1462,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		indexOffset = getIndexOffset(rampFileIn);
 		pScanIndex = readIndex(rampFileIn,indexOffset,&rampLastScan);
 		rampIndex=0;
+    lastReadScanNum=0;
 
 	} else {
 		//if no new file requested, check to see if one is open already
@@ -1527,6 +1529,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		  	s.add((double)pPeaks[j],(float)pPeaks[j+1]);
 			  j+=2;
 		  }
+      lastReadScanNum = scanHeader.acquisitionNum;
 		}	else {
 		  return false;
 		}
@@ -1538,9 +1541,10 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		//read next index
 	  while(true){
 	    rampIndex++;
-			if(pScanIndex[rampIndex]<0) continue;
 
-	    //reached end of file
+			if(pScanIndex[rampIndex]<0) continue;
+      
+      //reached end of file
 	    if(rampIndex>rampLastScan) return false;
 
 			readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
@@ -1590,6 +1594,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 			j+=2;
 		}
 	}
+  lastReadScanNum = scanHeader.acquisitionNum;
 
 	free(pPeaks);
 	return true;

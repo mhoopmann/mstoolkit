@@ -106,7 +106,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="./include"
+				AdditionalIncludeDirectories=".\includeCLR;&quot;C:\Users\mhoopman\Documents\Software Development\zlibCLR&quot;;&quot;C:\Users\mhoopman\Documents\Software Development\SQLite&quot;"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_CRT_SECURE_NO_WARNINGS;COMPILED_FROM_DSP;XML_STATIC;MST_MZ5"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -336,10 +336,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
