@@ -1542,10 +1542,10 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	  while(true){
 	    rampIndex++;
 
-			if(pScanIndex[rampIndex]<0) continue;
-      
       //reached end of file
 	    if(rampIndex>rampLastScan) return false;
+			
+      if(pScanIndex[rampIndex]<0) continue;     
 
 			readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
 			switch(scanHeader.msLevel){
