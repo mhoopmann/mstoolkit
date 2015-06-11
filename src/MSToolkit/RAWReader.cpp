@@ -239,17 +239,17 @@ bool RAWReader::initRaw(){
 	if(FAILED(m_Raw5.CreateInstance("MSFileReader.XRawfile.1"))){
 		if(FAILED(m_Raw4.CreateInstance("MSFileReader.XRawfile.1"))){
 			if(FAILED(m_Raw3.CreateInstance("MSFileReader.XRawfile.1"))){
-				if(FAILED(m_Raw2.CreateInstance("MSFileReader.XRawfile.1"))){
-					if(FAILED(m_Raw.CreateInstance("MSFileReader.XRawfile.1"))){
+				//if(FAILED(m_Raw2.CreateInstance("MSFileReader.XRawfile.1"))){
+				//	if(FAILED(m_Raw.CreateInstance("MSFileReader.XRawfile.1"))){
             raw=0;
 						//cout << "Cannot load Thermo MSFileReader. Cannot read .RAW files." << endl;
-					} else {
-						raw=1;
-					}
-				} else {
-					m_Raw=m_Raw2;
-					raw=2;
-				}
+				//	} else {
+				//		raw=1;
+				//	}
+				//} else {
+				//	m_Raw=m_Raw2;
+				//	raw=2;
+				//}
 			} else {
 				m_Raw=m_Raw3;
 				raw=3;
@@ -321,7 +321,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	long tl;      //temp long value
   MSActivation act;
 
-	VARIANT Charge;
+	//VARIANT Charge;
 	VARIANT ConversionA;
   VARIANT ConversionB;
 	VARIANT ConversionC;
@@ -329,7 +329,10 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	VARIANT ConversionE;
   VARIANT ConversionI;
   VARIANT IIT;  //ion injection time
-	VARIANT MonoMZ;
+	//VARIANT MonoMZ;
+  VARIANT PrecursorInfo;
+
+  BYTE* pData;
 
   if(!bRaw) return false;
 
@@ -381,8 +384,11 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   VariantInit(&ConversionD);
 	VariantInit(&ConversionE);
   VariantInit(&ConversionI);
-	VariantInit(&Charge);
-	VariantInit(&MonoMZ);
+	//VariantInit(&Charge);
+	//VariantInit(&MonoMZ);
+  VariantInit(&PrecursorInfo);
+
+  rawPrecursorInfo preInfo;
 
 	//Rather than grab the next scan number, get the next scan based on a user-filter (if supplied).
   //if the filter was set, make sure we pass the filter
@@ -418,8 +424,24 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
     }
   }
 
-	//Get spectrum meta data  
-	sl=lstrlenA("Monoisotopic M/Z:");
+	//Get spectrum meta data
+  //Get lump precursor info first. Note that MSX data likely has multiple precursor infos
+  m_Raw->GetPrecursorInfoFromScanNum(rawCurSpec, &PrecursorInfo, &tl);
+  SafeArrayAccessData(PrecursorInfo.parray, (void**)&pData);
+  if (tl > 0){
+    //getting only first value!!! Note this does not support MSX here!!!
+    //TODO ? : rewrite MSX support to use this function.
+    memcpy(&preInfo, pData, sizeof(rawPrecursorInfo));
+  } else {
+    preInfo.charge=0;
+    preInfo.dIsoMZ=0;
+    preInfo.dMonoMZ=0;
+    preInfo.parScanNum=0;
+  }
+  SafeArrayUnaccessData(PrecursorInfo.parray);
+
+  /*
+  sl=lstrlenA("Monoisotopic M/Z:");
 	testStr = SysAllocStringLen(NULL,sl);
 	MultiByteToWideChar(CP_ACP,0,"Monoisotopic M/Z:",sl,testStr,sl);
 	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &MonoMZ);
@@ -430,6 +452,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	MultiByteToWideChar(CP_ACP,0,"Charge State:",sl,testStr,sl);
 	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &Charge);
 	SysFreeString(testStr);
+  */
 
 	sl=lstrlenA("Ion Injection Time (ms):");
   testStr = SysAllocStringLen(NULL,sl);
@@ -522,16 +545,17 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	if(MSn==MS2 || MSn==MS3){
 
 		//if charge state is assigned to spectrum, add Z-lines.
-		if(Charge.iVal>0){
-			if(MonoMZ.dblVal>0.01) {
-				pm1 = MonoMZ.dblVal * Charge.iVal - ((Charge.iVal-1)*1.007276466);
-				s.setMZ(MZs[0],MonoMZ.dblVal);
+		if(preInfo.charge>0){ //if(Charge.iVal>0){
+			if(preInfo.dMonoMZ>0.01) { //if(MonoMZ.dblVal>0.01) {
+				//pm1 = MonoMZ.dblVal * Charge.iVal - ((Charge.iVal-1)*1.007276466);
+        pm1 = preInfo.dMonoMZ * preInfo.charge - ((preInfo.charge - 1)*1.007276466);
+        s.setMZ(MZs[0], preInfo.dMonoMZ);
 			}	else {
-				pm1 = MZs[0] * Charge.iVal - ((Charge.iVal-1)*1.007276466);
+        pm1 = MZs[0] * preInfo.charge - ((preInfo.charge - 1)*1.007276466);
 				s.setMZ(MZs[0]);
 			}
-			s.addZState(Charge.iVal,pm1);
-			s.setCharge(Charge.iVal);
+      s.addZState(preInfo.charge, pm1);
+      s.setCharge(preInfo.charge);
     } else {
 			s.setMZ(MZs[0]);
       charge = calcChargeState(MZs[0], highmass, &varMassList, lArraySize);
@@ -595,8 +619,8 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   SafeArrayUnaccessData( psa );
 
   //Clean up memory
-	VariantClear(&Charge);
-	VariantClear(&MonoMZ);
+	//VariantClear(&Charge);
+	//VariantClear(&MonoMZ);
   VariantClear(&IIT);
   VariantClear(&ConversionA);
   VariantClear(&ConversionB);
@@ -606,6 +630,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   VariantClear(&ConversionI);
 	VariantClear(&varMassList);
 	VariantClear(&varPeakFlags);
+  VariantClear(&PrecursorInfo);
 
   return true;
 

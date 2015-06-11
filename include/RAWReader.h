@@ -13,6 +13,14 @@ using namespace XRawfile;
 using namespace std;
 
 namespace MSToolkit {
+
+typedef struct rawPrecursorInfo{
+  double  dIsoMZ;
+  double  dMonoMZ;
+  long    charge;
+  long    parScanNum;
+} rawPrecursorInfo;
+
 class RAWReader {
 public:
 	//Constructors & Destructors
@@ -54,7 +62,7 @@ private:
 	long rawCurSpec;
 	long rawTotSpec;
   
-  IXRawfilePtr m_Raw;
+  IXRawfile3Ptr m_Raw;  //Note: minimum support is now IXRawfile3 interface.
 	vector<MSSpectrumType>* msLevelFilter;
 
 	//Private Functions

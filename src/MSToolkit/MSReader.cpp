@@ -1162,7 +1162,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
         }
 				return b;
 			} else {
-				cerr << "Could not read Thermo RAW file. The Thermo .dll likely was not loaded." << endl;
+				cerr << "Could not read Thermo RAW file. The Thermo .dll likely was not loaded or out of date." << endl;
 				return false;
 			}
 			#else
