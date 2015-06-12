@@ -9,6 +9,7 @@
 #include <iostream>
 #include <vector>
 #import "libid:F0C5F3E3-4F2A-443E-A74D-0AABE3237494" rename_namespace("XRawfile")
+//#import "libid:5FE970A2-29C3-11D3-811D-00104B304896" rename_namespace("XRawfile")
 using namespace XRawfile;
 using namespace std;
 
@@ -19,6 +20,12 @@ typedef struct rawPrecursorInfo{
   double  dMonoMZ;
   long    charge;
   long    parScanNum;
+  rawPrecursorInfo(){
+    dIsoMZ=0;
+    dMonoMZ=0;
+    charge=0;
+    parScanNum=0;
+  }
 } rawPrecursorInfo;
 
 class RAWReader {
@@ -62,7 +69,12 @@ private:
 	long rawCurSpec;
 	long rawTotSpec;
   
-  IXRawfile3Ptr m_Raw;  //Note: minimum support is now IXRawfile3 interface.
+#ifdef _WIN64
+  IXRawfile3Ptr m_Raw;  //Note: minimum support is now IXRawfile3 interface on 64-bit installations.
+#else
+  IXRawfilePtr m_Raw;
+#endif
+
 	vector<MSSpectrumType>* msLevelFilter;
 
 	//Private Functions
