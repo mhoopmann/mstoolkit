@@ -689,6 +689,7 @@ int MSReader::getPercent(){
 	switch(lastFileFormat){
 		case ms1:
 		case ms2:
+    case mgf:
 		case  zs:
 		case uzs:
 		case bms1:
