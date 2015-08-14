@@ -135,7 +135,7 @@
 				Name="VCLinkerTool"
 				AdditionalDependencies="MSToolkitLite.lib"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="&quot;C:\Users\mhoopman\Documents\Software Development\MSToolkit-Google\Release&quot;"
+				AdditionalLibraryDirectories="&quot;C:\Users\mhoopman\Documents\Software Development\MSToolkit\Release&quot;"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				OptimizeReferences="2"

@@ -4,7 +4,7 @@ The MSToolkit is a light-weight C++ library for reading, writing, and manipulati
 
 
 ### Supported File Formats
-  * *mzML* including internal compression (zlib and numpress) and external compression (.mzML.gz) _read-only_
+  * *mzML* including internal compression (zlib and numpress) and external compression (.mzML.gz) _read/write\*_
   * *mzXML* including internal compression (zlib) and external compression (.mzXML.gz) _read-only_
   * *mgf* _write-only_
   * *ms1* _read/write_
@@ -14,6 +14,9 @@ The MSToolkit is a light-weight C++ library for reading, writing, and manipulati
   * *cms1* _read/write_
   * *cms2* _read/write_
   * *RAW* Thermo proprietary file format (Windows only, requires Xcalibur/MSFileReader) _read-only_
+  
+  _\* Note: .mzML writing produces funtional files, but currently does not export all meta data. Spectral peak data is complete. .mzML.gz files
+  are not produced by the toolkit, and must be gzipped externally._
 
 
 ### Simple Interface

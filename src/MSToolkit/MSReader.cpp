@@ -403,7 +403,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 		//read any charge states (for MS2 files)
     for(i=0;i<ms.numZStates;i++){
       fread(&z.z,4,1,fileIn);
-      fread(&z.mz,8,1,fileIn);
+      fread(&z.mh,8,1,fileIn);
       s.addZState(z);
     }
 
@@ -603,7 +603,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	      tok=strtok(NULL," \t\n\r");
 	      z.z=atoi(tok);
 	      tok=strtok(NULL," \t\n\r");
-	      z.mz=atof(tok);
+	      z.mh=atof(tok);
 	      s.addZState(z);
 	      break;
 
@@ -1937,7 +1937,7 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
     if(highResMGF){
       for(i=0;i<s.sizeZ();i++){
         fprintf(fileOut,"BEGIN IONS\n");
-        fprintf(fileOut,"PEPMASS=%.*f\n",6,s.atZ(i).mz);
+        fprintf(fileOut,"PEPMASS=%.*f\n",6,(s.atZ(i).mh+(s.atZ(i).z-1)*1.007276466)/s.atZ(i).z);
         fprintf(fileOut,"CHARGE=%d+\n",s.atZ(i).z);
         fprintf(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
         fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(i).z,i,s.getRTime());
@@ -1991,19 +1991,19 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
 
   //Only use this code if not writing MGF file
 	for(j=0;j<s.size();j++){
-		sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
-		k=strlen(t);
-		if(k>2 && iIntensityPrecision>0){
-			if(t[0]=='0'){
-				fprintf(fileOut,"%.*f 0\n",iMZPrecision,s.at(j).mz);
-			} else if(t[k-1]=='0'){
-				fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision-1,s.at(j).intensity);
-			} else {
-				fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
-			}
-		} else {
+		//sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
+		//k=strlen(t);
+		//if(k>2 && iIntensityPrecision>0){
+		//	if(t[0]=='0'){
+		//		fprintf(fileOut,"%.*f 0\n",iMZPrecision,s.at(j).mz);
+		//	} else if(t[k-1]=='0'){
+		//		fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision-1,s.at(j).intensity);
+		//	} else {
+		//		fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
+		//	}
+		//} else {
 			fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
-		}
+		//}
 	}
 
 }
@@ -2056,7 +2056,7 @@ void MSReader::writeSpecHeader(FILE* fileOut, bool text, Spectrum& s) {
       fprintf(fileOut,"I\tEZ\t%d\t%.*f\t%.*f\t%.*f\n",s.atEZ(j).z,4,s.atEZ(j).mh,4,s.atEZ(j).pRTime,1,s.atEZ(j).pArea);
   	}
 	  for(j=0;j<s.sizeZ();j++){
-		 	fprintf(fileOut,"Z\t%d\t%.*f\n",s.atZ(j).z,4,s.atZ(j).mz);
+		 	fprintf(fileOut,"Z\t%d\t%.*f\n",s.atZ(j).z,4,s.atZ(j).mh);
 		}
 
 	} else {
@@ -2123,7 +2123,7 @@ void MSReader::writeSpecHeader(FILE* fileOut, bool text, Spectrum& s) {
     */
     for(j=0;j<s.sizeZ();j++){
 			fwrite(&s.atZ(j).z,4,1,fileOut);
-			fwrite(&s.atZ(j).mz,8,1,fileOut);
+			fwrite(&s.atZ(j).mh,8,1,fileOut);
 		}
 
     for(j=0;j<s.sizeEZ();j++){

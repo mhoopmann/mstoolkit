@@ -369,6 +369,7 @@ private:
 //------------------------------------------------
 
 int b64_decode_mio (char *dest, char *src, size_t size);
+int b64_encode (char *dest, const char *src, int len);
 
 class mzpSAXHandler{
 public:

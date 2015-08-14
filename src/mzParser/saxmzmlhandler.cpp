@@ -644,21 +644,21 @@ void mzpSAXMzmlHandler::decode(vector<double>& d){
   if(m_bNumpressLinear || m_bNumpressSlof || m_bNumpressPic){
     double* unpressed=new double[m_peaksCount];
   
-	try{
-      if(m_bNumpressLinear){
-        if(m_bZlib) ms::numpress::MSNumpress::decodeLinear((unsigned char*)unzipped,(const size_t)unzippedLen,unpressed);
-        else ms::numpress::MSNumpress::decodeLinear((unsigned char*)decoded,decodeLen,unpressed);
-      } else if(m_bNumpressSlof){
-        if(m_bZlib) ms::numpress::MSNumpress::decodeSlof((unsigned char*)unzipped,(const size_t)unzippedLen,unpressed);
-        else ms::numpress::MSNumpress::decodeSlof((unsigned char*)decoded,decodeLen,unpressed);
-      } else if(m_bNumpressPic){
-        if(m_bZlib) ms::numpress::MSNumpress::decodePic((unsigned char*)unzipped,(const size_t)unzippedLen,unpressed);
-        else ms::numpress::MSNumpress::decodePic((unsigned char*)decoded,decodeLen,unpressed);
-      }
-	} catch (const char* ch){
-	  cout << "Exception: " << ch << endl;
-	  exit(EXIT_FAILURE);
-	}
+	  try{
+        if(m_bNumpressLinear){
+          if(m_bZlib) ms::numpress::MSNumpress::decodeLinear((unsigned char*)unzipped,(const size_t)unzippedLen,unpressed);
+          else ms::numpress::MSNumpress::decodeLinear((unsigned char*)decoded,decodeLen,unpressed);
+        } else if(m_bNumpressSlof){
+          if(m_bZlib) ms::numpress::MSNumpress::decodeSlof((unsigned char*)unzipped,(const size_t)unzippedLen,unpressed);
+          else ms::numpress::MSNumpress::decodeSlof((unsigned char*)decoded,decodeLen,unpressed);
+        } else if(m_bNumpressPic){
+          if(m_bZlib) ms::numpress::MSNumpress::decodePic((unsigned char*)unzipped,(const size_t)unzippedLen,unpressed);
+          else ms::numpress::MSNumpress::decodePic((unsigned char*)decoded,decodeLen,unpressed);
+        }
+	  } catch (const char* ch){
+	    cout << "Exception: " << ch << endl;
+	    exit(EXIT_FAILURE);
+	  }
 
     if(m_bZlib) delete [] unzipped;
     else delete [] decoded;

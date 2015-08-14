@@ -166,6 +166,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\MSToolkit\mzMLWriter.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\MSToolkit\RAWReader.cpp"
 					>
 				</File>
@@ -320,6 +324,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\include\mzMLWriter.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

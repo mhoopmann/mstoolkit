@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
 	//printf("I\tConvE\t%.6lf\n",s.getConversionE());
 	//printf("I\tConvI\t%.6lf\n",s.getConversionI());
 	for(j=0;j<s.sizeZ();j++){
-		printf("Z\t%d\t%.*f\n",s.atZ(j).z,6,s.atZ(j).mz);
+		printf("Z\t%d\t%.*f\n",s.atZ(j).z,6,s.atZ(j).mh);
 	}
 
 	for(j=0;j<s.size();j++){

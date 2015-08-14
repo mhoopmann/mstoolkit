@@ -107,7 +107,7 @@ struct Peak_T {
 
 struct ZState {
   int z;
-  double mz;   //M+H, not mz
+  double mh;   //M+H, not mz
 };
 
 struct EZState {
