@@ -6,7 +6,7 @@ The MSToolkit is a light-weight C++ library for reading, writing, and manipulati
 ### Supported File Formats
   * *mzML* including internal compression (zlib and numpress) and external compression (.mzML.gz) _read/write\*_
   * *mzXML* including internal compression (zlib) and external compression (.mzXML.gz) _read-only_
-  * *mgf* _write-only_
+  * *mgf* _read/write_
   * *ms1* _read/write_
   * *ms2* _read/write_
   * *bms1* _read/write_
