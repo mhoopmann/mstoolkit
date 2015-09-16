@@ -1066,6 +1066,9 @@ void MSReader::appendFile(Spectrum& s)
   case mstETD:
     actMethod="ETD";
     break;
+  case mstETDSA:
+    actMethod="ETDSA";
+    break;
   case mstCID:
     actMethod="CID";
     break;
@@ -1650,7 +1653,9 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	ramp_fileoffset_t indexOffset;
 	ScanHeaderStruct scanHeader;
 	RAMPREAL *pPeaks;
-	int i,j;
+	int i,j,k;
+  double d,d2,d3;
+  int *charges=NULL;
 
 	if(c!=NULL) {
 		//open the file if new file was requested
@@ -1716,6 +1721,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		    if(strcmp(scanHeader.activationMethod,"CID")==0) s.setActivationMethod(mstCID);
           else if(strcmp(scanHeader.activationMethod,"ECD")==0) s.setActivationMethod(mstECD);
           else if(strcmp(scanHeader.activationMethod,"ETD")==0) s.setActivationMethod(mstETD);
+          else if(strcmp(scanHeader.activationMethod,"ETDSA")==0) s.setActivationMethod(mstETDSA);
           else if(strcmp(scanHeader.activationMethod,"PQD")==0) s.setActivationMethod(mstPQD);
           else if(strcmp(scanHeader.activationMethod,"HCD")==0) s.setActivationMethod(mstHCD);
 		    else s.setActivationMethod(mstNA);
@@ -1726,7 +1732,28 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 			} else {
 				s.setMZ(0);
 			}
-		  if(scanHeader.precursorCharge>0) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
+		  if(scanHeader.precursorCharge>0) {
+        if(scanHeader.precursorMonoMZ>0.0001) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMonoMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
+        else s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
+      }
+      for(i=0;i<scanHeader.numPossibleCharges;i++) {
+        j=scanHeader.possibleCharges[i*4];
+        s.addZState(j,scanHeader.precursorMZ*j-(j-1)*1.007276466);
+      }
+      for(i=1;i<scanHeader.precursorCount;i++){
+        cout << "Warning: Additional precursors not read" << endl;
+        getPrecursor(&scanHeader,i,d,d2,d3,j,k,charges);
+        cout << "mz: " << d << endl;
+        cout << "monoMZ: " << d2 << endl;
+        cout << "intensity: " << d3 << endl;
+        cout << "charge: " << j << endl;
+        cout << "additional charges: " << k << endl;
+        for(j=0;j<k;j++) cout << "  " << charges[j] << endl;
+        if(charges!=NULL){
+          delete[] charges;
+          charges=NULL;
+        }
+      }
 		  pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex]);
 		  j=0;
 		  for(i=0;i<scanHeader.peaksCount;i++){
@@ -1790,7 +1817,28 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		} else {
 			s.setMZ(0);
 		}
-		if(scanHeader.precursorCharge>0) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
+    if(scanHeader.precursorCharge>0) {
+      if(scanHeader.precursorMonoMZ>0.0001) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMonoMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
+      else s.addZState(scanHeader.precursorCharge,scanHeader.precursorMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
+    }
+    for(i=0;i<scanHeader.numPossibleCharges;i++) {
+      j=scanHeader.possibleCharges[i*4];
+      s.addZState(j,scanHeader.precursorMZ*j-(j-1)*1.007276466);
+    }
+    for(i=1;i<scanHeader.precursorCount;i++){
+      cout << "Warning: Additional precursors not read" << endl;
+      getPrecursor(&scanHeader,i,d,d2,d3,j,k,charges);
+      cout << "mz: " << d << endl;
+      cout << "monoMZ: " << d2 << endl;
+      cout << "intensity: " << d3 << endl;
+      cout << "charge: " << j << endl;
+      cout << "additional charges: " << k << endl;
+      for(j=0;j<k;j++) cout << "  " << charges[j] << endl;
+      if(charges!=NULL){
+        delete[] charges;
+        charges=NULL;
+      }
+    }
 		pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex]);
 		j=0;
 		for(i=0;i<scanHeader.peaksCount;i++){
@@ -1943,7 +1991,7 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
         fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(i).z,i,s.getRTime());
         for(j=0;j<s.size();j++){
 		      sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
-		      k=strlen(t);
+		      k=(int)strlen(t);
 		      if(k>2 && iIntensityPrecision>0){
 		        if(t[0]=='0'){
 		          fprintf(fileOut,"%.*f 0\n",iMZPrecision,s.at(j).mz);
@@ -1971,7 +2019,7 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
       }
       for(j=0;j<s.size();j++){
 		    sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
-		    k=strlen(t);
+		    k=(int)strlen(t);
 		    if(k>2 && iIntensityPrecision>0){
 		      if(t[0]=='0'){
 		        fprintf(fileOut,"%.*f 0\n",iMZPrecision,s.at(j).mz);

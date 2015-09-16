@@ -53,6 +53,7 @@ enum MSActivation {
   mstCID,
   mstECD,
   mstETD,
+  mstETDSA,
   mstPQD,
   mstHCD,
 	mstIRMPD,
