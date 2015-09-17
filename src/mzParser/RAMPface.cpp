@@ -45,22 +45,22 @@ void getPrecursor(const struct ScanHeaderStruct *scanHeader,int index,double &mz
     if(possibleChargeArray!=NULL) delete[] possibleChargeArray;
     if(possibleCharges>0){
       possibleChargeArray = new int[possibleCharges];
-      for(i=0;i<possibleCharges;i++) possibleChargeArray[i]=scanHeader->possibleCharges[i*4];
+      for(i=0;i<possibleCharges;i++) memcpy(&possibleChargeArray[i],&scanHeader->possibleCharges[i*4],sizeof(int));
     } else {
       possibleChargeArray = NULL;
     }
   } else {
     j=0;
     for(i=1;i<scanHeader->precursorCount;i++){
-      mz=scanHeader->additionalPrecursors[j+=8];
-      monoMZ=scanHeader->additionalPrecursors[j+=8];
-      intensity=scanHeader->additionalPrecursors[j+=8];
-      charge=scanHeader->additionalPrecursors[j+=4];
-      possibleCharges=scanHeader->additionalPrecursors[j+=4];
+      memcpy(&mz,&scanHeader->additionalPrecursors[j+=8],sizeof(double));
+      memcpy(&monoMZ,&scanHeader->additionalPrecursors[j+=8],sizeof(double));
+      memcpy(&intensity,&scanHeader->additionalPrecursors[j+=8],sizeof(double));
+      memcpy(&charge,&scanHeader->additionalPrecursors[j+=4],sizeof(int));
+      memcpy(&possibleCharges,&scanHeader->additionalPrecursors[j+=4],sizeof(int));
       if(possibleChargeArray!=NULL) delete[] possibleChargeArray;
       if(possibleCharges>0){
         possibleChargeArray = new int[possibleCharges];
-        for(k=0;k<possibleCharges;k++) possibleChargeArray[k]=scanHeader->additionalPrecursors[j+=4];
+        for(k=0;k<possibleCharges;k++) memcpy(&possibleChargeArray[k],&scanHeader->additionalPrecursors[j+=4],sizeof(int));
       } else {
         possibleChargeArray = NULL;
       }
@@ -438,7 +438,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	    scanHeader->precursorMZ=p.mz;
       scanHeader->numPossibleCharges=(int)p.possibleCharges->size();
       for(k=0;k<scanHeader->numPossibleCharges;k++){
-        scanHeader->possibleCharges[k*4]=p.possibleCharges->at(k);
+        memcpy(&scanHeader->possibleCharges[k*4],&p.possibleCharges->at(k),sizeof(int));
         if(k==7){
           cout << "Warning: too many possible charges for precursor in scan " << scanHeader->acquisitionNum << endl;
           break;
@@ -449,13 +449,14 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
         cout << "Warning: too many precursors. Must improve RAMP interface." << endl;
         break;
       }
-      scanHeader->additionalPrecursors[j+=8]=p.mz;
-      scanHeader->additionalPrecursors[j+=8]=p.monoMZ;
-      scanHeader->additionalPrecursors[j+=8]=p.intensity;
-      scanHeader->additionalPrecursors[j+=4]=p.charge;
-      scanHeader->additionalPrecursors[j+=4]=(int)p.possibleCharges->size();
+      memcpy(&scanHeader->additionalPrecursors[j+=8],&p.mz,sizeof(double));
+      memcpy(&scanHeader->additionalPrecursors[j+=8],&p.monoMZ,sizeof(double));
+      memcpy(&scanHeader->additionalPrecursors[j+=8],&p.intensity,sizeof(double));
+      memcpy(&scanHeader->additionalPrecursors[j+=4],&p.charge,sizeof(int));
+      k=(int)p.possibleCharges->size();
+      memcpy(&scanHeader->additionalPrecursors[j+=4],&k,sizeof(int));
       for(k=0;k<(int)p.possibleCharges->size();k++){
-        scanHeader->additionalPrecursors[j+=k*4]=p.possibleCharges->at(k);
+        memcpy(&scanHeader->additionalPrecursors[j+=k*4],&p.possibleCharges->at(k),sizeof(int));
       }
     }
   }
