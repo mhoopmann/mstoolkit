@@ -149,6 +149,7 @@ MSSpectrumType RAWReader::evaluateFilter(long scan, char* chFilter, vector<doubl
 		} else if(strlen(tok)>2 && tok[0]=='c' && tok[1]=='v'){
       cv=atof(tok+3);
 		} else if(strcmp(tok,"d")==0){
+    } else if(strcmp(tok,"E")==0){ //enhanced 
 		} else if(strcmp(tok,"ESI")==0){
 		} else if(strcmp(tok,"FTMS")==0){
 		} else if(strcmp(tok,"Full")==0){
@@ -171,6 +172,7 @@ MSSpectrumType RAWReader::evaluateFilter(long scan, char* chFilter, vector<doubl
 		} else if(strncmp(tok,"sid",3)==0){
 		} else if(strcmp(tok,"SRM")==0){
 			mst=SRM;
+    } else if(strcmp(tok,"t")==0){ //turbo scan 
 		} else if(strcmp(tok,"u")==0){
 			mst=UZS;
 		} else if(strcmp(tok,"w")==0){ //wideband activation?
