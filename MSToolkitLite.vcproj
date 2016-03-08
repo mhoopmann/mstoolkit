@@ -170,6 +170,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\src\MSToolkit\pepXMLWriter.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\src\MSToolkit\RAWReader.cpp"
 					>
 				</File>

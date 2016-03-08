@@ -13,7 +13,7 @@ MZPARSERLITE = mzp.MSNumpress.o mzp.mzp_base64_lite.o mzp.BasicSpectrum_lite.o m
   mzp.saxmzxmlhandler_lite.o mzp.Czran_lite.o mzp.mz5handler_lite.o mzp.mzpMz5Config_lite.o mzp.mzpMz5Structs_lite.o mzp.BasicChromatogram_lite.o mzp.PWIZface_lite.o
 EXPAT = xmlparse.o xmlrole.o xmltok.o
 ZLIB = adler32.o compress.o crc32.o deflate.o inffast.o inflate.o infback.o inftrees.o trees.o uncompr.o zutil.o
-MSTOOLKIT = Spectrum.o MSObject.o mzMLWriter.o
+MSTOOLKIT = Spectrum.o MSObject.o mzMLWriter.o pepXMLWriter.o
 READER = MSReader.o
 READERLITE = MSReaderLite.o
 SQLITE = sqlite3.o 
@@ -118,6 +118,10 @@ MSObject.o : $(MST_PATH)/MSObject.cpp
 
 mzMLWriter.o : $(MST_PATH)/mzMLWriter.cpp
 	$(CC) $(CFLAGS) $(MST_PATH)/mzMLWriter.cpp -c
+	
+pepXMLWriter.o : $(MST_PATH)/pepXMLWriter.cpp
+	$(CC) $(CFLAGS) $(MST_PATH)/pepXMLWriter.cpp -c
+
 
 
 
