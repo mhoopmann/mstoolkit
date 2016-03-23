@@ -311,9 +311,11 @@ void PepXMLWriter::writeSpectrumQuery(PXWSpectrumQuery& s){
   st+="\" index=\"";
   sprintf(nStr,"%d",spQueryIndex++);
   st+=nStr;
-  st+="\" retention_time_sec=\"";
-  sprintf(nStr,"%.1lf",s.retention_time_sec);
-  st+=nStr;
+  if(s.retention_time_sec>0){ //retention time is optional
+    st+="\" retention_time_sec=\"";
+    sprintf(nStr,"%.1lf",s.retention_time_sec);
+    st+=nStr;
+  }
   st+="\">\n";
   writeLine(&st[0]);
   addTab();
