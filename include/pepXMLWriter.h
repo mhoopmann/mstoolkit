@@ -85,6 +85,9 @@ public:
   pxwModAA& getMod(int index){
     return mods->at(index);
   }
+  pxwModAA& getMod(size_t index){
+	  return mods->at(index);
+  }
   size_t sizeMods(){
     return mods->size();
   }
@@ -275,10 +278,19 @@ public:
   pxwProtein& getProtein(int index){
     return proteins->at(index);
   }
+  pxwProtein& getProtein(size_t index){
+    return proteins->at(index);
+  }
   pxwBasicXMLTag& getScore(int index){
     return searchScores->at(index);
   }
+  pxwBasicXMLTag& getScore(size_t index){
+    return searchScores->at(index);
+  }
   pxwBasicXMLTag& getXLScore(int index){
+	  return xlScores->at(index);
+  }
+  pxwBasicXMLTag& getXLScore(size_t index){
     return xlScores->at(index);
   }
   size_t sizeProteins(){
@@ -411,6 +423,9 @@ public:
     searchHits->clear();
   }
   pxwSearchHitPair& getSearchHit(int index){
+    return searchHits->at(index);
+  }
+  pxwSearchHitPair& getSearchHit(size_t index){
     return searchHits->at(index);
   }
   size_t sizeSearchHits(){
