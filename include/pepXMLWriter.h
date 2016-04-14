@@ -1,6 +1,8 @@
 #ifndef _PEPXMLWRITER_H
 #define _PEPXMLWRITER_H
 
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 #include <vector>

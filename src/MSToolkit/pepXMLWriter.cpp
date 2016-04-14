@@ -1,4 +1,4 @@
-#include "PepXMLWriter.h"
+#include "pepXMLWriter.h"
 
 PepXMLWriter::PepXMLWriter(){
   index=0;
