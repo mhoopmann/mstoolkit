@@ -1715,6 +1715,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       for(i=1;i<scanHeader.precursorCount;i++){
         getPrecursor(&scanHeader,i,d,d2,d3,j,k,charges);
         s.addMZ(d);
+        s.addZState(j, d*j-(j-1)*1.007276466);
         if(charges!=NULL){
           delete[] charges;
           charges=NULL;
@@ -1795,12 +1796,13 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       //cout << "Warning: Additional precursors not read" << endl;
       getPrecursor(&scanHeader,i,d,d2,d3,j,k,charges);
       s.addMZ(d);
+      s.addZState(j, d*j-(j-1)*1.007276466);
       //cout << "mz: " << d << endl;
       //cout << "monoMZ: " << d2 << endl;
       //cout << "intensity: " << d3 << endl;
       //cout << "charge: " << j << endl;
       //cout << "additional charges: " << k << endl;
-      for(j=0;j<k;j++) cout << "  " << charges[j] << endl;
+      //for(j=0;j<k;j++) cout << "  " << charges[j] << endl;
       if(charges!=NULL){
         delete[] charges;
         charges=NULL;

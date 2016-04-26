@@ -39,6 +39,8 @@ int main(int argc, char *argv[]){
   else
       printf("failure:  scan %d\n", s.getScanNumber());
 
+  printf("size: %d\n", s.sizeMZ());
+
   s.getNativeID(nativeID, 256);
   printf("%s\n",nativeID);
   printf("S\t%d\t%d",s.getScanNumber(),s.getScanNumber());
