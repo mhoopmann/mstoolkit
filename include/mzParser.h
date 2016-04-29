@@ -1219,7 +1219,7 @@ private:
 #define INSTRUMENT_LENGTH 2000
 #define SCANTYPE_LENGTH 32
 #define CHARGEARRAY_LENGTH 128
-#define PRECURSORARRAY_LENGTH 256
+#define PRECURSORARRAY_LENGTH 512
 
 typedef double RAMPREAL; 
 typedef f_off ramp_fileoffset_t;

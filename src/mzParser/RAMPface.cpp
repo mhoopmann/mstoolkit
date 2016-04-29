@@ -445,7 +445,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
         }
       }
     } else {
-      if( (j+32+p.possibleCharges->size()*4) > 255) {
+      if( (j+32+p.possibleCharges->size()*4) > PRECURSORARRAY_LENGTH-1) {
         cout << "Warning: too many precursors. Must improve RAMP interface." << endl;
         break;
       }
