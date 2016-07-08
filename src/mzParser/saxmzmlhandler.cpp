@@ -127,7 +127,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
 	} else if(isElement("offset",el) && m_bChromatogramIndex){
 		m_strData.clear();
-		curIndex.idRef=string(getAttrValue("idRef", attr));
+		curChromatIndex.idRef=string(getAttrValue("idRef", attr));
 
 	} else if(isElement("offset",el) && m_bSpectrumIndex){
 		m_strData.clear();

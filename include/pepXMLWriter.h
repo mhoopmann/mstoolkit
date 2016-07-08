@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <ctime>
 #include <string>
 #include <iostream>
 #include <vector>
@@ -103,8 +104,8 @@ public:
   string base_name;
   string search_engine;
   string search_engine_version;
-  int precursor_mass_type;
-  int fragment_mass_type;
+  int precursor_mass_type; //0=monoisotopic, 1=average
+  int fragment_mass_type; //0=monoisotopic, 1=average
   vector<pxwBasicXMLTag>* parameters;
 
   PXWSearchSummary(){

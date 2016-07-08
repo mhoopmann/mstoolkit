@@ -465,6 +465,17 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
     preInfo.parScanNum=0;
   }
   SafeArrayUnaccessData(PrecursorInfo.parray);
+
+  //Revert to old method if charge info isn't pulled from GetPrecursorInfoFromScanNum
+  if(preInfo.charge==0){
+    sl=lstrlenA("Charge State:");
+    testStr = SysAllocStringLen(NULL,sl);
+    MultiByteToWideChar(CP_ACP,0,"Charge State:",sl,testStr,sl);
+    m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &Charge);
+    SysFreeString(testStr);
+    preInfo.charge=Charge.iVal;
+  }
+
 #else 
   sl=lstrlenA("Monoisotopic M/Z:");
 	testStr = SysAllocStringLen(NULL,sl);

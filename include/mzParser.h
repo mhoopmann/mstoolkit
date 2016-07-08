@@ -1457,6 +1457,7 @@ public:
 	~MzParser();
 
 	//User functions
+  vector<cindex>*  getChromatIndex();
 	int		highChromat();
 	int		highScan();
 	bool	load(char* fname);

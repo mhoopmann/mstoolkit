@@ -27,6 +27,7 @@ void PepXMLWriter::closePepXML(){
 
 bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSummary* search){
 
+  time_t timeNow;
   string st;
   spQueryIndex=1;
 
@@ -34,12 +35,23 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
   fptr=fopen(fn,"wt");
   if(fptr==NULL) return false;
 
+  char timebuf[80];
+  time(&timeNow);
+  strftime(timebuf, 80, "%Y-%m-%dT%H:%M:%S", localtime(&timeNow));
+
   resetTabs();
   writeLine("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
 
-  writeLine("<msms_pipeline_analysis>\n");
+  st = "<msms_pipeline_analysis ";
+  st += "date= \"";
+  st += timebuf;
+  st += "\" summary_xml=\"";
+  st += run.base_name;
+  st += ".pep.xml";
+  st += "\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v120.xsd\">\n";
+  writeLine(&st[0]);
   addTab();
-  st="</msms_pipeline_analysis>\n";
+  st = "</msms_pipeline_analysis>\n";
   vTagState.push_back(st);
 
   st="<msms_run_summary base_name=\"";
@@ -60,8 +72,16 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
     st+=search->base_name;
     st+="\" search_engine=\"";
     st+=search->search_engine;
-    st+="\">\n";
+    st+="\" precursor_mass_type=\"";
+    if (search->precursor_mass_type>0) st += "average\"";
+    else st += "monoisotopic\"";
+    st += " fragment_mass_type=\"";
+    if (search->fragment_mass_type>0) st += "average\"";
+    else st += "monoisotopic\"";
+    st += " search_id=\"1\"";
+    st+=">\n";
     writeLine(&st[0]);
+    //add search database
     st="</search_summary>\n";
     writeLine(&st[0]);
   }
