@@ -27,6 +27,7 @@ void PepXMLWriter::closePepXML(){
 
 bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSummary* search){
 
+  size_t i;
   time_t timeNow;
   string st;
   spQueryIndex=1;
@@ -48,7 +49,7 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
   st += "\" summary_xml=\"";
   st += run.base_name;
   st += ".pep.xml";
-  st += "\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v120.xsd\">\n";
+  st += "\" xmlns=\"http://regis-web.systemsbiology.net/pepXML\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://regis-web.systemsbiology.net/pepXML http://sashimi.sourceforge.net/schema_revision/pepXML/pepXML_v120.xsd\">\n";
   writeLine(&st[0]);
   addTab();
   st = "</msms_pipeline_analysis>\n";
@@ -72,6 +73,10 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
     st+=search->base_name;
     st+="\" search_engine=\"";
     st+=search->search_engine;
+    if(search->search_engine_version.size()>0){
+      st += "\" search_engine_version=\"";
+      st += search->search_engine_version;
+    }
     st+="\" precursor_mass_type=\"";
     if (search->precursor_mass_type>0) st += "average\"";
     else st += "monoisotopic\"";
@@ -81,7 +86,20 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
     st += " search_id=\"1\"";
     st+=">\n";
     writeLine(&st[0]);
-    //add search database
+    if(search->search_database.size()>1){
+      st = " <search_database local_path=\"";
+      st += search->search_database;
+      st += "\" type=\"AA\"/>\n";
+      writeLine(&st[0]);
+    }
+    for(i=0;i<search->parameters->size();i++){
+      st=" <parameter name=\"";
+      st+=search->parameters->at(i).name;
+      st+="\" value=\"";
+      st+=search->parameters->at(i).value;
+      st+="\"/>\n";
+      writeLine(&st[0]);
+    }
     st="</search_summary>\n";
     writeLine(&st[0]);
   }

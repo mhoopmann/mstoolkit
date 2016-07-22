@@ -102,6 +102,7 @@ private:
 class PXWSearchSummary {
 public:
   string base_name;
+  string search_database;
   string search_engine;
   string search_engine_version;
   int precursor_mass_type; //0=monoisotopic, 1=average
@@ -110,6 +111,7 @@ public:
 
   PXWSearchSummary(){
     base_name.clear();
+    search_database.clear();
     search_engine.clear();
     search_engine_version.clear();
     precursor_mass_type=0;
@@ -118,6 +120,7 @@ public:
   }
   PXWSearchSummary(const PXWSearchSummary& s){
     base_name=s.base_name;
+    search_database=s.search_database;
     search_engine=s.search_engine;
     search_engine_version=s.search_engine_version;
     precursor_mass_type=s.precursor_mass_type;
@@ -131,6 +134,7 @@ public:
   PXWSearchSummary& operator=(const PXWSearchSummary& s){
     if(this!=&s){
       base_name=s.base_name;
+      search_database = s.search_database;
       search_engine=s.search_engine;
       search_engine_version=s.search_engine_version;
       precursor_mass_type=s.precursor_mass_type;
