@@ -29,3 +29,12 @@ The MSToolkit is a light-weight C++ library for reading, writing, and manipulati
   * All headers included from a single location.
   * Single library file easily linked by the compiler.
 
+### Compiling
+A few hints:
+ * Add _NOSQLITE to build smaller library without SQLite. SQLite is only required for special case usage.
+ * Add _NO_THERMORAW to build without Thermo file support in Windows. This is not necessary in Linux, where Thermo support is disabled by default.
+ * Older versions of MSVC may require building with XML_STATIC declared.
+ * Declaring WIN32 may still be required for compiling 64-bit libraries with MSVC.
+ 
+### License
+Code written for the MSToolkit uses the Apache License, Version 2.0. All 3rd party software included in the MSToolkit library retains its original license.
