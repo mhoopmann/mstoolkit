@@ -1,3 +1,4 @@
+#ifndef _NO_THERMORAW
 #include "RAWReader.h"
 
 using namespace MSToolkit;
@@ -681,3 +682,5 @@ void RAWReader::setMSLevelFilter(vector<MSSpectrumType>* v){
 void RAWReader::setRawFilter(char *c){
   strcpy(rawUserFilter,c);
 }
+
+#endif

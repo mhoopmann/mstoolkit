@@ -342,7 +342,7 @@ public:
 	//Accessors
 	vector<TimeIntensityPair>&	getData();
 	int													getIDString(char* str);
-	unsigned int								size();
+	size_t      								size();
 
 protected:
 
@@ -1395,7 +1395,7 @@ public:
 
 	ChromatogramPtr		chromatogram(int index, bool binaryData = false);
 	bool							get();
-	unsigned int			size();
+	size_t      			size();
 
 	vector<cindex>*			vChromatIndex;
   #ifdef MZP_MZ5

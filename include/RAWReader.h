@@ -2,6 +2,7 @@
 #define _RAWREADER_H
 
 #ifdef _MSC_VER
+#ifndef _NO_THERMORAW
 
 #include "MSToolkitTypes.h"
 #include "Spectrum.h"
@@ -88,5 +89,6 @@ private:
 };
 
 }
+#endif
 #endif
 #endif

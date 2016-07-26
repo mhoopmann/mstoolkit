@@ -13,7 +13,7 @@
 //#include "mzXMLWriter.h"
 //#include "MSToolkitInterface.h"
 
-#ifdef _MSC_VER
+#ifndef _NO_THERMORAW
 #import "libid:F0C5F3E3-4F2A-443E-A74D-0AABE3237494" rename_namespace("XRawfile")
 //#import "libid:5FE970A2-29C3-11D3-811D-00104B304896" rename_namespace("XRawfile")
 using namespace XRawfile;
@@ -25,9 +25,9 @@ using namespace XRawfile;
 
 //Macros for 64-bit file support
 #ifdef _MSC_VER
+#ifndef _NO_THERMORAW
 #include "RAWReader.h"
-//extern "C" int __cdecl _fseeki64(FILE *, __int64, int);
-//extern "C" __int64 __cdecl _ftelli64(FILE *);
+#endif
 typedef __int64 f_off;
 #define fseek(h,p,o) _fseeki64(h,p,o)
 #define ftell(h) _ftelli64(h)
@@ -158,7 +158,9 @@ class MSReader {
   
   //support for rawfiles
   #ifdef _MSC_VER
+  #ifndef _NO_THERMORAW
 	RAWReader cRAW;
+  #endif
   #endif
 
   //support for sqlite

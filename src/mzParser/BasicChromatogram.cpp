@@ -31,7 +31,7 @@ void BasicChromatogram::setIDString(char* str) { strcpy(idString,str); }
 vector<TimeIntensityPair>&  BasicChromatogram::getData() { return vData; }
 int BasicChromatogram::getIDString(char* str){
 	strcpy(str,idString);
-	return strlen(str);
+	return (int)strlen(str);
 }
-unsigned int BasicChromatogram::size(){	return vData.size(); }
+size_t BasicChromatogram::size(){	return vData.size(); }
 

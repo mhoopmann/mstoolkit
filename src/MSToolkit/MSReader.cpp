@@ -645,7 +645,9 @@ int MSReader::getLastScan(){
       break;
     case raw:
       #ifdef _MSC_VER
+      #ifndef _NO_THERMORAW
       if(cRAW.getStatus()) return cRAW.getScanCount();
+      #endif
       #endif
       break;
     default:
@@ -683,10 +685,12 @@ int MSReader::getPercent(){
 			break;
 		case raw:
 			#ifdef _MSC_VER
+      #ifndef _NO_THERMORAW
 			if(cRAW.getStatus()){
 				return (int)((double)cRAW.getLastScanNumber()/cRAW.getScanCount()*100);
 			}
 			#endif
+      #endif
 			break;
 		default:
 			break;
@@ -1331,6 +1335,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
       break;
 		case raw:
 			#ifdef _MSC_VER
+      #ifndef _NO_THERMORAW
 			//only read the raw file if the dll was present and loaded.
 			if(cRAW.getStatus()) {
 				cRAW.setMSLevelFilter(&filter);
@@ -1348,6 +1353,10 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 				cerr << "Thermo RAW file format not supported." << endl;
 				return false;
 			#endif
+      #else
+        cerr << "Thermo RAW file format not supported." << endl;
+        return false;
+      #endif
 			break;
 		case sqlite:
 		case psm:
@@ -1838,8 +1847,10 @@ void MSReader::setCompression(bool b){
 
 void MSReader::setRawFilter(char *c){
 	#ifdef _MSC_VER
+  #ifndef _NO_THERMORAW
 	cRAW.setRawFilter(c);
 	#endif
+  #endif
 }
 
 void MSReader::setHighResMGF(bool b){

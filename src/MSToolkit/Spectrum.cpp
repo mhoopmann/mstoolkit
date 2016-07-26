@@ -505,19 +505,19 @@ void Spectrum::setScanID(int scanid){
 
 /* Returns the number of elements in the spectrum. */
 int Spectrum::size(){
-  return vPeaks->size();
+  return (int)vPeaks->size();
 }
 
 int Spectrum::sizeEZ(){
-	return vEZ->size();
+	return (int)vEZ->size();
 }
 
 int Spectrum::sizeMZ(){
-	return mz->size();
+	return (int)mz->size();
 }
 
 int Spectrum::sizeZ(){
-	return vZ->size();
+	return (int)vZ->size();
 }
 
 float Spectrum::getTotalIntensity(){
