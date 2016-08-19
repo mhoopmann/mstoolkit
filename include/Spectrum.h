@@ -83,6 +83,8 @@ class Spectrum {
   float		    		getRTime();
   float           getRTimeApex();
   int	      			getScanNumber(bool second=false);
+  double          getSelWindowLower();
+  double          getSelWindowUpper();
   double          getTIC();
   int             getMsLevel();
   void            setActivationMethod(MSActivation);
@@ -106,6 +108,7 @@ class Spectrum {
   void				    setRTime(float);
   void            setRTimeApex(float);
   void    				setScanNumber(int, bool second=false);
+  void            setSelWindow(double lower, double upper); //the mass range of the selected/acquired ions
   void            setTIC(double);
   void            setMsLevel(int level);
   int			      	size();
@@ -155,6 +158,8 @@ class Spectrum {
 	double           convD;
 	double           convE;
 	double           convI;
+  double           selectionWinLower;
+  double           selectionWinUpper;
   double           TIC;
   double           BPM;             //Base Peak Mass
   float            rTimeApex;       //retention time of precursor apex (MS2)

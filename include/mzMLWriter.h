@@ -38,7 +38,9 @@ public:
   MzMLWriter();
   ~MzMLWriter();
 
+  bool  closeList(); //false is chromatogram list
   bool  closeMzML();
+  bool  createList(bool specList=true); //false is chromatogram list
   bool  createMzML(char* fn);
   int   checkState();
   void  setNumpress(bool b);
@@ -47,16 +49,18 @@ public:
   bool  writeRunInformation();
   bool  writeSpectra(MSObject& o);
   bool  writeSpectra(Spectrum& s);
-  bool  writeChromatograms();
+  bool  writeChromatogram(BasicChromatogram& c);
   bool  writeIndex();
 
 private:
   bool exportActivation(Spectrum& s, int tabs=0);
   bool exportAnalyzer();
   bool exportBinary(char* str, int len, int tabs=0);
-  bool exportBinaryDataArrayList(Spectrum& s, int tabs=0);
+  bool exportBinaryDataArray(BasicChromatogram& c, bool bRT, int tabs = 0);
   bool exportBinaryDataArray(Spectrum& s, bool bMZ, int tabs=0);
-  bool exportChromatogram();
+  bool exportBinaryDataArrayList(BasicChromatogram& c, int tabs = 0);
+  bool exportBinaryDataArrayList(Spectrum& s, int tabs=0);
+  bool exportChromatogram(BasicChromatogram& c, int tabs);
   bool exportChromatogramList();
   bool exportComponentList();
   bool exportContact();
@@ -69,13 +73,15 @@ private:
   bool exportFileDescription();
   bool exportInstrumentConfiguration();
   bool exportInstrumentConfigurationList();
+  bool exportIsolationWindow(BasicChromatogram& c, bool bPre, int tabs = 0);
   bool exportIsolationWindow(Spectrum& s, int tabs=0);
   bool exportMzML();
   bool exportOffset(string idRef, f_off offset, int tabs=0);
+  bool exportPrecursor(BasicChromatogram& c, int tabs = 0);
   bool exportPrecursor(Spectrum& s, int tabs=0);
   bool exportPrecursorList(Spectrum& s, int tabs=0);
   bool exportProcessingMethod();
-  bool exportProduct();
+  bool exportProduct(BasicChromatogram&c, int tabs = 0);
   bool exportProductList();
   bool exportReferencableParamGroup();
   bool exportReferenceableParamGroupList();
@@ -88,7 +94,9 @@ private:
   bool exportScanSettings();
   bool exportScanSettingsList();
   bool exportScanWindowList();
+  bool exportSelectedIon(BasicChromatogram& c, int tabs = 0);
   bool exportSelectedIon(Spectrum& s, int tabs=0);
+  bool exportSelectedIonList(BasicChromatogram& c, int tabs = 0);
   bool exportSelectedIonList(Spectrum& s, int tabs=0);
   bool exportSoftware();
   bool exportSoftwareList();
@@ -106,15 +114,20 @@ private:
   bool exportUserParam();
 
   int index;
+  int chromIndex;
   FILE* fptr;
   f_off fSpecList;
+  f_off fChromList;
 
+  int iSpecList;
+  int iChromList;
   bool bTabs;
   bool bFileOpen;
   bool bZlib;
   bool bNumpress;
 
   vector<sMzMLIndex> vIndex;
+  vector<sMzMLIndex> vChromIndex;
 
 };
 }

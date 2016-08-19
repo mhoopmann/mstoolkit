@@ -41,6 +41,8 @@ Spectrum::Spectrum(){
 	convI=0;
   BPI=0;
   BPM=0;
+  selectionWinLower = 0;
+  selectionWinUpper = 0;
   centroidStatus=2;
 
   fileType=Unspecified;
@@ -92,6 +94,8 @@ Spectrum::Spectrum(const Spectrum& s){
   convI = s.convI;
   BPI = s.BPI;
   BPM = s.BPM;
+  selectionWinLower=s.selectionWinLower;
+  selectionWinUpper=s.selectionWinUpper;
   centroidStatus = s.centroidStatus;
   vPeaks = new vector<Peak_T>;
   for(i=0;i<s.vPeaks->size();i++){
@@ -156,6 +160,8 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     IIT = s.IIT;
     fileType = s.fileType;
     centroidStatus = s.centroidStatus;
+    selectionWinLower = s.selectionWinLower;
+    selectionWinUpper = s.selectionWinUpper;
     strcpy(rawFilter,s.rawFilter);
     strcpy(nativeID,s.nativeID);
   }
@@ -257,6 +263,8 @@ void Spectrum::clear(){
   IIT = 0;
   BPI = 0;
   BPM = 0;
+  selectionWinLower=0;
+  selectionWinUpper=0;
 	fileType = Unspecified;
   actMethod=mstNA;
 }
@@ -416,6 +424,14 @@ int Spectrum::getScanNumber(bool second){
   else return scanNumber;
 }
 
+double Spectrum::getSelWindowLower(){
+  return selectionWinLower;
+}
+
+double Spectrum::getSelWindowUpper(){
+  return selectionWinUpper;
+}
+
 double Spectrum::getTIC(){
   return TIC;
 }
@@ -496,6 +512,11 @@ void Spectrum::setRTime(float d){
 void Spectrum::setScanNumber(int i, bool second){
   if(second)scanNumber2=i;
   else scanNumber=i;
+}
+
+void Spectrum::setSelWindow(double lower, double upper){
+  selectionWinLower=lower;
+  selectionWinUpper=upper;
 }
 
 void Spectrum::setTIC(double d){

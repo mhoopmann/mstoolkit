@@ -79,6 +79,7 @@ class MSReader {
   
   MSFileFormat checkFileFormat(const char *fn);
 
+  string          getCurrentFile();
   MSSpectrumType  getFileType();
   MSHeader&       getHeader();
   void            getInstrument(char* str);
@@ -136,6 +137,7 @@ class MSReader {
   int iFType;
   int lastReadScanNum;
   MSFileFormat lastFileFormat;
+  string sCurrentFile;
   string sInstrument;
   string sManufacturer;
 

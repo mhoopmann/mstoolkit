@@ -33,6 +33,7 @@ MSReader::MSReader(){
   iVersion=0;
   for(int i=0;i<16;i++)	strcpy(header.header[i],"\0");
   headerIndex=0;
+  sCurrentFile.clear();
   sInstrument="unknown";
   sManufacturer="unknown";
   lastReadScanNum=0;
@@ -119,6 +120,10 @@ int MSReader::openFile(const char *c,bool text){
 
 	  return 0;
   }
+}
+
+string MSReader::getCurrentFile(){
+  return sCurrentFile;
 }
 
 MSSpectrumType MSReader::getFileType(){
@@ -1317,6 +1322,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 
   if(c!=NULL) {
     lastFileFormat = checkFileFormat(c);
+    sCurrentFile = c;
     sInstrument="unknown";
     sManufacturer="unknown";
   }
@@ -1725,8 +1731,10 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 			if(scanHeader.msLevel>1) {
 				s.setMZ(scanHeader.precursorMZ,scanHeader.precursorMonoMZ);
 				s.setCharge(scanHeader.precursorCharge);
+        s.setSelWindow(scanHeader.selectionWindowLower,scanHeader.selectionWindowUpper);
 			} else {
 				s.setMZ(0);
+        s.setSelWindow(0,0);
 			}
 		  if(scanHeader.precursorCharge>0) {
         if(scanHeader.precursorMonoMZ>0.0001) s.addZState(scanHeader.precursorCharge,scanHeader.precursorMonoMZ*scanHeader.precursorCharge-(scanHeader.precursorCharge-1)*1.007276466);
@@ -1805,6 +1813,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		if(scanHeader.msLevel>1) {
 			s.setMZ(scanHeader.precursorMZ,scanHeader.precursorMonoMZ);
 			s.setCharge(scanHeader.precursorCharge);
+      s.setSelWindow(scanHeader.selectionWindowLower, scanHeader.selectionWindowUpper);
 		} else {
 			s.setMZ(0);
 		}

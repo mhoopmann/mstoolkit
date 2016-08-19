@@ -189,12 +189,18 @@ public:
 
 typedef struct sPrecursorIon{
   double intensity;
-  double mz;
+  double isoLowerMZ; //lower offset of the isolation window
+  double isoMZ;      //the mz of the isolation window
+  double isoUpperMZ;  //upper offset of the isolation window
+  double mz;         //is this always redundant with isoMZ?
   double monoMZ;
   vector<int>* possibleCharges;
   int charge;
   sPrecursorIon(){
     intensity=0;
+    isoLowerMZ=0;
+    isoMZ=0;
+    isoUpperMZ=0;
     mz=0;
     monoMZ=0;
     possibleCharges=new vector<int>;
@@ -202,6 +208,9 @@ typedef struct sPrecursorIon{
   }
   sPrecursorIon(const sPrecursorIon& p){
     intensity=p.intensity;
+    isoLowerMZ = p.isoLowerMZ;
+    isoMZ = p.isoMZ;
+    isoUpperMZ = p.isoUpperMZ;
     mz=p.mz;
     monoMZ=p.monoMZ;
     possibleCharges=new vector<int>;
@@ -214,6 +223,9 @@ typedef struct sPrecursorIon{
   sPrecursorIon& operator=(const sPrecursorIon& p){
     if(this!=&p){
       intensity=p.intensity;
+      isoLowerMZ = p.isoLowerMZ;
+      isoMZ = p.isoMZ;
+      isoUpperMZ = p.isoUpperMZ;
       mz=p.mz;
       monoMZ=p.monoMZ;
       delete possibleCharges;
@@ -225,6 +237,9 @@ typedef struct sPrecursorIon{
   }
   void clear(){
     intensity=0;
+    isoLowerMZ = 0;
+    isoMZ = 0;
+    isoUpperMZ = 0;
     mz=0;
     monoMZ=0;
     possibleCharges->clear();
@@ -338,17 +353,33 @@ public:
 	void addTIP(TimeIntensityPair tip);
 	void clear();
 	void setIDString(char* str);
+  void setPrecursor(double mz, int z, double offLow, double offHigh);
+  void setProduct(double mz, double offLow, double offHigh);
 
 	//Accessors
+  int                         getCharge();
 	vector<TimeIntensityPair>&	getData();
 	int													getIDString(char* str);
+  double                      getPreMZ();
+  double                      getPreOffsetLower();
+  double                      getPreOffsetUpper();
+  double                      getProdMZ();
+  double                      getProdOffsetLower();
+  double                      getProdOffsetUpper();
 	size_t      								size();
 
 protected:
 
 	//Data Members (protected)
+  int                         charge;
 	char												idString[128];
-	vector<TimeIntensityPair>		vData;					//Chromatogram data points
+  double                      precursorMZ;
+  double                      precursorOffsetLower;
+  double                      precursorOffsetUpper;
+  double                      productMZ;
+  double                      productOffsetLower;
+  double                      productOffsetUpper;
+  vector<TimeIntensityPair>		vData;					//Chromatogram data points
 	   
 };
 
@@ -1265,31 +1296,33 @@ static vector<const char *> data_Ext;
 
 struct ScanHeaderStruct {
    
-	int    acquisitionNum; // scan number as declared in File (may be gaps)
-	int    mergedScan;  /* only if MS level > 1 */
-	int    mergedResultScanNum; /* scan number of the resultant merged scan */
-	int    mergedResultStartScanNum; /* smallest scan number of the scanOrigin for merged scan */
-	int    mergedResultEndScanNum; /* largest scan number of the scanOrigin for merged scan */
+	int    acquisitionNum;            // scan number as declared in File (may be gaps)
+	int    mergedScan;                // only if MS level > 1 
+	int    mergedResultScanNum;       // scan number of the resultant merged scan 
+	int    mergedResultStartScanNum;  // smallest scan number of the scanOrigin for merged scan 
+	int    mergedResultEndScanNum;    // largest scan number of the scanOrigin for merged scan 
 	int    msLevel;
 	int    numPossibleCharges;
 	int    peaksCount;
-	int    precursorCharge;  /* only if MS level > 1 */
+	int    precursorCharge;           // only if MS level > 1 
   int    precursorCount;   
-	int    precursorScanNum; /* only if MS level > 1 */
-	int    scanIndex; //a sequential index for non-sequential scan numbers (1-based)
-	int    seqNum; // number in sequence observed file (1-based)
+	int    precursorScanNum;          // only if MS level > 1 
+	int    scanIndex;                 //a sequential index for non-sequential scan numbers (1-based)
+	int    seqNum;                    //number in sequence observed file (1-based)
 	 
 	double basePeakIntensity;
 	double basePeakMZ;
 	double collisionEnergy;
-	double compensationVoltage;  /* only if MS level > 1 */
+	double compensationVoltage;   // only if MS level > 1
 	double highMZ;
 	double ionisationEnergy;
 	double lowMZ;
-	double precursorIntensity;  /* only if MS level > 1 */
+	double precursorIntensity;    // only if MS level > 1
   double precursorMonoMZ;
-	double precursorMZ;  /* only if MS level > 1 */
-	double retentionTime;        /* in seconds */
+	double precursorMZ;           //only if MS level > 1 
+	double retentionTime;         //in seconds
+  double selectionWindowLower;  //the range of ions acquired
+  double selectionWindowUpper;  //in DDA, for example, +/-1 Da around precursor
 	double totIonCurrent;
    
 	char   activationMethod[SCANTYPE_LENGTH];
