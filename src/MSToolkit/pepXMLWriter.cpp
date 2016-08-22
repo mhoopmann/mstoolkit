@@ -40,11 +40,12 @@ void PepXMLWriter::closePepXML(){
   fclose(fptr);
 }
 
-bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSummary* search){
+bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, pxwSampleEnzyme* enzyme, PXWSearchSummary* search){
 
   size_t i;
   time_t timeNow;
   string st;
+  char str[32];
   spQueryIndex=1;
 
   if(fptr!=NULL) fclose(fptr);
@@ -82,6 +83,25 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
   st="</msms_run_summary>\n";
   vTagState.push_back(st);
 
+  if (enzyme != NULL){
+    st = "<sample_enzyme name=\"";
+    st+=enzyme->name;
+    st += "\">\n";
+    writeLine(&st[0]);
+    addTab();
+    st = "<specificity cut=\"";
+    st+=enzyme->cut;
+    st += "\" no_cut=\"";
+    st+=enzyme->no_cut;
+    st += "\" sense=\"";
+    st+=enzyme->sense;
+    st += "\"/>\n";
+    writeLine(&st[0]);
+    deleteTab();
+    st = "</sampel_enzyme>\n";
+    writeLine(&st[0]);
+  }
+
   if(search!=NULL){
     //pass to searchSummary eventually
     st="<search_summary base_name=\"";
@@ -105,6 +125,18 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, PXWSearchSumma
       st = " <search_database local_path=\"";
       st += search->search_database;
       st += "\" type=\"AA\"/>\n";
+      writeLine(&st[0]);
+    }
+    if (enzyme != NULL){
+      st = " <enzymatic_search_contstraint enzyme=\"";
+      st+=enzyme->name;
+      st += "\" max_num_internal_cleavages=\"";
+      sprintf(str,"%d",enzyme->maxNumInternalCleavages);
+      st+=str;
+      st += "\" min_number_termini=\"";
+      sprintf(str, "%d",enzyme->minNumTermini);
+      st+=str;
+      st += "\"/>\n";
       writeLine(&st[0]);
     }
     for(i=0;i<search->parameters->size();i++){

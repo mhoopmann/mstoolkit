@@ -381,6 +381,15 @@ typedef struct pxwSearchHitPair{
   }
 } pxwSearchHitPair;
 
+typedef struct pxwSampleEnzyme{
+  string name;
+  string cut;
+  string no_cut;
+  string sense;
+  int maxNumInternalCleavages;
+  int minNumTermini;
+} pxwSampleEnzyme;
+
 class PXWSpectrumQuery {
 public:
   string spectrum;
@@ -465,7 +474,7 @@ public:
   ~PepXMLWriter();
 
   void  closePepXML         ();
-  bool  createPepXML        (char* fn, pxwMSMSRunSummary& run, PXWSearchSummary* search=NULL);
+  bool  createPepXML        (char* fn, pxwMSMSRunSummary& run, pxwSampleEnzyme* enzyme=NULL, PXWSearchSummary* search=NULL);
   void  writeSpectrumQuery  (PXWSpectrumQuery& s);
 
 private:
