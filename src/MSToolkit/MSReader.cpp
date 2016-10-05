@@ -1212,7 +1212,7 @@ vector<int> MSReader::estimateCharge(Spectrum& s)
 void MSReader::createIndex()
 {
   //create index for msScan table
-  char* stmt1 = "create index idxScanNumber on msScan(startScanNumber)";
+  const char* stmt1 = "create index idxScanNumber on msScan(startScanNumber)";
   sql_stmt(stmt1);
 
 }
