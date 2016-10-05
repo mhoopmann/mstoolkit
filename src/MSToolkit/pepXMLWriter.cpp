@@ -98,7 +98,7 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, pxwSampleEnzym
     st += "\"/>\n";
     writeLine(&st[0]);
     deleteTab();
-    st = "</sampel_enzyme>\n";
+    st = "</sample_enzyme>\n";
     writeLine(&st[0]);
   }
 
