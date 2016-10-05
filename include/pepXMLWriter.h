@@ -256,7 +256,7 @@ public:
   void addScore(pxwBasicXMLTag& s){
     searchScores->push_back(s);
   }
-  void addScore(char* name, char* value){
+  void addScore(const char* name, const char* value){
     pxwBasicXMLTag x;
     x.name=name;
     x.value=value;
@@ -271,7 +271,7 @@ public:
   void addXLScore(pxwBasicXMLTag& s){
     xlScores->push_back(s);
   }
-  void addXLScore(char* name, char* value){
+  void addXLScore(const char* name, const char* value){
     pxwBasicXMLTag x;
     x.name=name;
     x.value=value;
@@ -485,7 +485,7 @@ private:
   void writeAltProtein      (pxwProtein& s);
   void writeModAAMass       (pxwModAA& s);
   void writeModInfo         (PXWModInfo& s);
-  void writeLine            (char* str);
+  void writeLine            (const char* str);
   void writeLinkedPeptide   (PXWSearchHit& s, bool alpha=true);
   void writeSearchHit       (pxwSearchHitPair& s);
 

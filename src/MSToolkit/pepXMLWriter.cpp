@@ -225,7 +225,7 @@ void PepXMLWriter::writeModInfo(PXWModInfo& s){
   writeLine(&st[0]);
 }
 
-void PepXMLWriter::writeLine(char* str){
+void PepXMLWriter::writeLine(const char* str){
   if(bTabs) fprintf(fptr,"%s",strTabs);
   fprintf(fptr,"%s",str);
 }
