@@ -271,6 +271,7 @@ public:
 	void setFilterLine(char* str);
 	void setHighMZ(double d);
 	void setIDString(char* str);
+  void setIonInjectionTime(double d);
 	void setLowMZ(double d);
 	void setMSLevel(int level);
 	void setPeaksCount(int i);
@@ -293,6 +294,7 @@ public:
 	int					  getFilterLine(char* str);
 	double				getHighMZ();
 	int						getIDString(char* str);
+  double        getIonInjectionTime();
 	double				getLowMZ();
 	int						getMSLevel();
 	int						getPeaksCount();
@@ -323,6 +325,7 @@ protected:
 	char					  filterLine[128];
 	double					highMZ;
 	char						idString[128];
+  double          ionInjectionTime;
 	double					lowMZ;
 	int							msLevel;
 	int							peaksCount;
@@ -1315,6 +1318,7 @@ struct ScanHeaderStruct {
 	double collisionEnergy;
 	double compensationVoltage;   // only if MS level > 1
 	double highMZ;
+  double ionInjectionTime;
 	double ionisationEnergy;
 	double lowMZ;
 	double precursorIntensity;    // only if MS level > 1

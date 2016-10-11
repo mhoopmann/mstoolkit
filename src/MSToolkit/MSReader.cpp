@@ -1719,6 +1719,8 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		  s.setScanNumber(scanHeader.acquisitionNum,true);
 		  s.setRTime((float)scanHeader.retentionTime/60.0f);
       s.setCompensationVoltage(scanHeader.compensationVoltage);
+      s.setIonInjectionTime(scanHeader.ionInjectionTime);
+      s.setTIC(scanHeader.totIonCurrent);
 		  if(strlen(scanHeader.activationMethod)>1){
 		    if(strcmp(scanHeader.activationMethod,"CID")==0) s.setActivationMethod(mstCID);
           else if(strcmp(scanHeader.activationMethod,"ECD")==0) s.setActivationMethod(mstECD);
@@ -1802,6 +1804,8 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		s.setScanNumber(scanHeader.acquisitionNum,true);
 		s.setRTime((float)scanHeader.retentionTime/60.0f);
     s.setCompensationVoltage(scanHeader.compensationVoltage);
+    s.setIonInjectionTime(scanHeader.ionInjectionTime);
+    s.setTIC(scanHeader.totIonCurrent);
 		if(strlen(scanHeader.activationMethod)>1){
 		  if(strcmp(scanHeader.activationMethod,"CID")==0) s.setActivationMethod(mstCID);
         else if(strcmp(scanHeader.activationMethod,"ECD")==0) s.setActivationMethod(mstECD);

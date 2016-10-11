@@ -341,6 +341,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->filterLine[0]='\0';
 	scanHeader->highMZ=0.0;
 	scanHeader->idString[0]='\0';
+  scanHeader->ionisationEnergy=0.0;
 	scanHeader->ionisationEnergy=0.0;
 	scanHeader->lowMZ=0.0;
 	scanHeader->mergedScan=0;
@@ -424,6 +425,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
 	scanHeader->collisionEnergy=pFI->bs->getCollisionEnergy();
   scanHeader->compensationVoltage=pFI->bs->getCompensationVoltage();
 	scanHeader->highMZ=pFI->bs->getHighMZ();
+  scanHeader->ionInjectionTime = pFI->bs->getIonInjectionTime();
 	scanHeader->lowMZ=pFI->bs->getLowMZ();
 	scanHeader->msLevel=pFI->bs->getMSLevel();
 	scanHeader->peaksCount=pFI->bs->getPeaksCount();
