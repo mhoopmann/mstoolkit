@@ -384,12 +384,12 @@ float Spectrum::getIonInjectionTime(){
 }
 
 double Spectrum::getMonoMZ(int index){
-	if(index>(int)monoMZ->size()) return -1.0;
+	if(index>=(int)monoMZ->size()) return -1.0;
   return monoMZ->at(index);
 }
 
 double Spectrum::getMZ(int index){
-	if(index>(int)mz->size()) return -1.0;
+	if(index>=(int)mz->size()) return -1.0;
   return mz->at(index);
 }
 
