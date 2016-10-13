@@ -42,6 +42,12 @@ typedef struct rawPrecursorInfo{
     charge=0;
     parScanNum=0;
   }
+  void clear(){
+    dIsoMZ = 0;
+    dMonoMZ = 0;
+    charge = 0;
+    parScanNum = 0;
+  }
 } rawPrecursorInfo;
 
 class RAWReader {

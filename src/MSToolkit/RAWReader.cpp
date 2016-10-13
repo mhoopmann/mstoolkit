@@ -307,6 +307,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	long i;
   long j;
 	long lArraySize=0;
+  long ret;
 
 	vector<double> MZs;
 
@@ -465,22 +466,19 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 
 	//Get spectrum meta data
   //Get lump precursor info first. Note that MSX data likely has multiple precursor infos
-#ifdef _WIN64
+  preInfo.clear();
+#ifdef _WIN64  //only use this function on 64-bit MSFileReader/Xcalibur. It seems broken on 32-bit versions.
   BYTE* pData;
-  m_Raw->GetPrecursorInfoFromScanNum(rawCurSpec, &PrecursorInfo, &tl);
+  ret=m_Raw->GetPrecursorInfoFromScanNum(rawCurSpec, &PrecursorInfo, &tl); //for some reason, always returns 0, even when it fails.
   SafeArrayAccessData(PrecursorInfo.parray, (void**)&pData);
-  if (tl > 0){
+  if (ret==0 && tl > 0){
     //getting only first value!!! Note this does not support MSX here!!!
     //TODO ? : rewrite MSX support to use this function? If so, how would 32-bit systems do this? This function
     //doesn't seem to work on 32-bit MSFileReader...
     memcpy(&preInfo, pData, sizeof(rawPrecursorInfo));
-  } else {
-    preInfo.charge=0;
-    preInfo.dIsoMZ=0;
-    preInfo.dMonoMZ=0;
-    preInfo.parScanNum=0;
-  }
+  } 
   SafeArrayUnaccessData(PrecursorInfo.parray);
+#endif
 
   //Revert to old method if charge info isn't pulled from GetPrecursorInfoFromScanNum
   if(preInfo.charge==0){
@@ -492,21 +490,15 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
     preInfo.charge=Charge.iVal;
   }
 
-#else 
-  sl=lstrlenA("Monoisotopic M/Z:");
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Monoisotopic M/Z:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &MonoMZ);
-	SysFreeString(testStr);
-  preInfo.dMonoMZ=MonoMZ.dblVal;
-
-	sl=lstrlenA("Charge State:");
-	testStr = SysAllocStringLen(NULL,sl);
-	MultiByteToWideChar(CP_ACP,0,"Charge State:",sl,testStr,sl);
-	m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &Charge);
-	SysFreeString(testStr);
-  preInfo.charge=Charge.iVal;
-#endif
+  //Ditto for monoisotopic M/z
+  if (preInfo.dMonoMZ == 0){
+    sl=lstrlenA("Monoisotopic M/Z:");
+	  testStr = SysAllocStringLen(NULL,sl);
+	  MultiByteToWideChar(CP_ACP,0,"Monoisotopic M/Z:",sl,testStr,sl);
+	  m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, testStr, &MonoMZ);
+	  SysFreeString(testStr);
+    preInfo.dMonoMZ=MonoMZ.dblVal;
+  }
 
 	sl=lstrlenA("Ion Injection Time (ms):");
   testStr = SysAllocStringLen(NULL,sl);
