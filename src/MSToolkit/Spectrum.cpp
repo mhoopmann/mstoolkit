@@ -252,11 +252,13 @@ void Spectrum::clear(){
 	vZ = new vector<ZState>;
 	delete mz;
 	mz = new vector<double>;
+  delete monoMZ;
+  monoMZ = new vector<double>;
 	scanNumber = 0;
   scanNumber2 = 0;
 	rTime = 0;
 	charge = 0;
-	msLevel = 2;
+	msLevel = 0;
   convA = 0;
   convB = 0;
   TIC = 0;
