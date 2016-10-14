@@ -1323,6 +1323,8 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
   if(c!=NULL) {
     lastFileFormat = checkFileFormat(c);
     sCurrentFile = c;
+    sInstrument.clear();
+    sManufacturer.clear();
     sInstrument="unknown";
     sManufacturer="unknown";
   }

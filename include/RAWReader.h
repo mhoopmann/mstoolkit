@@ -24,6 +24,9 @@ limitations under the License.
 #include <algorithm>
 #include <iostream>
 #include <vector>
+
+#include <objbase.h>
+
 #import "libid:F0C5F3E3-4F2A-443E-A74D-0AABE3237494" rename_namespace("XRawfile")
 //#import "libid:5FE970A2-29C3-11D3-811D-00104B304896" rename_namespace("XRawfile")
 using namespace XRawfile;
@@ -92,11 +95,7 @@ private:
 	long rawCurSpec;
 	long rawTotSpec;
   
-#ifdef _WIN64
-  IXRawfile3Ptr m_Raw;  //Note: minimum support is now IXRawfile3 interface on 64-bit installations.
-#else
   IXRawfilePtr m_Raw;
-#endif
 
 	vector<MSSpectrumType>* msLevelFilter;
 
@@ -104,6 +103,8 @@ private:
   int							calcChargeState(double precursormz, double highmass, VARIANT* varMassList, long nArraySize);
   double					calcPepMass(int chargestate, double precursormz);
   MSSpectrumType	evaluateFilter(long scan, char* chFilter, vector<double>& MZs, bool& bCentroid, double& cv, MSActivation& act);
+  double          evaluateTrailerDouble(const char* id);
+  int             evaluateTrailerInt(const char* id);
 	bool						initRaw();
   
 
@@ -113,3 +114,4 @@ private:
 #endif
 #endif
 #endif
+

@@ -19,7 +19,7 @@ limitations under the License.
 #include "Spectrum.h"
 #include "MSObject.h"
 #include "mzParser.h"
-#include <cstring>
+#include <string>
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
