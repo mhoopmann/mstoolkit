@@ -561,6 +561,7 @@ private:
 	bool m_bInSpectrumList;
 	bool m_bInChromatogramList;
 	bool m_bInIndexList;
+  bool m_bInProduct;
 
 	//  mzpSAXMzmlHandler procedural flags.
 	bool m_bChromatogramIndex;

@@ -49,6 +49,7 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs){
 	m_bInChromatogramList=false;
 	m_bInIndexedMzML=false;
 	m_bInIndexList=false;
+  m_bInProduct=false;
 	m_bHeaderOnly=false;
 	m_bSpectrumIndex=false;
 	m_bNoIndex=true;
@@ -164,6 +165,9 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 			}
 		}
 
+  } else if (isElement("product", el)) {
+    m_bInProduct=true;
+
 	}	else if (isElement("referenceableParamGroup", el)) {
 		const char* groupName = getAttrValue("id", attr);
 		m_ccurrentRefGroupName = string(groupName);
@@ -277,6 +281,9 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
       m_bIndexSorted=true;
 		}
 
+  } else if (isElement("isolationWindow",el)){
+    if (chromat != NULL && m_bInProduct) chromat->setProduct(m_precursorIon.isoMZ, m_precursorIon.isoLowerMZ, m_precursorIon.isoUpperMZ);
+
 	} else if(isElement("offset",el) && m_bChromatogramIndex){
 		curChromatIndex.offset=mzpatoi64(&m_strData[0]);
 		m_vChromatIndex.push_back(curChromatIndex);
@@ -291,6 +298,9 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
 		}
 
 	} else if(isElement("precursorList",el)){
+
+  } else if (isElement("product", el)){
+    m_bInProduct=false;
 		
 	} else if(isElement("referenceableParamGroup", el)) {
 		m_bInRefGroup = false;
