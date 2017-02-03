@@ -449,11 +449,12 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
 		
 	} else if(!strcmp(name, "scan window upper limit") || !strcmp(accession,"MS:1000500"))    {
 		//TODO: should we also check the units???
-	    spec->setHighMZ(atof(value));
+	  spec->setHighMZ(atof(value));
 		
 	} else if(!strcmp(name, "selected ion m/z") || !strcmp(accession,"MS:1000744"))	{
     m_precursorIon.mz=atof(value); //in Thermo instruments this is the monoisotopic peak (if known) or the selected ion peak.
 		if(m_precursorIon.monoMZ!=0) m_precursorIon.monoMZ=atof(value); //if the monoisotopic peak was specified earlier, this is a better value to use.
+    else if (m_precursorIon.mz<m_precursorIon.isoMZ) m_precursorIon.monoMZ = atof(value); //failsafe? for when thermo trailer info is missing.
 
 	} else if(!strcmp(name, "time array") || !strcmp(accession,"MS:1000595"))	{
 		m_bInmzArrayBinary = true; //note that this uses the m/z designation, although it is a time series

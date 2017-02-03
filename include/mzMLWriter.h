@@ -93,7 +93,8 @@ private:
   bool exportScanList(Spectrum& s, int tabs=0);
   bool exportScanSettings();
   bool exportScanSettingsList();
-  bool exportScanWindowList();
+  bool exportScanWindow(Spectrum& s, int tabs = 0);
+  bool exportScanWindowList(Spectrum& s, int tabs = 0);
   bool exportSelectedIon(BasicChromatogram& c, int tabs = 0);
   bool exportSelectedIon(Spectrum& s, int tabs=0);
   bool exportSelectedIonList(BasicChromatogram& c, int tabs = 0);
@@ -108,6 +109,7 @@ private:
   bool exportSourceFileRefList();
   bool exportSpectrum(Spectrum& s, int tabs=0);
   bool exportSpectrumList();
+  void exportTabs(int tabs);
   bool exportTarget();
   bool exportTargetList();
   bool exportDetector();

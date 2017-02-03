@@ -83,6 +83,8 @@ class Spectrum {
   float		    		getRTime();
   float           getRTimeApex();
   int	      			getScanNumber(bool second=false);
+  double          getScanWindowLower();
+  double          getScanWindowUpper();
   double          getSelWindowLower();
   double          getSelWindowUpper();
   double          getTIC();
@@ -108,6 +110,7 @@ class Spectrum {
   void				    setRTime(float);
   void            setRTimeApex(float);
   void    				setScanNumber(int, bool second=false);
+  void            setScanWindow(double lower, double upper); //the mass range of the spectrum
   void            setSelWindow(double lower, double upper); //the mass range of the selected/acquired ions
   void            setTIC(double);
   void            setMsLevel(int level);
@@ -167,6 +170,8 @@ class Spectrum {
   char             nativeID[256];   //spectrumNativeID in mzML files
   char             rawFilter[256];  //RAW file header line
   int              centroidStatus;  //0=profile, 1=centroid, 2=unknown
+  double           scanWinLower;    //the instrument spectrum m/z range
+  double           scanWinUpper;    //the instrument spectrum m/z range
 
   //private:
   //Functions
