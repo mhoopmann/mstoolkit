@@ -204,11 +204,11 @@ void PepXMLWriter::writeModInfo(PXWModInfo& s){
     st+=s.modified_peptide;
     st+="\"";
   }
-  if(s.mod_nterm_mass>0){
+  if(s.mod_nterm_mass!=0){
     sprintf(nStr," mod_nterm_mass=\"%.4lf\"",s.mod_nterm_mass);
     st+=nStr;
   }
-  if(s.mod_cterm_mass>0){
+  if(s.mod_cterm_mass!=0){
     sprintf(nStr," mod_cterm_mass=\"%.4lf\"",s.mod_cterm_mass);
     st+=nStr;
   }
@@ -264,7 +264,7 @@ void PepXMLWriter::writeLinkedPeptide(PXWSearchHit& s, bool alpha){
     writeAltProtein(s.getProtein(i));
   }
 
-  if(s.modInfo.sizeMods()>0 || s.modInfo.mod_cterm_mass>0 || s.modInfo.mod_nterm_mass>0){
+  if(s.modInfo.sizeMods()>0 || s.modInfo.mod_cterm_mass!=0 || s.modInfo.mod_nterm_mass!=0){
     writeModInfo(s.modInfo);
   }
 
@@ -327,7 +327,7 @@ void PepXMLWriter::writeSearchHit(pxwSearchHitPair& s) {
       writeAltProtein(s.a->getProtein(i));
     }
 
-    if(s.a->modInfo.sizeMods()>0 || s.a->modInfo.mod_cterm_mass>0 || s.a->modInfo.mod_nterm_mass>0){
+    if(s.a->modInfo.sizeMods()>0 || s.a->modInfo.mod_cterm_mass!=0 || s.a->modInfo.mod_nterm_mass!=0){
       writeModInfo(s.a->modInfo);
     }
   }

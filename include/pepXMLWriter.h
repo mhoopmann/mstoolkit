@@ -64,9 +64,9 @@ public:
     mods=new vector<pxwModAA>;
   }
   PXWModInfo(const PXWModInfo& s){
-    mod_cterm_mass=0;
-    mod_nterm_mass=0;
-    modified_peptide.clear();
+    mod_cterm_mass=s.mod_cterm_mass;
+    mod_nterm_mass=s.mod_nterm_mass;
+    modified_peptide = s.modified_peptide;
     mods=new vector<pxwModAA>;
     for(size_t i=0;i<s.mods->size();i++) mods->push_back(s.mods->at(i));
   }
@@ -75,9 +75,9 @@ public:
   }
   PXWModInfo& operator=(const PXWModInfo& s){
     if(this!=&s){
-      mod_cterm_mass=0;
-      mod_nterm_mass=0;
-      modified_peptide.clear();
+      mod_cterm_mass = s.mod_cterm_mass;
+      mod_nterm_mass = s.mod_nterm_mass;
+      modified_peptide = s.modified_peptide;
       delete mods;
       mods=new vector<pxwModAA>;
       for(size_t i=0;i<s.mods->size();i++) mods->push_back(s.mods->at(i));
