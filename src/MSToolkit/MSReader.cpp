@@ -496,9 +496,20 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
     }
   }
   if(s.getScanNumber()==0){
-    s.setScanNumber(mgfIndex);
-    s.setScanNumber(mgfIndex,true);
-    mgfIndex++;
+    //attempt to obtain scan number from title using ISB/ProteoWizard format
+    if (s.getNativeID(str, 1024)){
+      tok = strtok(str, ".");
+      tok = strtok(NULL, ".");
+      if (tok!=NULL) {
+        s.setScanNumber(atoi(tok));
+        s.setScanNumber(atoi(tok),true);
+      }
+    }
+    if (s.getScanNumber()==0){
+      s.setScanNumber(mgfIndex);
+      s.setScanNumber(mgfIndex,true);
+      mgfIndex++;
+    }
   }
 
   //Read peak data
@@ -1739,11 +1750,13 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
   s.setIonInjectionTime((float)scanHeader.ionInjectionTime);
   s.setTIC(scanHeader.totIonCurrent);
   s.setScanWindow(scanHeader.lowMZ,scanHeader.highMZ);
+  s.setBPI(scanHeader.basePeakIntensity);
 	if(strlen(scanHeader.activationMethod)>1){
 		if(strcmp(scanHeader.activationMethod,"CID")==0) s.setActivationMethod(mstCID);
       else if(strcmp(scanHeader.activationMethod,"ECD")==0) s.setActivationMethod(mstECD);
       else if(strcmp(scanHeader.activationMethod,"ETD")==0) s.setActivationMethod(mstETD);
       else if(strcmp(scanHeader.activationMethod,"ETDSA")==0) s.setActivationMethod(mstETDSA);
+      else if(strcmp(scanHeader.activationMethod,"ETD+SA") == 0) s.setActivationMethod(mstETDSA);
       else if(strcmp(scanHeader.activationMethod,"PQD")==0) s.setActivationMethod(mstPQD);
       else if(strcmp(scanHeader.activationMethod,"HCD")==0) s.setActivationMethod(mstHCD);
 		else s.setActivationMethod(mstNA);
