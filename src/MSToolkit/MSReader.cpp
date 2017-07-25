@@ -945,7 +945,7 @@ void MSReader::writeFile(const char* c, bool text, MSObject& m){
 	fclose(fileOut);
 }
 
-void MSReader::writeFile(const char* c, MSFileFormat ff, MSObject& m, char* sha1Report){
+void MSReader::writeFile(const char* c, MSFileFormat ff, MSObject& m, const char* sha1Report){
 
   switch(ff){
   case mgf:
@@ -1006,7 +1006,7 @@ void MSReader::writeFile(const char* c, MSFileFormat ff, MSObject& m, char* sha1
 }
 
 #ifndef _NOSQLITE
-void MSReader::writeSqlite(const char* c, MSObject& m, char* sha1Report)
+void MSReader::writeSqlite(const char* c, MSObject& m, const char* sha1Report)
 {
 
   //open the database for write
@@ -1051,7 +1051,7 @@ void MSReader::writeSqlite(const char* c, MSObject& m, char* sha1Report)
   string instrumentType="=";
   for(int i=0; i<16; i++)
     {
-      if(m.getHeader().header[i] != '\0')
+      if(*m.getHeader().header[i] != '\0')
 	{
 	  string headerLine = m.getHeader().header[i];
 	  if(headerLine.find("CreationDate") != string::npos)
