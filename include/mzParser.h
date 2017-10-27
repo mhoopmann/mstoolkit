@@ -1382,11 +1382,14 @@ const char**        rampListSupportedFileTypes();
 RAMPFILE*           rampOpenFile(const char *filename);
 char*               rampValidFileType(const char *buf);
 void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader);
+void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, unsigned long scanI);
 ramp_fileoffset_t*  readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
 int                 readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
 RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
+RAMPREAL*           readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, unsigned long scanI);
 int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
+int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, unsigned long scanI);
 void                readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
 
 //MH:Cached RAMP functions
