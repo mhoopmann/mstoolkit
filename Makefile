@@ -1,3 +1,5 @@
+#Version 82, November 22 2017
+
 #Set your paths here.
 ZLIB_PATH = ./src/zlib-1.2.8
 MZPARSER_PATH = ./src/mzParser
