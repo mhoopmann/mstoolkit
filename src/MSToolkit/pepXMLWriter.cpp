@@ -167,6 +167,7 @@ void PepXMLWriter::resetTabs(){
 
 void PepXMLWriter::writeAltProtein(pxwProtein& s){
   string st;
+  char nStr[32];
 
   st="<alternative_protein protein=\"";
   st+=s.protein;
@@ -174,6 +175,16 @@ void PepXMLWriter::writeAltProtein(pxwProtein& s){
   st+=s.peptide_prev_aa;
   st+="\" peptide_next_aa=\"";
   st+=s.peptide_next_aa;
+  if (s.protein_link_pos_a>0){
+    st += "\" protein_link_pos_a=\"";
+    sprintf(nStr, "%d", s.protein_link_pos_a);
+    st += nStr;
+  }
+  if (s.protein_link_pos_b>0){
+    st += "\" protein_link_pos_b=\"";
+    sprintf(nStr, "%d", s.protein_link_pos_b);
+    st += nStr;
+  }
   st+="\"/>\n";
   writeLine(&st[0]);
 }
@@ -246,6 +257,16 @@ void PepXMLWriter::writeLinkedPeptide(PXWSearchHit& s, bool alpha){
   st+="\" protein=\"";
   if(s.sizeProteins()>0) st+=s.getProtein(0).protein;
   else st+="unknown";
+  if (s.sizeProteins()>0 && s.getProtein(0).protein_link_pos_a>0){
+    st += "\" protein_link_pos_a=\"";
+    sprintf(nStr, "%d", s.getProtein(0).protein_link_pos_a);
+    st += nStr;
+  }
+  if (s.sizeProteins()>0 && s.getProtein(0).protein_link_pos_b>0){
+    st += "\" protein_link_pos_b=\"";
+    sprintf(nStr, "%d", s.getProtein(0).protein_link_pos_b);
+    st += nStr;
+  }
   st+="\" num_tot_proteins=\"";
   sprintf(nStr,"%d",s.num_tot_proteins);
   st+=nStr;
@@ -305,6 +326,16 @@ void PepXMLWriter::writeSearchHit(pxwSearchHitPair& s) {
   st+="\" protein=\"";
   if(s.a->sizeProteins()>0 && !bCross) st+=s.a->getProtein(0).protein;
   else st+="-";
+  if(s.a->sizeProteins()>0 && !bCross && s.a->getProtein(0).protein_link_pos_a>0){
+    st += "\" protein_link_pos_a=\"";
+    sprintf(nStr, "%d", s.a->getProtein(0).protein_link_pos_a);
+    st += nStr;
+  }
+  if (s.a->sizeProteins()>0 && !bCross && s.a->getProtein(0).protein_link_pos_b>0){
+    st += "\" protein_link_pos_b=\"";
+    sprintf(nStr, "%d", s.a->getProtein(0).protein_link_pos_b);
+    st += nStr;
+  }
   st+="\" num_tot_proteins=\"";
   sprintf(nStr,"%d",s.a->num_tot_proteins);
   st+=nStr;

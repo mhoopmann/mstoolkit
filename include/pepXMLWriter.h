@@ -47,6 +47,8 @@ typedef struct pxwProtein {
   string protein;
   char peptide_next_aa;
   char peptide_prev_aa;
+  int protein_link_pos_a;
+  int protein_link_pos_b;
 } pxwProtein;
 
 //Use classes for more complicated structures with dynamic arrays
@@ -239,18 +241,22 @@ public:
   void addProtein(pxwProtein& p){
     proteins->push_back(p);
   }
-  void addProtein(char* protein, char peptide_next_aa, char peptide_prev_aa){
+  void addProtein(char* protein, char peptide_next_aa, char peptide_prev_aa, int protein_link_pos_a = 0, int protein_link_pos_b = 0){
     pxwProtein p;
     p.protein=protein;
     p.peptide_next_aa=peptide_next_aa;
     p.peptide_prev_aa=peptide_prev_aa;
+    p.protein_link_pos_a = protein_link_pos_a;
+    p.protein_link_pos_b = protein_link_pos_b;
     addProtein(p);
   }
-  void addProtein(string& protein, char peptide_next_aa, char peptide_prev_aa){
+  void addProtein(string& protein, char peptide_next_aa, char peptide_prev_aa, int protein_link_pos_a = 0, int protein_link_pos_b = 0){
     pxwProtein p;
     p.protein=protein;
     p.peptide_next_aa=peptide_next_aa;
     p.peptide_prev_aa=peptide_prev_aa;
+    p.protein_link_pos_a=protein_link_pos_a;
+    p.protein_link_pos_b=protein_link_pos_b;
     addProtein(p);
   }
   void addScore(pxwBasicXMLTag& s){
