@@ -32,7 +32,9 @@ SO_CFLAGS = -O3 -shared -fPIC -g -I. -I$(HEADER_PATH) -D_LARGEFILE_SOURCE -D_FIL
 LIBS = -lm -lpthread -ldl
 CLEAN_LIBS = libmstoolkitlite.a libmstoolkitlite.so libmstoolkitlite.so.$(SOVER)* libmstoolkit.a libmstoolkit.so libmstoolkit.so.$(SOVER)*
 
-all: arlib solib
+all: 
+	make arlib 
+	make solib
 
 .PHONY: objects
 objects: $(ZLIB) $(MZPARSER) $(MZPARSERLITE) $(MSTOOLKIT) $(READER) $(READERLITE) $(EXPAT) $(SQLITE)
