@@ -139,6 +139,36 @@ bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, pxwSampleEnzym
       st += "\"/>\n";
       writeLine(&st[0]);
     }
+    for (i = 0; i<search->aminoAcidMods->size(); i++){
+      st = " <aminoacid_modification aminoacid=\"";
+      st += search->aminoAcidMods->at(i).aminoacid;
+      st += "\" massdiff=\"";
+      sprintf(str, "%.6lf", search->aminoAcidMods->at(i).massdiff);
+      st += str;
+      st += "\" mass=\"";
+      sprintf(str, "%.6lf", search->aminoAcidMods->at(i).mass);
+      st += str;
+      if(search->aminoAcidMods->at(i).variable) st += "\" variable=\"Y\"/>\n";
+      else st += "\" variable=\"N\"/>\n";
+      writeLine(&st[0]);
+    }
+    for (i = 0; i<search->terminalMods->size(); i++){
+      st = " <terminal_modification terminus=\"";
+      if(search->terminalMods->at(i).terminus) st+="n";
+      else st+="c";
+      st += "\" massdiff=\"";
+      sprintf(str, "%.6lf", search->terminalMods->at(i).massdiff);
+      st += str;
+      st += "\" mass=\"";
+      sprintf(str, "%.6lf", search->terminalMods->at(i).mass);
+      st += str;
+      st += "\" protein_terminus=\"";
+      if (search->terminalMods->at(i).protein) st += "Y";
+      else st += "N";
+      if (search->terminalMods->at(i).variable) st += "\" variable=\"Y\"/>\n";
+      else st += "\" variable=\"N\"/>\n";
+      writeLine(&st[0]);
+    }
     for(i=0;i<search->parameters->size();i++){
       st=" <parameter name=\"";
       st+=search->parameters->at(i).name;

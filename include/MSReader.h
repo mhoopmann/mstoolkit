@@ -93,7 +93,7 @@ class MSReader {
   void setPrecisionInt(int i);
   void setPrecisionMZ(int i);
   void writeFile(const char* c, bool text, MSObject& m);
-  void writeFile(const char* c, MSFileFormat ff, MSObject& m, const char* sha1Report="\0");
+  void writeFile(const char* c, MSFileFormat ff, MSObject& m, const char* sha1Report=NULL);
 
   bool readMGFFile(const char* c, Spectrum& s); //Note, no random-access of MGF files.
   bool readMSTFile(const char* c, bool text, Spectrum& s, int scNum=0);

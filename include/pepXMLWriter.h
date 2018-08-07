@@ -31,6 +31,21 @@ typedef struct pxwBasicXMLTag {
   string value;
 } pxwBasicXMLTag;
 
+typedef struct pxwAminoAcidModification{
+  bool variable;
+  char aminoacid;
+  double massdiff;
+  double mass;
+} pxwAminoAcidModification;
+
+typedef struct pxwTerminalModification{
+  bool variable;
+  bool protein;  //true=to protein, false=to peptide
+  bool terminus; //true=n, false=c
+  double massdiff;
+  double mass;
+} pxwTerminalModification;
+
 typedef struct pxwModAA{
   int position;
   double mass;
@@ -124,7 +139,9 @@ public:
   string search_engine_version;
   int precursor_mass_type; //0=monoisotopic, 1=average
   int fragment_mass_type; //0=monoisotopic, 1=average
+  vector<pxwAminoAcidModification>* aminoAcidMods;
   vector<pxwBasicXMLTag>* parameters;
+  vector<pxwTerminalModification>* terminalMods;
 
   PXWSearchSummary(){
     base_name.clear();
@@ -133,32 +150,48 @@ public:
     search_engine_version.clear();
     precursor_mass_type=0;
     fragment_mass_type=0;
+    aminoAcidMods = new vector<pxwAminoAcidModification>;
     parameters=new vector<pxwBasicXMLTag>;
+    terminalMods = new vector<pxwTerminalModification>;
   }
   PXWSearchSummary(const PXWSearchSummary& s){
+    size_t i;
     base_name=s.base_name;
     search_database=s.search_database;
     search_engine=s.search_engine;
     search_engine_version=s.search_engine_version;
     precursor_mass_type=s.precursor_mass_type;
     fragment_mass_type=s.fragment_mass_type;
+    aminoAcidMods = new vector<pxwAminoAcidModification>;
+    for (i = 0; i<s.aminoAcidMods->size(); i++) aminoAcidMods->push_back(s.aminoAcidMods->at(i));
     parameters=new vector<pxwBasicXMLTag>;
-    for(size_t i=0;i<s.parameters->size();i++) parameters->push_back(s.parameters->at(i));
+    for(i=0;i<s.parameters->size();i++) parameters->push_back(s.parameters->at(i));
+    terminalMods = new vector<pxwTerminalModification>;
+    for (i = 0; i<s.terminalMods->size(); i++) terminalMods->push_back(s.terminalMods->at(i));
   }
   ~PXWSearchSummary(){
+    delete aminoAcidMods;
     delete parameters;
+    delete terminalMods;
   }
   PXWSearchSummary& operator=(const PXWSearchSummary& s){
     if(this!=&s){
+      size_t i;
       base_name=s.base_name;
       search_database = s.search_database;
       search_engine=s.search_engine;
       search_engine_version=s.search_engine_version;
       precursor_mass_type=s.precursor_mass_type;
       fragment_mass_type=s.fragment_mass_type;
+      delete aminoAcidMods;
       delete parameters;
-      parameters=new vector<pxwBasicXMLTag>;
-      for(size_t i=0;i<s.parameters->size();i++) parameters->push_back(s.parameters->at(i));
+      delete terminalMods;
+      aminoAcidMods = new vector<pxwAminoAcidModification>;
+      for (i = 0; i<s.aminoAcidMods->size(); i++) aminoAcidMods->push_back(s.aminoAcidMods->at(i));
+      parameters = new vector<pxwBasicXMLTag>;
+      for (i = 0; i<s.parameters->size(); i++) parameters->push_back(s.parameters->at(i));
+      terminalMods = new vector<pxwTerminalModification>;
+      for (i = 0; i<s.terminalMods->size(); i++) terminalMods->push_back(s.terminalMods->at(i));
     }
     return *this;
   }
