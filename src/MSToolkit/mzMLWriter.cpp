@@ -15,6 +15,7 @@ limitations under the License.
 */
 #include "mzMLWriter.h"
 
+using namespace std;
 using namespace MSToolkit;
 using namespace ms::numpress::MSNumpress;
 

@@ -369,6 +369,15 @@ int MSReader::openFile(const char *c,bool text){
   }
 }
 
+bool MSReader::nextSpectrum(Spectrum& s){
+  return readFile(NULL,s);
+}
+
+bool MSReader::prevSpectrum(Spectrum& s){
+  cout << "prevSpectrum not implemented yet" << endl;
+  return false;
+}
+
 bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
   char* tok;

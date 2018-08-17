@@ -38,8 +38,6 @@
 #include "H5Cpp.h"
 #endif
 
-using namespace std;
-
 #ifdef MZP_MZ5
 using namespace H5;
 #endif
@@ -154,7 +152,7 @@ public:
   }
 
   int scanNum;
-  string idRef;
+  std::string idRef;
   f_off offset;
 };
 
@@ -163,12 +161,12 @@ public:
 //For instrument information
 class instrumentInfo {
 public:
-  string analyzer;
-  string detector;
-  string id;
-  string ionization;
-  string manufacturer;
-  string model;
+  std::string analyzer;
+  std::string detector;
+  std::string id;
+  std::string ionization;
+  std::string manufacturer;
+  std::string model;
   instrumentInfo(){
     analyzer="";
     detector="";
@@ -194,7 +192,7 @@ typedef struct sPrecursorIon{
   double isoUpperMZ;  //upper offset of the isolation window
   double mz;         //is this always redundant with isoMZ?
   double monoMZ;
-  vector<int>* possibleCharges;
+  std::vector<int>* possibleCharges;
   int charge;
   sPrecursorIon(){
     intensity=0;
@@ -203,7 +201,7 @@ typedef struct sPrecursorIon{
     isoUpperMZ=0;
     mz=0;
     monoMZ=0;
-    possibleCharges=new vector<int>;
+    possibleCharges = new std::vector<int>;
     charge=0;
   }
   sPrecursorIon(const sPrecursorIon& p){
@@ -213,7 +211,7 @@ typedef struct sPrecursorIon{
     isoUpperMZ = p.isoUpperMZ;
     mz=p.mz;
     monoMZ=p.monoMZ;
-    possibleCharges=new vector<int>;
+    possibleCharges=new std::vector<int>;
     for(size_t i=0;i<p.possibleCharges->size();i++) possibleCharges->push_back(p.possibleCharges->at(i));
     charge=p.charge;
   }
@@ -229,7 +227,7 @@ typedef struct sPrecursorIon{
       mz=p.mz;
       monoMZ=p.monoMZ;
       delete possibleCharges;
-      possibleCharges=new vector<int>;
+      possibleCharges=new std::vector<int>;
       for(size_t i=0;i<p.possibleCharges->size();i++) possibleCharges->push_back(p.possibleCharges->at(i));
       charge=p.charge;
     }
@@ -335,8 +333,8 @@ protected:
   int             scanIndex;            //when scan numbers aren't enough, there are indexes (start at 1)
   int             scanNum;              //identifying scan number
   double          totalIonCurrent;
-  vector<specDP>* vData;                //Spectrum data points
-  vector<sPrecursorIon>* vPrecursor;
+  std::vector<specDP>* vData;                //Spectrum data points
+  std::vector<sPrecursorIon>* vPrecursor;
      
 };
 
@@ -361,7 +359,7 @@ public:
 
   //Accessors
   int                         getCharge();
-  vector<TimeIntensityPair>&  getData();
+  std::vector<TimeIntensityPair>&  getData();
   int                         getIDString(char* str);
   double                      getPreMZ();
   double                      getPreOffsetLower();
@@ -382,7 +380,7 @@ protected:
   double                      productMZ;
   double                      productOffsetLower;
   double                      productOffsetUpper;
-  vector<TimeIntensityPair>   vData;          //Chromatogram data points
+  std::vector<TimeIntensityPair>   vData;          //Chromatogram data points
      
 };
 
@@ -487,7 +485,7 @@ public:
 protected:
 
   XML_Parser m_parser;
-  string  m_strFileName;
+  std::string  m_strFileName;
   bool m_bStopParse;
   bool m_bGZCompression;
 
@@ -508,11 +506,11 @@ public:
   void characters(const XML_Char *s, int len);
 
   //  SAXMzmlHandler public functions
-  vector<cindex>*         getChromatIndex();
+  std::vector<cindex>*         getChromatIndex();
   f_off                   getIndexOffset();
-  vector<instrumentInfo>* getInstrument();
+  std::vector<instrumentInfo>* getInstrument();
   int                     getPeaksCount();
-  vector<cindex>*         getSpecIndex();
+  std::vector<cindex>*         getSpecIndex();
   int                     highChromat();
   int                     highScan();
   bool                    load(const char* fileName);
@@ -528,12 +526,12 @@ private:
   //  mzpSAXMzmlHandler subclasses
   class cvParam  {
   public:
-    string refGroupName;
-    string name;
-    string accession;
-    string value;
-    string unitAccession;
-    string unitName;
+    std::string refGroupName;
+    std::string name;
+    std::string accession;
+    std::string value;
+    std::string unitAccession;
+    std::string unitName;
   };
 
   //  mzpSAXMzmlHandler private functions
@@ -545,7 +543,7 @@ private:
   void  stopParser();
 
   //  mzpSAXMzmlHandler Base64 conversion functions
-  void decode(vector<double>& d);
+  void decode(std::vector<double>& d);
   //void decode32(vector<double>& d);
   //void decode64(vector<double>& d);
   //void decompress32(vector<double>& d);
@@ -577,33 +575,33 @@ private:
   int  m_iDataType;   //0=unspecified, 1=32-bit float, 2=64-bit float
   bool m_bIndexSorted;
   //  mzpSAXMzmlHandler index data members.
-  vector<cindex>    m_vIndex;
+  std::vector<cindex>    m_vIndex;
   cindex            curIndex;
   int               posIndex;
   f_off             indexOffset;
 
-  vector<cindex>    m_vChromatIndex;
+  std::vector<cindex>    m_vChromatIndex;
   cindex            curChromatIndex;
   int               posChromatIndex;
 
   //  mzpSAXMzmlHandler data members.
   BasicChromatogram*      chromat;
-  string                  m_ccurrentRefGroupName;
+  std::string                  m_ccurrentRefGroupName;
   long                    m_encodedLen;            // For compressed data
   instrumentInfo          m_instrument;
   sPrecursorIon           m_precursorIon;
   int                     m_peaksCount;            // Count of peaks in spectrum
-  vector<cvParam>         m_refGroupCvParams;
+  std::vector<cvParam>         m_refGroupCvParams;
   int                     m_scanSPECCount;
   int                     m_scanIDXCount;
   int                     m_scanPRECCount;
   double                  m_startTime;            //in minutes
   double                  m_stopTime;              //in minutes
-  string                  m_strData;              // For collecting character data.
-  vector<instrumentInfo>  m_vInstrument;
+  std::string                  m_strData;              // For collecting character data.
+  std::vector<instrumentInfo>  m_vInstrument;
   BasicSpectrum*          spec;
-  vector<double>          vdI;
-  vector<double>          vdM;                    // Peak list vectors (masses and charges)
+  std::vector<double>          vdI;
+  std::vector<double>          vdM;                    // Peak list std::vectors (masses and charges)
 
 };
 
@@ -619,7 +617,7 @@ public:
   void characters(const XML_Char *s, int len);
 
   //  mzpSAXMzxmlHandler public functions
-  vector<cindex>* getIndex();
+  std::vector<cindex>* getIndex();
   f_off           getIndexOffset();
   instrumentInfo  getInstrument();
   int             getPeaksCount();
@@ -665,7 +663,7 @@ private:
   bool m_bScanIndex;
   bool m_bIndexSorted;
   //  mzpSAXMzxmlHandler index data members.
-  vector<cindex>    m_vIndex;
+  std::vector<cindex>    m_vIndex;
   cindex            curIndex;
   int               posIndex;
   f_off             indexOffset;
@@ -675,11 +673,11 @@ private:
   instrumentInfo          m_instrument;
   int                     m_peaksCount;    // Count of peaks in spectrum
   sPrecursorIon           m_precursorIon;
-  string                  m_strData;      // For collecting character data.
-  vector<instrumentInfo>  m_vInstrument;
+  std::string                  m_strData;      // For collecting character data.
+  std::vector<instrumentInfo>  m_vInstrument;
   BasicSpectrum*          spec;
-  vector<double>          vdI;
-  vector<double>          vdM;            // Peak list vectors (masses and charges)
+  std::vector<double>          vdI;
+  std::vector<double>          vdM;            // Peak list vectors (masses and charges)
 
 };
 
@@ -1296,7 +1294,7 @@ typedef struct RAMPFILE{
   }
 } RAMPFILE;
 
-static vector<const char *> data_Ext;
+static std::vector<const char *> data_Ext;
 
 struct ScanHeaderStruct {
    
@@ -1375,7 +1373,7 @@ InstrumentStruct*   getInstrumentStruct(RAMPFILE *pFI);
 void                getPrecursor(const struct ScanHeaderStruct *scanHeader, int index, double &mz, double &monoMZ, double &intensity, int &charge, int &possibleCharges, int *&possibleChargeArray);
 void                getScanSpanRange(const struct ScanHeaderStruct *scanHeader, int *startScanNum, int *endScanNum);
 void                rampCloseFile(RAMPFILE *pFI);
-string              rampConstructInputFileName(const string &basename);
+std::string              rampConstructInputFileName(const std::string &basename);
 char*               rampConstructInputFileName(char *buf,int buflen,const char *basename);
 char*               rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const char *basename);
 const char**        rampListSupportedFileTypes();
@@ -1422,9 +1420,9 @@ public:
   ~Chromatogram();
 
   BasicChromatogram*  bc;
-  string              id;
+  std::string              id;
 
-  void getTimeIntensityPairs(vector<TimeIntensityPair>& v);
+  void getTimeIntensityPairs(std::vector<TimeIntensityPair>& v);
 };
 typedef class Chromatogram* ChromatogramPtr;
 
@@ -1438,9 +1436,9 @@ public:
   bool              get();
   size_t            size();
 
-  vector<cindex>*      vChromatIndex;
+  std::vector<cindex>*      vChromatIndex;
   #ifdef MZP_MZ5
-  vector<cMz5Index>*  vMz5Index;
+  std::vector<cMz5Index>*  vMz5Index;
   #endif
 
 private:
@@ -1472,7 +1470,7 @@ private:
 
 class MSDataFile{
 public:
-  MSDataFile(string s);
+  MSDataFile(std::string s);
   ~MSDataFile();
 
   PwizRun run;
@@ -1498,7 +1496,7 @@ public:
   ~MzParser();
 
   //User functions
-  vector<cindex>*  getChromatIndex();
+  std::vector<cindex>*  getChromatIndex();
   int   highChromat();
   int   highScan();
   bool  load(char* fname);

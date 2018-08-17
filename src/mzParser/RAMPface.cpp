@@ -9,6 +9,7 @@ Version 1.1, March 14, 2012.
 */
 
 #include "mzParser.h"
+using namespace std;
 
 int checkFileType(const char* fname){
   char file[256];

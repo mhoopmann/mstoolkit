@@ -34,6 +34,7 @@
  *******************************************************/
 
 #include "mzParser.h"
+using namespace std;
 
 mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs){
   m_bChromatogramIndex = false;

@@ -6,7 +6,7 @@
 */
 
 #include "mzParser.h"
-
+using namespace std;
 
 //------------------------------------------
 //  Constructors & Destructors

@@ -22,8 +22,6 @@ limitations under the License.
 #include <cstdlib>
 #include <iomanip>
 
-using namespace std;
-
 namespace MSToolkit {
 class Spectrum {
  public:
@@ -129,7 +127,7 @@ class Spectrum {
   int getScanID();
 
   //const vector<Peak_T>* getPeaks();
-  vector<Peak_T>* getPeaks();
+  std::vector<Peak_T>* getPeaks();
   //void setPeaks(vector<Peak_T> peaks);
   float getTotalIntensity();
  
@@ -138,17 +136,17 @@ class Spectrum {
 
  protected:
 
- //Data Members
-  vector<Peak_T>   *vPeaks;
-  vector<EZState>  *vEZ;        //extended z-lines with charge state, M+H, and peak information.
-  vector<ZState>   *vZ;         //presumed charge states and M+H; M can be monoisotopic or selected.
+  //Data Members
+  std::vector<Peak_T>   *vPeaks;
+  std::vector<EZState>  *vEZ;        //extended z-lines with charge state, M+H, and peak information.
+  std::vector<ZState>   *vZ;         //presumed charge states and M+H; M can be monoisotopic or selected.
   int		           charge;
   float		         rTime;
   int		           scanNumber;
   int              scanNumber2;
   int              msLevel;
-  vector<double>   *monoMZ;     //the monoisotopic m/z of the selected ion(s)
-  vector<double>   *mz;         //the selected ion(s) in m/z
+  std::vector<double>   *monoMZ;     //the monoisotopic m/z of the selected ion(s)
+  std::vector<double>   *mz;         //the selected ion(s) in m/z
   MSSpectrumType   fileType;
   MSActivation     actMethod;
   int              scanID;       //index for sqlite

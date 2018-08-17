@@ -20,7 +20,7 @@
 
 #include "mzParser.h"
 
-
+using namespace std;
 
 mzpSAXMzxmlHandler::mzpSAXMzxmlHandler(BasicSpectrum* bs){
   m_bInMsInstrument=false;

@@ -8,6 +8,7 @@ Version 1.0, January 4, 2011.
 Version 1.1, March 14, 2012.
 */
 #include "mzParser.h"
+using namespace std;
 
 Chromatogram::Chromatogram(){
   bc = NULL;

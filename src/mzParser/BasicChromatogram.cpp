@@ -58,7 +58,7 @@ void BasicChromatogram::clear(){
   productOffsetUpper=0;
 }
 int BasicChromatogram::getCharge(){return charge;}
-vector<TimeIntensityPair>&  BasicChromatogram::getData() { return vData; }
+std::vector<TimeIntensityPair>&  BasicChromatogram::getData() { return vData; }
 int BasicChromatogram::getIDString(char* str){
   strcpy(str,idString);
   return (int)strlen(str);
