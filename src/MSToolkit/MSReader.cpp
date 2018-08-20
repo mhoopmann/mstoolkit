@@ -335,6 +335,7 @@ int MSReader::getPercent(){
 */
 int MSReader::openFile(const char *c,bool text){
 	int i;
+  size_t ret;
 
 	if(text) fileIn=fopen(c,"rt");
 	else fileIn=fopen(c,"rb");
@@ -360,9 +361,9 @@ int MSReader::openFile(const char *c,bool text){
 			for(i=0;i<16;i++) strcpy(header.header[i],"\0");
 			headerIndex=0;
 		} else {
-      fread(&iFType,4,1,fileIn);
-      fread(&iVersion,4,1,fileIn);
-			fread(&header,sizeof(MSHeader),1,fileIn);
+      ret=fread(&iFType,4,1,fileIn);
+      ret = fread(&iVersion, 4, 1, fileIn);
+      ret = fread(&header, sizeof(MSHeader), 1, fileIn);
 		}
 
 	  return 0;
@@ -565,6 +566,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
   ZState z;
   EZState ez;
   int i;
+  size_t ret;
 
   //variables for text reading only
   bool firstScan = false;
@@ -634,9 +636,9 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
         fseek(fileIn,ms.numEZStates*20,1);
 
 	      if(compressMe){
-	        fread(&i,4,1,fileIn);
+	        ret=fread(&i,4,1,fileIn);
 	        mzLen = (uLong)i;
-	        fread(&i,4,1,fileIn);
+          ret = fread(&i, 4, 1, fileIn);
 	        intensityLen = (uLong)i;
 	        fseek(fileIn,mzLen+intensityLen,1);
 	      } else {
@@ -652,16 +654,16 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 
 		//read any charge states (for MS2 files)
     for(i=0;i<ms.numZStates;i++){
-      fread(&z.z,4,1,fileIn);
-      fread(&z.mh,8,1,fileIn);
+      ret = fread(&z.z, 4, 1, fileIn);
+      ret = fread(&z.mh, 8, 1, fileIn);
       s.addZState(z);
     }
 
     for(i=0;i<ms.numEZStates;i++){
-      fread(&ez.z,4,1,fileIn);
-      fread(&ez.mh,8,1,fileIn);
-      fread(&ez.pRTime,4,1,fileIn);
-      fread(&ez.pArea,4,1,fileIn);
+      ret = fread(&ez.z, 4, 1, fileIn);
+      ret = fread(&ez.mh, 8, 1, fileIn);
+      ret = fread(&ez.pRTime, 4, 1, fileIn);
+      ret = fread(&ez.pArea, 4, 1, fileIn);
       s.addEZState(ez);
     }
 
@@ -692,8 +694,8 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
       //or read binary data to the spectrum object
     } else {
       for(i=0;i<ms.numDataPoints;i++){
-	      fread(&p.mz,8,1,fileIn);
-	      fread(&p.intensity,4,1,fileIn);
+        ret = fread(&p.mz, 8, 1, fileIn);
+        ret = fread(&p.intensity, 4, 1, fileIn);
 	      //cout << p.mz << " " << p.intensity << endl;
 	      s.add(p);
       }
@@ -1895,6 +1897,7 @@ void MSReader::readCompressSpec(FILE* fileIn, MSScanInfo& ms, Spectrum& s){
 
 	int i;
 	Peak_T p;
+  size_t ret;
 
 	//variables for compressed files
 	uLong uncomprLen;
@@ -1903,22 +1906,22 @@ void MSReader::readCompressSpec(FILE* fileIn, MSScanInfo& ms, Spectrum& s){
 	double *mz;
 	float *intensity;
 
-	fread(&i,4,1,fileIn);
+  ret = fread(&i, 4, 1, fileIn);
 	mzLen = (uLong)i;
-	fread(&i,4,1,fileIn);
+  ret = fread(&i, 4, 1, fileIn);
 	intensityLen = (uLong)i;
 
 	compr = new unsigned char[mzLen];
 	mz = new double[ms.numDataPoints];
 	uncomprLen=ms.numDataPoints*sizeof(double);
-	fread(compr,mzLen,1,fileIn);
+  ret = fread(compr, mzLen, 1, fileIn);
 	uncompress((Bytef*)mz, &uncomprLen, compr, mzLen);
 	delete [] compr;
 
 	compr = new unsigned char[intensityLen];
 	intensity = new float[ms.numDataPoints];
 	uncomprLen=ms.numDataPoints*sizeof(float);
-	fread(compr,intensityLen,1,fileIn);
+  ret = fread(compr, intensityLen, 1, fileIn);
 	uncompress((Bytef*)intensity, &uncomprLen, compr, intensityLen);
 	delete [] compr;
 
@@ -2132,47 +2135,48 @@ void MSReader::writeSpecHeader(FILE* fileOut, bool text, Spectrum& s) {
 
 void MSReader::readSpecHeader(FILE *fileIn, MSScanInfo &ms){
 	double d;
+  size_t ret;
 
-  fread(&ms.scanNumber[0],4,1,fileIn);
+  ret = fread(&ms.scanNumber[0], 4, 1, fileIn);
   if(feof(fileIn)) return;
-  fread(&ms.scanNumber[1],4,1,fileIn);
+  ret = fread(&ms.scanNumber[1], 4, 1, fileIn);
 	if(iVersion>=5){
-		fread(&ms.mzCount,4,1,fileIn);
+    ret = fread(&ms.mzCount, 4, 1, fileIn);
 		if(ms.mz!=NULL) delete [] ms.mz;
 		ms.mz = new double[ms.mzCount];
 		for(int i=0;i<ms.mzCount;i++){
-			fread(&d,8,1,fileIn);
+      ret = fread(&d, 8, 1, fileIn);
 			ms.mz[i]=d;
 		}
 	} else {
     if(ms.mz!=NULL) delete [] ms.mz;
     ms.mzCount=1;
     ms.mz = new double[ms.mzCount];
-		fread(&ms.mz[0],8,1,fileIn);
+    ret = fread(&ms.mz[0], 8, 1, fileIn);
 	}
-  fread(&ms.rTime,4,1,fileIn);
+  ret = fread(&ms.rTime, 4, 1, fileIn);
 
   if(iVersion>=2){
-    fread(&ms.BPI,4,1,fileIn);
-    fread(&ms.BPM,8,1,fileIn);
-    fread(&ms.convA,8,1,fileIn);
-    fread(&ms.convB,8,1,fileIn);
+    ret = fread(&ms.BPI, 4, 1, fileIn);
+    ret = fread(&ms.BPM, 8, 1, fileIn);
+    ret = fread(&ms.convA, 8, 1, fileIn);
+    ret = fread(&ms.convB, 8, 1, fileIn);
 		if(iVersion>=4){
-			fread(&ms.convC,8,1,fileIn);
-			fread(&ms.convD,8,1,fileIn);
-			fread(&ms.convE,8,1,fileIn);
-			fread(&ms.convI,8,1,fileIn);
+      ret = fread(&ms.convC, 8, 1, fileIn);
+      ret = fread(&ms.convD, 8, 1, fileIn);
+      ret = fread(&ms.convE, 8, 1, fileIn);
+      ret = fread(&ms.convI, 8, 1, fileIn);
 		}
-    fread(&ms.TIC,8,1,fileIn);
-    fread(&ms.IIT,4,1,fileIn);
+    ret = fread(&ms.TIC, 8, 1, fileIn);
+    ret = fread(&ms.IIT, 4, 1, fileIn);
   }
 
-  fread(&ms.numZStates,4,1,fileIn);
+  ret = fread(&ms.numZStates, 4, 1, fileIn);
 
-  if(iVersion>=3) fread(&ms.numEZStates,4,1,fileIn);
+  if (iVersion >= 3) ret = fread(&ms.numEZStates, 4, 1, fileIn);
   else ms.numEZStates=0;
 
-  fread(&ms.numDataPoints,4,1,fileIn);
+  ret = fread(&ms.numDataPoints, 4, 1, fileIn);
 
 }
 
