@@ -1,4 +1,4 @@
-#Version 82, November 22 2017
+#Version 82.0.1, August 20 2018
 
 #Set your paths here.
 ZLIB_PATH = ./src/zlib-1.2.8
@@ -25,7 +25,7 @@ GCC = gcc
 NOSQLITE = -D_NOSQLITE
 
 SOVER = 82
-RELVER = $(SOVER).0.0
+RELVER = $(SOVER).0.1
 
 AR_CFLAGS = -O3 -static -I. -I$(HEADER_PATH) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H
 SO_CFLAGS = -O3 -shared -fPIC -g -I. -I$(HEADER_PATH) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H
@@ -56,7 +56,7 @@ solib: clean_objects objects
 	ln -sf libmstoolkit.so.$(RELVER) libmstoolkit.so.$(SOVER)
 	ln -sf libmstoolkit.so.$(SOVER) libmstoolkit.so
 	# Be careful not to include in the linker command line below the compilation -shared -fPIC flags!
-	$(CC) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H -I./include $(LIBS) -L. -lmstoolkitlite MSSingleScan/MSSingleScan.cpp -o msSingleScan.shared 
+	$(CC) -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H -I./include -L. MSSingleScan/MSSingleScan.cpp -lmstoolkitlite -o msSingleScan.shared 
 
 clean_objects: 
 	rm -f *.o msSingleScan.*

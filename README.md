@@ -2,7 +2,7 @@
 
 The MSToolkit is a light-weight C++ library for reading, writing, and manipulating mass spectrometry data. The MSToolkit is easily linked to virtually any C++ algorithm for simple, fast file reading and analysis.
 
-### Version 82, November 22 2017
+### Version 82.0.1, August 20 2018
 
 ### Supported File Formats
   * *mzML* including internal compression (zlib and numpress) and external compression (.mzML.gz) _read/write\*_
