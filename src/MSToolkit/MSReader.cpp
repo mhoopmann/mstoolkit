@@ -388,6 +388,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
   int ch=0;
   double mz;
   float intensity;
+  char* ret;
 
   //clear any spectrum data
   s.clear();
@@ -448,7 +449,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
   // JKE: skip all whitespace and comment lines 
   while(!feof(fileIn) && (strspn(strMGF, " \r\n\t") == strlen(strMGF) 
     || strMGF[0]=='#' || strMGF[0]==';' || strMGF[0]=='!' || strMGF[0]=='/')) {
-    fgets(strMGF,1024,fileIn); 
+    ret=fgets(strMGF,1024,fileIn); 
   }
   // JKE: take care of possibility of blank line at end of file
   if(feof(fileIn)) return true;
@@ -575,6 +576,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
   char tstr[256];
   char ch;
   char *tok;
+  char *retC;
 
   //variables for compressed files
   uLong mzLen, intensityLen;
@@ -735,12 +737,12 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
       switch(ch){
       case 'D':
 	      //D lines are ignored
-	      fgets(tstr,256,fileIn);
+	      retC=fgets(tstr,256,fileIn);
 	      break;
 
       case 'H':
 	      //Header lines are recorded as strings up to 16 lines at 256 characters each
-	      fgets(tstr,256,fileIn);
+        retC = fgets(tstr, 256, fileIn);
 	      if(!bDoneHeader) {
 	        tok=strtok(tstr," \t\n\r");
 	        tok=strtok(NULL,"\n\r");
@@ -752,7 +754,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 
       case 'I':
 	      //I lines are recorded only if they contain retention times
-        fgets(tstr,256,fileIn);
+        retC = fgets(tstr, 256, fileIn);
         tok=strtok(tstr," \t\n\r");
         tok=strtok(NULL," \t\n\r");
         if(strcmp(tok,"RTime")==0) {
@@ -814,7 +816,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	        return true;
 
 	      } else {
-	        fgets(tstr,256,fileIn);
+          retC = fgets(tstr, 256, fileIn);
 	        tok=strtok(tstr," \t\n\r");
 	        tok=strtok(NULL," \t\n\r");
           s.setScanNumber(atoi(tok));
@@ -846,10 +848,10 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	      //Z lines are recorded for MS2 files
         //don't record z-lines unless this is a scan number that is wanted
         if(!firstScan){
-	        fgets(tstr,256,fileIn);
+          retC = fgets(tstr, 256, fileIn);
  	        break;
 	      }
-	      fgets(tstr,256,fileIn);
+        retC = fgets(tstr, 256, fileIn);
 	      tok=strtok(tstr," \t\n\r");
 	      tok=strtok(NULL," \t\n\r");
 	      z.z=atoi(tok);
@@ -872,18 +874,18 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	      //interested in, we ignore them.
 	      if(scNum != 0){
 	        if(s.getScanNumber()!=scNum) {
-	          fgets(tstr,256,fileIn);
+            retC = fgets(tstr, 256, fileIn);
 	          break;
 	        }
 	      }
 	      //otherwise, read in the line
-	      fscanf(fileIn,"%lf %f\n",&p.mz,&p.intensity);
+	      i=fscanf(fileIn,"%lf %f\n",&p.mz,&p.intensity);
 	      s.add(p);
 	      break;
 
       default:
 	      //if the character is not recognized, ignore the entire line.
-        fgets(tstr,256,fileIn);
+        retC = fgets(tstr, 256, fileIn);
 	      //fscanf(fileIn,"%s\n",tstr);
 	      break;
       }
@@ -1761,7 +1763,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
   s.setIonInjectionTime((float)scanHeader.ionInjectionTime);
   s.setTIC(scanHeader.totIonCurrent);
   s.setScanWindow(scanHeader.lowMZ,scanHeader.highMZ);
-  s.setBPI(scanHeader.basePeakIntensity);
+  s.setBPI((float)scanHeader.basePeakIntensity);
 	if(strlen(scanHeader.activationMethod)>1){
 		if(strcmp(scanHeader.activationMethod,"CID")==0) s.setActivationMethod(mstCID);
       else if(strcmp(scanHeader.activationMethod,"ECD")==0) s.setActivationMethod(mstECD);
@@ -2182,7 +2184,7 @@ void MSReader::readSpecHeader(FILE *fileIn, MSScanInfo &ms){
 
 MSFileFormat MSReader::checkFileFormat(const char *fn){
 
-  unsigned int i;
+  size_t i;
 	char ext[32];
 	char tmp[1024];
 	char* c;
