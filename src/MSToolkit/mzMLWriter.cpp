@@ -520,7 +520,7 @@ bool MzMLWriter::exportBinaryDataArrayList(Spectrum& s, int tabs){
 }
 
 bool MzMLWriter::exportActivation(Spectrum& s, int tabs){
-  char tmp[128];
+  //char tmp[128];
   string value;
   string tbs="";
   if(bTabs) {
@@ -563,7 +563,7 @@ bool MzMLWriter::exportChromatogram(BasicChromatogram& c, int tabs){
   x.offset = ftell(fptr);
   vChromIndex.push_back(x);
 
-  fprintf(fptr, "<chromatogram index=\"%d\" id=\"%s\" defaultArrayLength=\"%d\">\n", chromIndex++, tmp, c.size());
+  fprintf(fptr, "<chromatogram index=\"%d\" id=\"%s\" defaultArrayLength=\"%zd\">\n", chromIndex++, tmp, c.size());
   if (!exportPrecursor(c, tabs + 1)) return false;
   if (c.getProdMZ()>0) {
     if (!exportProduct(c,tabs+1)) return false;
