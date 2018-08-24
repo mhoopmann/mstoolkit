@@ -15,6 +15,8 @@ limitations under the License.
 */
 #include "pepXMLWriter.h"
 
+using namespace std;
+
 PepXMLWriter::PepXMLWriter(){
   index=0;
   iTabs=0;
@@ -229,6 +231,16 @@ void PepXMLWriter::writeModAAMass(pxwModAA& s){
   st+="\" mass=\"";
   sprintf(nStr,"%.6lf",s.mass);
   st+=nStr;
+  if(s.modMass!=0){
+    if(s.modMassType) st += "\" variable=\"";
+    else st+="\" static=\"";
+    sprintf(nStr, "%.6lf", s.modMass);
+    st += nStr;
+  }
+  if(s.source.size()>0){
+    st += "\" source=\"";
+    st +=s.source;
+  }
   st+="\"/>\n";
   writeLine(&st[0]);
 
