@@ -1764,6 +1764,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
   s.setTIC(scanHeader.totIonCurrent);
   s.setScanWindow(scanHeader.lowMZ,scanHeader.highMZ);
   s.setBPI((float)scanHeader.basePeakIntensity);
+  s.setRawFilter(scanHeader.filterLine);
 	if(strlen(scanHeader.activationMethod)>1){
 		if(strcmp(scanHeader.activationMethod,"CID")==0) s.setActivationMethod(mstCID);
       else if(strcmp(scanHeader.activationMethod,"ECD")==0) s.setActivationMethod(mstECD);
