@@ -6,6 +6,7 @@ MZPARSER_PATH = ./src/mzParser
 EXPAT_PATH = ./src/expat-2.2.0
 SQLITE_PATH = ./src/sqlite-3.7.7.1
 MST_PATH = ./src/MSToolkit
+MZIMLTOOLS_PATH = ./src/mzIMLTools
 
 HEADER_PATH = ./include
 
@@ -13,6 +14,15 @@ MZPARSER = mzp.MSNumpress.o mzp.mzp_base64.o mzp.BasicSpectrum.o mzp.mzParser.o 
 	mzp.saxmzxmlhandler.o mzp.Czran.o mzp.mz5handler.o mzp.mzpMz5Config.o mzp.mzpMz5Structs.o mzp.BasicChromatogram.o mzp.PWIZface.o
 MZPARSERLITE = mzp.MSNumpress.o mzp.mzp_base64_lite.o mzp.BasicSpectrum_lite.o mzp.mzParser_lite.o mzp.RAMPface_lite.o mzp.saxhandler_lite.o mzp.saxmzmlhandler_lite.o \
   mzp.saxmzxmlhandler_lite.o mzp.Czran_lite.o mzp.mz5handler_lite.o mzp.mzpMz5Config_lite.o mzp.mzpMz5Structs_lite.o mzp.BasicChromatogram_lite.o mzp.PWIZface_lite.o
+MZIMLTOOLS = mzid.CAdditionalSearchParams.o mzid.CAnalysisCollection.o mzid.CAnalysisData.o mzid.CAnalysisParams.o mzid.CAnalysisProtocolCollection.o \
+             mzid.CAnalysisSoftware.o mzid.CAnalysisSoftwareList.o mzid.CContactRole.o mzid.CCvList.o mzid.CDatabaseName.o mzid.CDataCollection.o mzid.CDBSequence.o \
+             mzid.CFileFormat.o mzid.CFragmentArray.o mzid.CFragmentation.o mzid.CFragmentationTable.o mzid.CInputs.o mzid.CIonType.o mzid.CMeasure.o \
+             mzid.CModification.o mzid.CModificationParams.o mzid.CMzIdentML.o mzid.CPeptide.o mzid.CPeptideEvidence.o mzid.CPeptideHypothesis.o \
+             mzid.CProteinAmbiguityGroup.o mzid.CProteinDetection.o mzid.CProteinDetectionHypothesis.o  mzid.CProteinDetectionList.o mzid.CProteinDetectionProtocol.o \
+             mzid.CPSM.o mzid.CRole.o mzid.CSearchDatabase.o mzid.CSearchModification.o mzid.CSearchType.o mzid.CSequenceCollection.o mzid.CSoftwareName.o \
+             mzid.CSourceFile.o mzid.CSpecificityRules.o mzid.CSpectraData.o mzid.CSpectrumIdentification.o mzid.CSpectrumIdentificationItem.o \
+             mzid.CSpectrumIdentificationList.o mzid.CSpectrumIdentificationProtocol.o mzid.CSpectrumIdentificationResult.o mzid.CSpectrumIDFormat.o \
+             mzid.CThreshold.o
 EXPAT = xmlparse.o xmlrole.o xmltok.o
 ZLIB = adler32.o compress.o crc32.o deflate.o inffast.o inflate.o infback.o inftrees.o trees.o uncompr.o zutil.o
 MSTOOLKIT = Spectrum.o MSObject.o mzMLWriter.o pepXMLWriter.o
@@ -37,22 +47,22 @@ all:
 	make solib
 
 .PHONY: objects
-objects: $(ZLIB) $(MZPARSER) $(MZPARSERLITE) $(MSTOOLKIT) $(READER) $(READERLITE) $(EXPAT) $(SQLITE)
+objects: $(ZLIB) $(MZPARSER) $(MZPARSERLITE) $(MZIMLTOOLS) $(MSTOOLKIT) $(READER) $(READERLITE) $(EXPAT) $(SQLITE)
 
 arlib: CFLAGS = $(AR_CFLAGS)
 arlib: clean_objects objects
-	ar rcs libmstoolkitlite.a $(ZLIB) $(EXPAT) $(MZPARSERLITE) $(MSTOOLKIT) $(READERLITE)
-	ar rcs libmstoolkit.a $(ZLIB) $(EXPAT) $(MZPARSER) $(MSTOOLKIT) $(READER) $(SQLITE)
+	ar rcs libmstoolkitlite.a $(ZLIB) $(EXPAT) $(MZIMLTOOLS) $(MZPARSERLITE) $(MSTOOLKIT) $(READERLITE)
+	ar rcs libmstoolkit.a $(ZLIB) $(EXPAT) $(MZIMLTOOLS) $(MZPARSER) $(MSTOOLKIT) $(READER) $(SQLITE)
 #	$(CC) $(CFLAGS) MSTDemo.cpp -L. -lmstoolkitlite -o MSTDemo
 	$(CC) $(CFLAGS) -I./include MSSingleScan/MSSingleScan.cpp -L. -lmstoolkitlite -o msSingleScan
 #	$(CC) $(CFLAGS) MSConvertFile.cpp -L. -lmstoolkitlite -o MSConvertFile
 
 solib: CFLAGS = $(SO_CFLAGS)
 solib: clean_objects objects 
-	$(CC) $(CFLAGS) -o libmstoolkitlite.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkitlite.so.$(SOVER) $(LIBS) $(ZLIB) $(EXPAT) $(MZPARSERLITE) $(MSTOOLKIT) $(READERLITE)
+	$(CC) $(CFLAGS) -o libmstoolkitlite.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkitlite.so.$(SOVER) $(LIBS) $(ZLIB) $(EXPAT) $(MZIMLTOOLS) $(MZPARSERLITE) $(MSTOOLKIT) $(READERLITE)
 	ln -sf libmstoolkitlite.so.$(RELVER) libmstoolkitlite.so.$(SOVER)
 	ln -sf libmstoolkitlite.so.$(SOVER) libmstoolkitlite.so
-	$(CC) $(CFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(LIBS) $(ZLIB) $(EXPAT) $(MZPARSER) $(MSTOOLKIT) $(READER) $(SQLITE)
+	$(CC) $(CFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(LIBS) $(ZLIB) $(EXPAT) $(MZIMLTOOLS) $(MZPARSER) $(MSTOOLKIT) $(READER) $(SQLITE)
 	ln -sf libmstoolkit.so.$(RELVER) libmstoolkit.so.$(SOVER)
 	ln -sf libmstoolkit.so.$(SOVER) libmstoolkit.so
 	# Be careful not to include in the linker command line below the compilation -shared -fPIC flags!
@@ -127,6 +137,9 @@ sqlite3.o : $(SQLITE_PATH)/sqlite3.c
 	$(GCC) $(CFLAGS) $(SQLITE_PATH)/sqlite3.c -c
 
 
+#mzIMLTools objects
+mzid.%.o : $(MZIMLTOOLS_PATH)/%.cpp
+	$(CC) $(CFLAGS) $< -c -o $@
 
 
 #MSToolkit objects
