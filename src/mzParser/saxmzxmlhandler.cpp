@@ -278,6 +278,22 @@ bool mzpSAXMzxmlHandler::readHeader(int num){
   return false;
 }
 
+bool mzpSAXMzxmlHandler::readHeaderFromOffset(f_off offset){
+  spec->clear();
+
+  //index must be positive.
+  if (offset<0) return false;
+
+  //note that scan number will not be set if file doesn't use them.
+  //also, no knowlege of current position in index is known or retained. Reading from
+  //scan index will revert back to next scan from its current position.
+  m_bHeaderOnly = true;
+  parseOffset(offset);
+  m_bHeaderOnly = false;
+  return true;
+
+}
+
 bool mzpSAXMzxmlHandler::readSpectrum(int num){
   spec->clear();
 
@@ -319,6 +335,21 @@ bool mzpSAXMzxmlHandler::readSpectrum(int num){
     return true;
   }
   return false;
+}
+
+//somewhat dangerous as it allows reading anywhere in the file
+bool mzpSAXMzxmlHandler::readSpectrumFromOffset(f_off offset){
+  spec->clear();
+
+  //index must be positive.
+  if (offset<0) return false;
+
+  //note that scan number will not be set if file doesn't use them.
+  //also, no knowlege of current position in index is known or retained. Reading from
+  //scan index will revert back to next scan from its current position.
+  parseOffset(offset);
+  return true;
+
 }
 
 void mzpSAXMzxmlHandler::pushSpectrum(){

@@ -556,6 +556,22 @@ bool mzpSAXMzmlHandler::readHeader(int num){
 
 }
 
+bool mzpSAXMzmlHandler::readHeaderFromOffset(f_off offset){
+  spec->clear();
+
+  //index must be positive.
+  if (offset<0) return false;
+
+  //note that scan number will not be set if file doesn't use them.
+  //also, no knowlege of current position in index is known or retained. Reading from
+  //scan index will revert back to next scan from its current position.
+  m_bHeaderOnly = true;
+  parseOffset(offset);
+  m_bHeaderOnly = false;
+  return true;
+
+}
+
 bool mzpSAXMzmlHandler::readSpectrum(int num){
   spec->clear();
 
@@ -599,6 +615,21 @@ bool mzpSAXMzmlHandler::readSpectrum(int num){
     }
   //}
   return false;
+}
+
+//somewhat dangerous as it allows reading anywhere in the file
+bool mzpSAXMzmlHandler::readSpectrumFromOffset(f_off offset){
+  spec->clear();
+
+  //index must be positive.
+  if (offset<0) return false;
+
+  //note that scan number will not be set if file doesn't use them.
+  //also, no knowlege of current position in index is known or retained. Reading from
+  //scan index will revert back to next scan from its current position.
+  parseOffset(offset);
+  return true;
+
 }
 
 void mzpSAXMzmlHandler::pushChromatogram(){
@@ -822,7 +853,7 @@ bool mzpSAXMzmlHandler::load(const char* fileName){
     return false;
   } else {
     m_bNoIndex=false;
-    if(!parseOffset(indexOffset)){
+    if(!parseOffset(indexOffset)){ //Note: after reading index, should we check for order? assumes it is in file offset order.
       cerr << "Cannot parse index. Make sure index offset is correct or rebuild index." << endl;
       return false;
     }

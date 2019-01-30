@@ -517,7 +517,9 @@ public:
   int                     lowScan();
   bool                    readChromatogram(int num=-1);
   bool                    readHeader(int num=-1);
+  bool                    readHeaderFromOffset(f_off offset);
   bool                    readSpectrum(int num=-1);
+  bool                    readSpectrumFromOffset(f_off offset);
   
 protected:
 
@@ -626,7 +628,9 @@ public:
   int             lowScan();
   bool            readChromat(int num=-1);
   bool            readHeader(int num=-1);
+  bool            readHeaderFromOffset(f_off offset);
   bool            readSpectrum(int num=-1);
+  bool            readSpectrumFromOffset(f_off offset);
   
 protected:
 
@@ -1371,41 +1375,42 @@ int                 checkFileType(const char* fname);
 ramp_fileoffset_t   getIndexOffset(RAMPFILE *pFI);
 InstrumentStruct*   getInstrumentStruct(RAMPFILE *pFI);
 void                getPrecursor(const struct ScanHeaderStruct *scanHeader, int index, double &mz, double &monoMZ, double &intensity, int &charge, int &possibleCharges, int *&possibleChargeArray);
+int                 getScanNumberFromOffset(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                getScanSpanRange(const struct ScanHeaderStruct *scanHeader, int *startScanNum, int *endScanNum);
 void                rampCloseFile(RAMPFILE *pFI);
-std::string              rampConstructInputFileName(const std::string &basename);
+std::string         rampConstructInputFileName(const std::string &basename);
 char*               rampConstructInputFileName(char *buf,int buflen,const char *basename);
 char*               rampConstructInputPath(char *buf, int inbuflen, const char *dir_in, const char *basename);
 const char**        rampListSupportedFileTypes();
 RAMPFILE*           rampOpenFile(const char *filename);
 char*               rampValidFileType(const char *buf);
 void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader);
-void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, unsigned long scanI);
+void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, size_t scanI);
 ramp_fileoffset_t*  readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
 int                 readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
 RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
-RAMPREAL*           readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, unsigned long scanI);
+RAMPREAL*           readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, size_t scanI);
 int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
-int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, unsigned long scanI);
+int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, size_t scanI);
 void                readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
 
 //MH:Cached RAMP functions
 void                            clearScanCache(struct ScanCacheStruct* cache);
 void                            freeScanCache(struct ScanCacheStruct* cache);
-int                              getCacheIndex(struct ScanCacheStruct* cache, int seqNum);
-struct ScanCacheStruct*          getScanCache(int size);
+int                             getCacheIndex(struct ScanCacheStruct* cache, int seqNum);
+struct ScanCacheStruct*         getScanCache(int size);
 const struct ScanHeaderStruct*  readHeaderCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
-int                              readMsLevelCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
-const RAMPREAL*                  readPeaksCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
+int                             readMsLevelCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
+const RAMPREAL*                 readPeaksCached(struct ScanCacheStruct* cache, int seqNum, RAMPFILE* pFI, ramp_fileoffset_t lScanIndex);
 void                            shiftScanCache(struct ScanCacheStruct* cache, int nScans);
 
 //MH:Unimplimented functions. These just bark cerr when used.
-int                  isScanAveraged(struct ScanHeaderStruct *scanHeader);
-int                  isScanMergedResult(struct ScanHeaderStruct *scanHeader);
-int                  rampSelfTest(char *filename);
-char*                rampTrimBaseName(char *buf);
-int                  rampValidateOrDeriveInputFilename(char *inbuf, int inbuflen, char *spectrumName);
+int                 isScanAveraged(struct ScanHeaderStruct *scanHeader);
+int                 isScanMergedResult(struct ScanHeaderStruct *scanHeader);
+int                 rampSelfTest(char *filename);
+char*               rampTrimBaseName(char *buf);
+int                 rampValidateOrDeriveInputFilename(char *inbuf, int inbuflen, char *spectrumName);
 double              readStartMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 double              readEndMz(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                setRampOption(long option);

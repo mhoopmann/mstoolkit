@@ -35,16 +35,7 @@ int main(int argc, char *argv[]){
     exit(0);
   }
 
-
-	r.setFilter(MS1);
-
-  r.readFile(argv[2], s);
-  while(s.getScanNumber()!=0){
-    cout << s.getScanNumber() << "\t" << s.getRTime() << endl;
-    r.readFile(NULL,s);
-  }
-  exit(17);
-
+  r.addFilter(MS1);
   r.addFilter(MS2);
 	r.addFilter(MSX);
   r.addFilter(SRM);
