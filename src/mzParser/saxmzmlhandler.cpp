@@ -413,12 +413,24 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
   } else if( !strcmp(name, "MS-Numpress short logged float compression") || !strcmp(accession,"MS:1002314") ){
     m_bNumpressSlof = true;
 
+  } else if (!strcmp(name, "MS-Numpress linear prediction compression followed by zlib compression") || !strcmp(accession, "MS:1002746")){
+    m_bZlib = true;
+    m_bNumpressLinear = true;
+
+  } else if (!strcmp(name, "MS-Numpress short logged float compression followed by zlib compression") || !strcmp(accession, "MS:1002748")){
+    m_bZlib = true;
+    m_bNumpressSlof = true;
+
   } else if(!strcmp(name, "m/z array") || !strcmp(accession,"MS:1000514"))  {
     m_bInmzArrayBinary = true;
     m_bInintenArrayBinary = false;
 
   } else if(!strcmp(name,"nanoelectrospray") || !strcmp(accession,"MS:1000398")) {
     m_instrument.ionization=name;
+
+  } else if (!strcmp(name, "non-standard data array") || !strcmp(accession, "MS:1000786"))  {
+    m_bInmzArrayBinary = false;
+    m_bInintenArrayBinary = false;
 
   } else if(!strcmp(name,"orbitrap") || !strcmp(accession,"MS:1000484")) {
     m_instrument.analyzer=name;

@@ -524,7 +524,7 @@ public:
   ~PepXMLWriter();
 
   void  closePepXML         ();
-  bool  createPepXML        (char* fn, pxwMSMSRunSummary& run, pxwSampleEnzyme* enzyme=NULL, PXWSearchSummary* search=NULL);
+  bool  createPepXML        (const char* fn, pxwMSMSRunSummary& run, pxwSampleEnzyme* enzyme=NULL, PXWSearchSummary* search=NULL);
   void  writeSpectrumQuery  (PXWSpectrumQuery& s);
 
 private:

@@ -42,7 +42,7 @@ void PepXMLWriter::closePepXML(){
   fclose(fptr);
 }
 
-bool PepXMLWriter::createPepXML(char* fn, pxwMSMSRunSummary& run, pxwSampleEnzyme* enzyme, PXWSearchSummary* search){
+bool PepXMLWriter::createPepXML(const char* fn, pxwMSMSRunSummary& run, pxwSampleEnzyme* enzyme, PXWSearchSummary* search){
 
   size_t i;
   time_t timeNow;

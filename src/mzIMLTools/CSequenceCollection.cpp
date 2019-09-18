@@ -383,9 +383,36 @@ void CSequenceCollection::doPeptideEvidencePepRefSort(){
   rebuildPepEvTable();
 }
 
+//binary searches for the DBSequence. If the sequence list is out of order, it gets sorted NOW.
+CDBSequence CSequenceCollection::getDBSequence(string id){
+  CDBSequence blank;
+  if (sortDBSequence) doDBSequenceSort();
+  size_t sz = dbSequence->size();
+  size_t lower = 0;
+  size_t mid = sz / 2;
+  size_t upper = sz;
+  int i;
+
+  i = dbSequence->at(mid).id.compare(id);
+  while (i != 0){
+    if (lower >= upper) return blank;
+    if (i>0){
+      if (mid == 0) return blank;
+      upper = mid - 1;
+      mid = (lower + upper) / 2;
+    } else {
+      lower = mid + 1;
+      mid = (lower + upper) / 2;
+    }
+    if (mid == sz) return blank;
+    i = dbSequence->at(mid).id.compare(id);
+  }
+  return dbSequence->at(mid);
+
+}
+
 //binary searches for the DBSequence by accession. If the sequence list is out of order, it gets sorted NOW.
-//WARNING: assumes id and accession are always identical!!!
-CDBSequence* CSequenceCollection::getDBSequence(string acc){
+CDBSequence* CSequenceCollection::getDBSequenceByAcc(string acc){
   if (sortDBSequenceAcc) doDBSequenceSortAcc();
   size_t sz = dbSequence->size();
   size_t lower = 0;
@@ -438,6 +465,34 @@ CPeptide* CSequenceCollection::getPeptide(string peptideRef){
   }
   //cout << "found " << peptide->at(mid).id << " at " << mid <<  " " << peptide->at(mid).peptideSequence.text << endl;
   return &peptide->at(mid);
+}
+
+CPeptideEvidence CSequenceCollection::getPeptideEvidence(string& id){
+  if (sortPeptideEvidence) doPeptideEvidenceSort();
+
+  CPeptideEvidence blank;
+  size_t sz = peptideEvidence->size();
+  size_t lower = 0;
+  size_t mid = sz / 2;
+  size_t upper = sz;
+  int i;
+
+  i = peptideEvidence->at(mid).id.compare(id);
+  while (i != 0){
+    if (lower >= upper) return blank;
+    if (i>0){
+      if (mid == 0) return blank;
+      upper = mid - 1;
+      mid = (lower + upper) / 2;
+    } else {
+      lower = mid + 1;
+      mid = (lower + upper) / 2;
+    }
+    if (mid == sz) return blank;
+    i = peptideEvidence->at(mid).id.compare(id);
+  }
+  return peptideEvidence->at(mid);
+
 }
 
 string CSequenceCollection::getPeptideEvidenceFromPeptideAndProtein(CPeptide& p, string dbSequenceRef){

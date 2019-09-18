@@ -375,8 +375,7 @@ bool MSReader::nextSpectrum(Spectrum& s){
 }
 
 bool MSReader::prevSpectrum(Spectrum& s){
-  cout << "prevSpectrum not implemented yet" << endl;
-  return false;
+  return readFile(NULL,s,-1);
 }
 
 bool MSReader::readMGFFile(const char* c, Spectrum& s){
@@ -625,6 +624,10 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
     //fread(&ms,sizeof(MSScanInfo),1,fileIn);
     readSpecHeader(fileIn,ms);
 
+    if(scNum<0) {
+      cerr << "ERROR: readMSTFile(): Cannot request previous scan. Function not supported. " << flush;
+      exit(1);
+    }
     if(scNum!=0){
 
       fseek(fileIn,sizeof(MSHeader)+8,0);
@@ -1371,7 +1374,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 		return readMZPFile(c,s,scNum);
 		break;
   case mgf:
-    if(scNum>0) cout << "Warning: random-access spectrum reads not allowed with MGF format." << endl;
+    if(scNum!=0) cout << "Warning: random-access or previous spectrum reads not allowed with MGF format." << endl;
     return readMGFFile(c,s);
     break;
 	case raw:
@@ -1710,19 +1713,37 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 
 	//read scan header
 	if(scNum!=0) {
-    rampIndex=scNum;
-    readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
-    if (scanHeader.acquisitionNum != scNum && scanHeader.acquisitionNum != -1) {
-      cerr << "ERROR: Failure reading scan, index corrupted.  Line endings may have changed during transfer." << flush;
-      exit(1);
+    if(scNum<0) rampIndex--; //allow reader to jump to previous scan with [any] negative value
+    else rampIndex=scNum;
+    if (rampIndex<0) {
+      rampIndex=0;
+      return false; //don't grab previous scan when we're out of bounds
     }
-		switch(scanHeader.msLevel){
-		case 1: mslevel = MS1; break;
-		case 2: mslevel = MS2; break;
-		case 3: mslevel = MS3; break;
-		default: break;
-		}
-    if (find(filter.begin(), filter.end(), mslevel) != filter.end())	bFoundSpec=true;
+    while(true){
+      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
+      if (scNum>0 && scanHeader.acquisitionNum != scNum && scanHeader.acquisitionNum != -1) {
+        cerr << "ERROR: Failure reading scan, index corrupted.  Line endings may have changed during transfer.\n" << flush;
+        return false;
+      }
+		  switch(scanHeader.msLevel){
+		  case 1: mslevel = MS1; break;
+		  case 2: mslevel = MS2; break;
+		  case 3: mslevel = MS3; break;
+		  default: break;
+		  }
+      if (find(filter.begin(), filter.end(), mslevel) != filter.end())	{
+        bFoundSpec=true;
+        break;
+      } else if(scNum<0){
+        rampIndex--;
+        if(rampIndex<0) {
+          rampIndex=0;
+          return false;
+        }
+      } else {
+        break;
+      }
+    }
 
   } else /* if scnum == 0 */ {
 

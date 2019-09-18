@@ -81,7 +81,7 @@ typedef __int64 f_off;
 //#include <stdexcept>
 #endif
 
-#if defined(GCC) || defined(__LINUX__)
+#if defined(GCC) || defined(__LINUX__) || defined(GNUC) || defined(__MINGW32__)
 #include <stdint.h>
 #include <stdexcept>
 #ifndef _LARGEFILE_SOURCE
@@ -146,12 +146,12 @@ class cindex  {
 public:
 
   static int compare (const void* a, const void* b) {
-    if( *(int*)a < *(int*)b ) return -1;
-    if( *(int*)a > *(int*)b ) return 1;
+    if (*(size_t*)a < *(size_t*)b) return -1;
+    if (*(size_t*)a > *(size_t*)b) return 1;
     return 0;
   }
 
-  int scanNum;
+  size_t scanNum;
   std::string idRef;
   f_off offset;
 };
@@ -1271,6 +1271,7 @@ typedef struct RAMPFILE{
   #endif
   int fileType;
   int bIsMzData;
+  std::string fileName;
   RAMPFILE(){
     bs=NULL;
     mzML=NULL;
@@ -1385,14 +1386,11 @@ const char**        rampListSupportedFileTypes();
 RAMPFILE*           rampOpenFile(const char *filename);
 char*               rampValidFileType(const char *buf);
 void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader);
-void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, size_t scanI);
 ramp_fileoffset_t*  readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
 int                 readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
 RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
-RAMPREAL*           readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, size_t scanI);
 int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
-int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, size_t scanI);
 void                readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
 
 //MH:Cached RAMP functions

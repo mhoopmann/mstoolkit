@@ -29,8 +29,12 @@ static void CMzIdentML_charactersCallback(void *data, const XML_Char *s, int len
 }
 
 CMzIdentML::CMzIdentML(){
+  version=2;
   id = "mzIMLTools_mzid";
   name.clear();
+  fileBase.clear();
+  fileFull.clear();
+  filePath.clear();
   parser = XML_ParserCreate(NULL);
   XML_SetUserData(parser, this);
   XML_SetElementHandler(parser, CMzIdentML_startElementCallback, CMzIdentML_endElementCallback);
@@ -629,12 +633,21 @@ string CMzIdentML::addPeptide(string seq, vector<CModification>& mods){
   return idRef;
 }
 
-sPeptideEvidenceRef CMzIdentML::addPeptideEvidence(string dbRef, string pepRef){
+sPeptideEvidenceRef CMzIdentML::addPeptideEvidence(string dbRef, string pepRef, int start, int end, char pre, char post){
   CPeptideEvidence p;
   p.dbSequenceRef = dbRef;
   p.peptideRef = pepRef;
 
   //TODO: add optional information
+  p.start=start;
+  p.end=end;
+  p.pre=pre;
+  p.post=post;
+
+  //a common disallowed character in pepXML. if there are more of these characters,
+  //a more elegant elegant solution should be found.
+  if(p.pre=='*') p.pre='?';
+  if(p.post=='*') p.post='?';
 
   sPeptideEvidenceRef peRef = sequenceCollection.addPeptideEvidence(p);
   return peRef;
@@ -740,12 +753,20 @@ void CMzIdentML::consolidateSpectrumIdentificationProtocol(){
   }
 }
 
-CDBSequence CMzIdentML::getDBSequence(string acc){
-  return *sequenceCollection.getDBSequence(acc);
+CDBSequence CMzIdentML::getDBSequence(string& dBSequence_ref){
+  return sequenceCollection.getDBSequence(dBSequence_ref);
+}
+
+CDBSequence CMzIdentML::getDBSequenceByAcc(string acc){
+  return *sequenceCollection.getDBSequenceByAcc(acc);
 }
 
 CPeptide CMzIdentML::getPeptide(string peptide_ref){
   return *sequenceCollection.getPeptide(peptide_ref);
+}
+
+CPeptideEvidence CMzIdentML::getPeptideEvidence(string& peptideEvidence_ref){
+  return sequenceCollection.getPeptideEvidence(peptideEvidence_ref);
 }
 
 CPSM CMzIdentML::getPSM(int index, int rank){
@@ -871,6 +892,17 @@ int CMzIdentML::getPSMCount(){
   return (int)count;
 }
 
+CSpectraData CMzIdentML::getSpectraData(string& spectraData_ref){
+  size_t i;
+  for (i = 0; i < dataCollection.inputs.spectraData->size(); i++){
+    if (dataCollection.inputs.spectraData->at(i).id.compare(spectraData_ref) == 0){
+      return dataCollection.inputs.spectraData->at(i);
+    }
+  }
+  CSpectraData blank;
+  return blank;
+}
+
 //Gets the pointer to the requested list, or returns null if bad reference is requested.
 CSpectrumIdentificationList* CMzIdentML::getSpectrumIdentificationList(string& spectrumIdentificationList_ref){
   size_t i;
@@ -891,6 +923,10 @@ CSpectrumIdentificationProtocol* CMzIdentML::getSpectrumIdentificationProtocol(s
     }
   }
   return NULL;
+}
+
+int CMzIdentML::getVersion(){
+  return version;
 }
 
 void CMzIdentML::processCvParam(sCvParam& cv){
@@ -1046,7 +1082,27 @@ bool CMzIdentML::readFile(const char* fn) {
   }
 
   fclose(fptr);
+
+  fileFull=fn;
+  filePath=fileFull;
+  if(filePath.find_last_of("\\")!=string::npos) filePath=filePath.substr(0,filePath.find_last_of("\\"));
+  else if (filePath.find_last_of("/") != string::npos) filePath = filePath.substr(0, filePath.find_last_of("/"));
+  else filePath.clear();
+  fileBase=fileFull;
+  if (fileBase.find_last_of("\\") != string::npos) fileBase = fileBase.substr(fileBase.find_last_of("\\")+1,fileBase.size());
+  else if (fileBase.find_last_of("/") != string::npos) fileBase = fileBase.substr(fileBase.find_last_of("/")+1,fileBase.size());
+  if (fileBase.find_last_of(".")!=string::npos) fileBase = fileBase.substr(0,fileBase.find_last_of("."));
+
   return true;
+}
+
+void CMzIdentML::setVersion(int ver){
+  if(ver<1 || ver>2){
+    cerr << "CMzIdentML::setVersion(): invalid version number. Defaulting to 2 (1.2.0)" << endl;
+    version=2;
+  } else {
+    version=ver;
+  }
 }
 
 bool CMzIdentML::writeFile(const char* fn){
@@ -1059,8 +1115,10 @@ bool CMzIdentML::writeFile(const char* fn){
   strftime(timebuf, 80, "%Y-%m-%dT%H:%M:%S", localtime(&timeNow));
 
   fprintf(f, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-  fprintf(f, "<MzIdentML id=\"%s\" version=\"%s\"", &id[0], mziVersion);
-  fprintf(f, " xsi:schemaLocation=\"http://psidev.info/psi/pi/mzIdentML/1.2 mzIdentML1.2.0.xsd\" xmlns = \"http://psidev.info/psi/pi/mzIdentML/1.2\" xmlns:xsi = \"http://www.w3.org/2001/XMLSchema-instance\" creationDate = \"%s\">\n",timebuf);
+  fprintf(f, "<MzIdentML id=\"%s\"",id.c_str());
+  if (version == 1) fprintf(f, " version=\"%s\"  xsi:schemaLocation=\"%s\" xmlns = \"%s\"", mzIdentMLv1, mzIdentMLv1schema, mzIdentMLv1xmlns);
+  else fprintf(f, " version=\"%s\"  xsi:schemaLocation=\"%s\" xmlns = \"%s\"", mzIdentMLv2, mzIdentMLv2schema, mzIdentMLv2xmlns);
+  fprintf(f, " xmlns:xsi = \"http://www.w3.org/2001/XMLSchema-instance\" creationDate = \"%s\">\n",timebuf);
 
   cvList.writeOut(f,1);
   analysisSoftwareList.writeOut(f,1);

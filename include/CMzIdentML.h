@@ -30,6 +30,14 @@ limitations under the License.
 #define XML_STATIC	// to statically link the expat libraries
 #endif
 
+//List of versions. These should not [normally] be changed, only appended to.
+#define mzIdentMLv1 "1.1.0"
+#define mzIdentMLv1schema "http://psidev.info/psi/pi/mzIdentML/1.1 ../../schema/mzIdentML1.1.0.xsd"
+#define mzIdentMLv1xmlns "http://psidev.info/psi/pi/mzIdentML/1.1" 
+#define mzIdentMLv2 "1.2.0"
+#define mzIdentMLv2schema "http://psidev.info/psi/pi/mzIdentML/1.2 http://www.psidev.info/files/mzIdentML1.2.0.xsd"
+#define mzIdentMLv2xmlns "http://psidev.info/psi/pi/mzIdentML/1.2" 
+
 class CMzIdentML {
 public:
 
@@ -49,24 +57,37 @@ public:
   std::string id;
   std::string name;
 
+  std::string fileBase;
+  std::string fileFull;
+  std::string filePath;
+
   //Functions
   std::string addAnalysisSoftware(std::string software, std::string version);
   std::string addDatabase(std::string s);
   std::string addDBSequence(std::string acc, std::string sdbRef, std::string desc = "");
   std::string addPeptide(std::string seq, std::vector<CModification>& mods);
-  sPeptideEvidenceRef addPeptideEvidence(std::string dbRef, std::string pepRef);
+  sPeptideEvidenceRef addPeptideEvidence(std::string dbRef, std::string pepRef, int start=0, int end=0, char pre='?', char post='?');
   CProteinAmbiguityGroup* addProteinAmbiguityGroup();
   std::string addSpectraData(std::string s);
   CSpectrumIdentification* addSpectrumIdentification(std::string& spectraDataRef, std::string& searchDatabaseRef);
   bool addXLPeptides(std::string seq1, std::vector<CModification>& mods1, std::string& ref1, std::string seq2, std::vector<CModification>& mods2, std::string& ref2, std::string& value);
   void consolidateSpectrumIdentificationProtocol();
-  CDBSequence getDBSequence(std::string acc);
-  CPeptide getPeptide(std::string peptide_ref);
-  CPSM getPSM(int index, int rank=1);
-  int getPSMCount();
-  CSpectrumIdentificationList* getSpectrumIdentificationList(std::string& spectrumIdentificationList_ref);
-  CSpectrumIdentificationProtocol* getSpectrumIdentificationProtocol(std::string& spectrumIdentificationProtocol_ref);
+  
+  CDBSequence       getDBSequence(std::string& dBSequence_ref);
+  CDBSequence       getDBSequenceByAcc(std::string acc);
+  CPeptide          getPeptide(std::string peptide_ref);
+  CPeptideEvidence  getPeptideEvidence(std::string& peptideEvidence_ref);
+  CPSM              getPSM(int index, int rank=1);
+  int               getPSMCount();
+
+  CSpectraData                      getSpectraData(std::string& spectraData_ref);
+  CSpectrumIdentificationList*      getSpectrumIdentificationList(std::string& spectrumIdentificationList_ref);
+  CSpectrumIdentificationProtocol*  getSpectrumIdentificationProtocol(std::string& spectrumIdentificationProtocol_ref);
+  CSpectrumIdentificationResult&    getSpectrumIdentificationResult(std::string& spectrumIdentificationResult_ref);
+
+  int getVersion();
   bool readFile(const char* fn);
+  void setVersion(int ver);
   bool writeFile(const char* fn);
   
   //Functions for XML Parsing
@@ -78,6 +99,7 @@ protected:
   bool                killRead;
   XML_Parser				  parser;
   std::vector<mzidElement> activeEl;
+  int version;  //1=1.1.0, 2=1.2.0
 
   //Functions
   void processCvParam(sCvParam& cv);
