@@ -28,8 +28,12 @@ enum mzidElement{
   DBSequence,
   DataCollection,
   DatabaseName,
+  Enzyme,
+  EnzymeName,
+  Enzymes,
   FileFormat,
   Inputs,
+  MassTable,
   Modification,
   ModificationParams,
   MzIdentML,
@@ -42,6 +46,7 @@ enum mzidElement{
   ProteinDetectionHypothesis,
   ProteinDetectionList,
   ProteinDetectionProtocol,
+  Residue,
   SearchDatabase,
   SearchModification,
   SearchType,
@@ -165,6 +170,9 @@ typedef struct sCV{
 
 typedef struct sInputSpectra{
   std::string spectraDataRef;
+  sInputSpectra(){
+    spectraDataRef="null";
+  }
   bool operator==(const sInputSpectra& s){
     if (spectraDataRef.compare(s.spectraDataRef)!=0) return false;
     return true;
@@ -178,6 +186,9 @@ typedef struct sInputSpectra{
 
 typedef struct sSearchDatabaseRef{
   std::string searchDatabaseRef;
+  sSearchDatabaseRef(){
+    searchDatabaseRef = "null";
+  }
   bool operator==(const sSearchDatabaseRef& s){
     if (searchDatabaseRef.compare(s.searchDatabaseRef) != 0) return false;
     return true;
@@ -297,5 +308,57 @@ typedef struct sXLPepTable{
   std::string refShort;
   std::string value;
 } sXLPepTable;
+
+typedef struct sMzIDDate {
+  int year;
+  int month;
+  int day;
+  sMzIDDate() {
+    year = 0;
+    month = 0;
+    day = 0;
+  }
+} sMzIDDate;
+
+typedef struct sMzIDTime {
+  int hour;
+  int minute;
+  int second;
+  sMzIDTime() {
+    hour = 0;
+    minute = 0;
+    second = 0;
+  }
+} sMzIDTime;
+
+typedef struct sMzIDDateTime{
+  sMzIDDate date;
+  sMzIDTime time;
+  void clear(){
+    date.day = 0;
+    date.month = 0;
+    date.year = 0;
+    time.hour = 0;
+    time.minute = 0;
+    time.second = 0;
+  }
+  void parseDateTime(const char* dt){
+    if (strlen(dt)<2){
+      clear();
+      return;
+    }
+    int x = sscanf(dt, "%d-%d-%dT%d:%d:%d", &date.year, &date.month, &date.day, &time.hour, &time.minute, &time.second);
+  }
+  void parseDateTime(std::string s){
+    parseDateTime(s.c_str());
+  }
+  std::string write(){
+    std::string s;
+    char str[64];
+    sprintf(str, "%4d-%02d-%02dT%02d:%02d:%02d", date.year, date.month, date.day, time.hour, time.minute, time.second);
+    s = str;
+    return s;
+  }
+} sMzIDDateTime;
 
 #endif

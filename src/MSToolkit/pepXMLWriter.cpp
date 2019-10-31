@@ -130,7 +130,7 @@ bool PepXMLWriter::createPepXML(const char* fn, pxwMSMSRunSummary& run, pxwSampl
       writeLine(&st[0]);
     }
     if (enzyme != NULL){
-      st = " <enzymatic_search_contstraint enzyme=\"";
+      st = " <enzymatic_search_constraint enzyme=\"";
       st+=enzyme->name;
       st += "\" max_num_internal_cleavages=\"";
       sprintf(str,"%d",enzyme->maxNumInternalCleavages);

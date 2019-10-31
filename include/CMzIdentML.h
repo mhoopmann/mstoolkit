@@ -22,6 +22,7 @@ limitations under the License.
 #include "CPSM.h"
 #include "CSequenceCollection.h"
 #include "expat.h"
+#include "mzIMLStructs.h"
 #include <ctime>
 #include <string>
 
@@ -54,6 +55,7 @@ public:
   CAnalysisProtocolCollection analysisProtocolCollection;
   CDataCollection dataCollection;
 
+  sMzIDDateTime creationDate;
   std::string id;
   std::string name;
 
