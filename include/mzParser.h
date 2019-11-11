@@ -517,9 +517,9 @@ public:
   int                     lowScan();
   bool                    readChromatogram(int num=-1);
   bool                    readHeader(int num=-1);
-  bool                    readHeaderFromOffset(f_off offset);
+  bool                    readHeaderFromOffset(f_off offset, int scNm=-1);
   bool                    readSpectrum(int num=-1);
-  bool                    readSpectrumFromOffset(f_off offset);
+  bool                    readSpectrumFromOffset(f_off offset, int scNm=-1);
   
 protected:
 
@@ -597,6 +597,7 @@ private:
   int                     m_scanSPECCount;
   int                     m_scanIDXCount;
   int                     m_scanPRECCount;
+  int                     m_scanNumOverride;
   double                  m_startTime;            //in minutes
   double                  m_stopTime;              //in minutes
   std::string                  m_strData;              // For collecting character data.
@@ -1385,11 +1386,11 @@ char*               rampConstructInputPath(char *buf, int inbuflen, const char *
 const char**        rampListSupportedFileTypes();
 RAMPFILE*           rampOpenFile(const char *filename);
 char*               rampValidFileType(const char *buf);
-void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader);
+void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, int iIndex=-1);
 ramp_fileoffset_t*  readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
 int                 readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
-RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
+RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, int iIndex=-1);
 int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
 

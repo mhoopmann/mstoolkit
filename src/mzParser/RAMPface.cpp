@@ -406,7 +406,7 @@ char* rampValidFileType(const char *buf){
 
 //MH: Read header is redundant with readPeaks, which automatically reads the header.
 //But due to legacy issues, this function must exist.
-void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader){
+void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, int iIndex){
 
   vector<cindex>* v;
   sPrecursorIon p;
@@ -454,7 +454,7 @@ void readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderSt
   switch(pFI->fileType){
     case 1:
     case 3:
-      if (!pFI->mzML->readHeaderFromOffset((f_off)lScanIndex)){
+      if (!pFI->mzML->readHeaderFromOffset((f_off)lScanIndex,iIndex)){
         v = NULL;
         return;
       }
@@ -730,7 +730,7 @@ void readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
 
 //MH: Matching the index is very indirect, but requires less code,
 //making this wrapper much easier to read
-RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex){
+RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int iIndex){
   vector<cindex>* v;
 #ifdef MZP_MZ5
   vector<cMz5Index>* v2;
@@ -744,7 +744,7 @@ RAMPREAL* readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex){
   switch(pFI->fileType){
     case 1:
     case 3:
-      pFI->mzML->readSpectrumFromOffset((f_off)lScanIndex);
+      pFI->mzML->readSpectrumFromOffset((f_off)lScanIndex,iIndex);
       break;
     case 2:
     case 4:

@@ -1720,7 +1720,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       return false; //don't grab previous scan when we're out of bounds
     }
     while(true){
-      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
+      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader,rampIndex);
       if (scNum>0 && scanHeader.acquisitionNum != scNum && scanHeader.acquisitionNum != -1) {
         cerr << "ERROR: Failure reading scan, index corrupted.  Line endings may have changed during transfer.\n" << flush;
         return false;
@@ -1756,7 +1756,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       if (rampIndex>rampLastScan) return false;
       if (pScanIndex[rampIndex]<0) continue;
 
-      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader);
+      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader,rampIndex);
       switch (scanHeader.msLevel){
       case 1: mslevel = MS1; break;
       case 2: mslevel = MS2; break;
@@ -1822,7 +1822,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
     }
   }
   //store the spectrum
-	pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex]);
+	pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex],rampIndex);
 	j=0;
 	for(i=0;i<scanHeader.peaksCount;i++){
 		s.add((double)pPeaks[j],(float)pPeaks[j+1]);

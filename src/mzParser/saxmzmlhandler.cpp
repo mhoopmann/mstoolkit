@@ -192,8 +192,10 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
       spec->setScanNum(atoi(strstr(&s[0],"scanId=")+7));
     } else if(strstr(&s[0],"S")!=NULL) {
       spec->setScanNum(atoi(strstr(&s[0],"S")+1));
+    } else if(m_scanNumOverride>-1){ //if a scan index was set (usually obtained from the calling class), use that instead.
+      spec->setScanNum(m_scanNumOverride);
     } else {
-      spec->setScanNum(++m_scanSPECCount);
+      spec->setScanNum(++m_scanSPECCount); //This is a bad deal...it will count iteratively when file is read random-access.
       //Suppressing warning.
       //cout << "WARNING: Cannot extract scan number spectrum line: " << &s[0] << "\tDefaulting to " << m_scanSPECCount << endl;
     }
@@ -568,8 +570,9 @@ bool mzpSAXMzmlHandler::readHeader(int num){
 
 }
 
-bool mzpSAXMzmlHandler::readHeaderFromOffset(f_off offset){
+bool mzpSAXMzmlHandler::readHeaderFromOffset(f_off offset, int scNm){
   spec->clear();
+  m_scanNumOverride=scNm;
 
   //index must be positive.
   if (offset<0) return false;
@@ -630,8 +633,9 @@ bool mzpSAXMzmlHandler::readSpectrum(int num){
 }
 
 //somewhat dangerous as it allows reading anywhere in the file
-bool mzpSAXMzmlHandler::readSpectrumFromOffset(f_off offset){
+bool mzpSAXMzmlHandler::readSpectrumFromOffset(f_off offset, int scNm){
   spec->clear();
+  m_scanNumOverride=scNm;
 
   //index must be positive.
   if (offset<0) return false;
