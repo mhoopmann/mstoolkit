@@ -270,7 +270,7 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
   //add new peptides
   size_t a,b;
   char str[12];
-  sprintf(str,"%d",vXLPepTable.size());
+  sprintf(str,"%zu",vXLPepTable.size());
   value=str;
   if (p1.id.compare("null") == 0){
     char dbid[32];

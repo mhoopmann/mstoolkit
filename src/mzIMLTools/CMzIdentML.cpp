@@ -615,7 +615,7 @@ string CMzIdentML::addAnalysisSoftware(string software, string version){
   }
 
   char cID[32];
-  sprintf(cID, "AS%d", analysisSoftwareList.analysisSoftware->size());
+  sprintf(cID, "AS%zu", analysisSoftwareList.analysisSoftware->size());
   as.id = cID;
 
   if (software.compare("Comet") == 0){
@@ -731,7 +731,7 @@ CProteinAmbiguityGroup* CMzIdentML::addProteinAmbiguityGroup(){
   CProteinAmbiguityGroup p;
   char str[32];
   
-  sprintf(str, "PAG_%d", dataCollection.analysisData.proteinDetectionList.proteinAmbiguityGroup->size());
+  sprintf(str, "PAG_%zu", dataCollection.analysisData.proteinDetectionList.proteinAmbiguityGroup->size());
   p.id=str;
 
   dataCollection.analysisData.proteinDetectionList.proteinAmbiguityGroup->push_back(p);
@@ -758,7 +758,7 @@ CSpectrumIdentification* CMzIdentML::addSpectrumIdentification(string& spectraDa
   }
 
   char cID[32];
-  sprintf(cID, "SI%d", analysisCollection.spectrumIdentification->size());
+  sprintf(cID, "SI%zu", analysisCollection.spectrumIdentification->size());
   si.id=cID;
   si.spectrumIdentificationListRef = dataCollection.analysisData.addSpectrumIdentificationList();
   si.spectrumIdentificationProtocolRef = analysisProtocolCollection.addSpectrumIdentificationProtocol(string("null"));
