@@ -53,7 +53,7 @@ string CSequenceCollection::addDBSequence(CDBSequence& dbs){
   //add new sequence
   if (dbs.id.compare("null") == 0) {
     char dbid[32];
-    sprintf(dbid, "DBSeq%d", dbSequence->size());
+    sprintf(dbid, "DBSeq%zu", dbSequence->size());
     dbs.id=dbid;
   }
   dbSequence->push_back(dbs);
@@ -114,7 +114,7 @@ string CSequenceCollection::addPeptide(CPeptide& p){
   //add new peptide - should the id ever NOT be null when we get here?
   if (p.id.compare("null") == 0){
     char dbid[32];
-    sprintf(dbid, "Pep%d", peptide->size());
+    sprintf(dbid, "Pep%zu", peptide->size());
     p.id = dbid;
   }
   peptide->push_back(p);
@@ -200,7 +200,7 @@ sPeptideEvidenceRef CSequenceCollection::addPeptideEvidence(CPeptideEvidence& p)
   //add new peptide evidence
   if (p.id.compare("null") == 0) {
     char dbid[32];
-    sprintf(dbid, "PE%d", peptideEvidence->size());
+    sprintf(dbid, "PE%zu", peptideEvidence->size());
     p.id = dbid;
   }
   peptideEvidence->push_back(p);
@@ -274,7 +274,7 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
   value=str;
   if (p1.id.compare("null") == 0){
     char dbid[32];
-    sprintf(dbid, "Pep%d", peptide->size());
+    sprintf(dbid, "Pep%zu", peptide->size());
     p1.id = dbid;
     //find xl modification and change placeholder to "Donor"
     for(a=0;a<p1.modification->size();a++){
@@ -299,7 +299,7 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
 
   if (p2.id.compare("null") == 0){
     char dbid[32];
-    sprintf(dbid, "Pep%d", peptide->size());
+    sprintf(dbid, "Pep%zu", peptide->size());
     p2.id = dbid;
     //find xl modification and change placeholder to "acceptor"
     for (a = 0; a<p2.modification->size(); a++){
