@@ -15,6 +15,7 @@ limitations under the License.
 #define _MZIMLSTRUCTS_H
 
 #include <cstdio>
+#include <cstring>
 #include <string>
 
 enum mzidElement{
