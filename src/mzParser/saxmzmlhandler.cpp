@@ -690,7 +690,7 @@ void mzpSAXMzmlHandler::decode(vector<double>& d){
 
   char* decoded = new char[m_encodedLen];  //array for decoded base64 string
   int decodeLen;
-  Bytef* unzipped;
+  Bytef* unzipped = NULL;
   uLong unzippedLen;
 
   int i;

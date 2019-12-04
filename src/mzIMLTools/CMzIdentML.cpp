@@ -707,7 +707,7 @@ string CMzIdentML::addPeptide(string seq, vector<CModification>& mods){
   return idRef;
 }
 
-sPeptideEvidenceRef CMzIdentML::addPeptideEvidence(string dbRef, string pepRef, int start, int end, char pre, char post){
+sPeptideEvidenceRef CMzIdentML::addPeptideEvidence(string dbRef, string pepRef, int start, int end, char pre, char post, bool isDecoy){
   CPeptideEvidence p;
   p.dbSequenceRef = dbRef;
   p.peptideRef = pepRef;
@@ -717,6 +717,7 @@ sPeptideEvidenceRef CMzIdentML::addPeptideEvidence(string dbRef, string pepRef, 
   p.end=end;
   p.pre=pre;
   p.post=post;
+  p.isDecoy=isDecoy;
 
   //a common disallowed character in pepXML. if there are more of these characters,
   //a more elegant elegant solution should be found.
