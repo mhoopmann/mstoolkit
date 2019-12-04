@@ -142,9 +142,10 @@ enum enumActivation {
 // mzMLParser classes
 //------------------------------------------------
 //For holding mzML and mzXML indexes
-class cindex  {
+class cindex  { 
 public:
 
+  //MH: Fix this!!!
   static int compare (const void* a, const void* b) {
     if (*(size_t*)a < *(size_t*)b) return -1;
     if (*(size_t*)a > *(size_t*)b) return 1;

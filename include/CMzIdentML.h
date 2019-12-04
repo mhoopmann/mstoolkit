@@ -68,7 +68,7 @@ public:
   std::string addDatabase(std::string s);
   std::string addDBSequence(std::string acc, std::string sdbRef, std::string desc = "");
   std::string addPeptide(std::string seq, std::vector<CModification>& mods);
-  sPeptideEvidenceRef addPeptideEvidence(std::string dbRef, std::string pepRef, int start=0, int end=0, char pre='?', char post='?');
+  sPeptideEvidenceRef addPeptideEvidence(std::string dbRef, std::string pepRef, int start=0, int end=0, char pre='?', char post='?', bool isDecoy="false");
   CProteinAmbiguityGroup* addProteinAmbiguityGroup();
   std::string addSpectraData(std::string s);
   CSpectrumIdentification* addSpectrumIdentification(std::string& spectraDataRef, std::string& searchDatabaseRef);
