@@ -1675,9 +1675,9 @@ void MSReader::sql_stmt(const char* stmt)
 
 bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 
-	ramp_fileoffset_t indexOffset;
-	ScanHeaderStruct scanHeader;
-	RAMPREAL *pPeaks;
+	mzParser::ramp_fileoffset_t indexOffset;
+  mzParser::ScanHeaderStruct scanHeader;
+  mzParser::RAMPREAL *pPeaks;
 	int i,j,k;
   double d,d2,d3;
   int *charges=NULL;
@@ -1686,7 +1686,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	if(c!=NULL) {
 		//open the file if new file was requested
 		if(rampFileOpen) closeFile();
-		rampFileIn = rampOpenFile(c);
+		rampFileIn = mzParser::rampOpenFile(c);
 		if (rampFileIn == NULL) {
       cerr << "ERROR: Failure reading input file " << c << endl;
       return false;

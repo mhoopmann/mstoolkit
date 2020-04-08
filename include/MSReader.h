@@ -145,8 +145,8 @@ class MSReader {
   bool compressMe;
 
   //mzXML support variables;
-  ramp_fileoffset_t  *pScanIndex;
-  RAMPFILE  *rampFileIn;
+  mzParser::ramp_fileoffset_t  *pScanIndex;
+  mzParser::RAMPFILE  *rampFileIn;
   bool rampFileOpen;
   int rampLastScan;
   int rampIndex;

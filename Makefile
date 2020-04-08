@@ -1,9 +1,9 @@
-#Version 82.0.1, August 20 2018
+#Version 82.0.1-dev, April 8 2020
 
 #Set your paths here.
-ZLIB_PATH = ./src/zlib-1.2.8
+ZLIB_PATH = ./src/zlib-1.2.11
 MZPARSER_PATH = ./src/mzParser
-EXPAT_PATH = ./src/expat-2.2.0
+EXPAT_PATH = ./src/expat-2.2.9
 SQLITE_PATH = ./src/sqlite-3.7.7.1
 MST_PATH = ./src/MSToolkit
 MZIMLTOOLS_PATH = ./src/mzIMLTools
