@@ -280,7 +280,7 @@ void PepXMLWriter::writeModInfo(PXWModInfo& s, bool alt){
   }
 
   deleteTab();
-  if(alt) st="</alternative_modificaiton_info>\n";
+  if(alt) st="</alternative_modification_info>\n";
   else st="</modification_info>\n";
   writeLine(&st[0]);
 }
