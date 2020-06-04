@@ -97,7 +97,7 @@ ZLIB_DSO := $(patsubst ${ZLIB_SRC}/%.c, ${ZLIB_SRC}/%.lo, $(ZLIB_SRCB))
 zlib : $(ZLIB_DST) $(ZLIB_LIC)
 
 $(ZLIB_DST) : | $(BUILD_DIR)/ $(ZLIB_SRC)/
-	cd $(ZLIB_SRC); ./configure --prefix=$(BUILD_DIR) --includedir $(SRC_DIR)/include --libdir $(BUILD_DIR) 
+	cd $(ZLIB_SRC); autoreconf -f -i; ./configure --prefix=$(BUILD_DIR) --includedir $(SRC_DIR)/include --libdir $(BUILD_DIR) 
 	make -C $(ZLIB_SRC) install
 
 $(ZLIB_LIC) : $(ZLIB_SRC)/$(notdir $(ZLIB_LIC))| $(MKDIR)

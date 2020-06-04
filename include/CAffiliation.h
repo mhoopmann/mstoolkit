@@ -14,6 +14,8 @@ limitations under the License.
 #ifndef _CAFFILIATION_H
 #define _CAFFILIATION_H
 
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 

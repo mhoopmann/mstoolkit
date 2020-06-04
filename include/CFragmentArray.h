@@ -14,6 +14,8 @@ limitations under the License.
 #ifndef _CFRAGMENTARRAY_H
 #define _CFRAGMENTARRAY_H
 
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 #include <vector>
