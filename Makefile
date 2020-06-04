@@ -33,9 +33,9 @@ $(BUILD_DIR)/ :
 #
 
 .PHONY: all clean realclean
-all       : expat zlib mstoolkit mzparser mzimltools sqlite lib
-clean     : expat-clean zlib-clean mstoolkit-clean mzparser-clean mzimltools-clean sqlite-clean lib-clean
-realclean : expat-realclean zlib-realclean mstoolkit-realclean mzparser-realclean mzimltools-realclean sqlite-realclean lib-realclean rc
+all       : expat zlib mstoolkit mzparser mzimltools sqlite lib MSSingleScan
+clean     : expat-clean zlib-clean mstoolkit-clean mzparser-clean mzimltools-clean sqlite-clean lib-clean MSSingleScan-clean
+realclean : expat-realclean zlib-realclean mstoolkit-realclean mzparser-realclean mzimltools-realclean sqlite-realclean lib-realclean MSSingleScan-realclean rc
 
 # -- Expat XML Parser ---------------------------------------------------------
 #
@@ -161,7 +161,7 @@ mstoolkit-realclean : mstoolkit-clean
 #
 MZPARSER_SRCDIR = $(BUILD_SRC)/mzParser/
 MZPARSER_DSTDIR = $(BUILD_DIR)/
-MZPARSER_SRC = $(wildcard $(BUILD_SRC)/mzParser/*.cpp)
+MZPARSER_SRC = $(filter-out $(BUILD_SRC)/mzParser/mzParser.cpp, $(wildcard $(BUILD_SRC)/mzParser/*.cpp))
 MZPARSER_DST = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.o, $(MZPARSER_SRC))
 MZPARSER_DSO = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.lo, $(MZPARSER_SRC))
 
@@ -276,6 +276,23 @@ lib-clean :
 lib-realclean : lib-clean
 	rm -rf libmstoolkit.a libmstoolkitlite.a libmstoolkit.so* libmstoolkitlite.so*
 	
+	
+# -- MSSingleScan  ----------------------------------------------------------
+#
+# Simple example program that utilizes the MSToolkit
+#
+#
+.PHONY : MSSingleScan
+
+MSSingleScan : lib
+	$(CC) $(CFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkitlite -o MSSingleScan
+	
+MSSingleScan-clean :
+	rm -rf MSSingleScan
+
+MSSingleScan-realclean : lib-clean
+	rm -rf MSSingleScan
+
 	
 # -- cleanup  ----------------------------------------------------------
 #
