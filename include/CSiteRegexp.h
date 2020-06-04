@@ -14,6 +14,7 @@ limitations under the License.
 #ifndef _CSITEREGEXP_H
 #define _CSITEREGEXP_H
 
+#include <cstdio>
 #include <string>
 
 class CSiteRegexp {

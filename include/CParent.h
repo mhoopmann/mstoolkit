@@ -14,6 +14,8 @@ limitations under the License.
 #ifndef _CPARENT_H
 #define _CPARENT_H
 
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <iostream>
 

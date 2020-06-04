@@ -14,6 +14,7 @@ limitations under the License.
 #ifndef _CBIBLIOGRAPHICREFERENCE_H
 #define _CBIBLIOGRAPHICREFERENCE_H
 
+#include <cstdio>
 #include <string>
 
 class CBibliographicReference {
