@@ -161,7 +161,7 @@ mstoolkit-realclean : mstoolkit-clean
 #
 MZPARSER_SRCDIR = $(BUILD_SRC)/mzParser/
 MZPARSER_DSTDIR = $(BUILD_DIR)/
-MZPARSER_SRC = $(filter-out $(BUILD_SRC)/mzParser/mzParser.cpp, $(wildcard $(BUILD_SRC)/mzParser/*.cpp))
+MZPARSER_SRC = $(filter-out $(BUILD_SRC)/mzParser/mzMLReader.cpp, $(wildcard $(BUILD_SRC)/mzParser/*.cpp))
 MZPARSER_DST = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.o, $(MZPARSER_SRC))
 MZPARSER_DSO = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.lo, $(MZPARSER_SRC))
 
