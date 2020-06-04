@@ -224,7 +224,7 @@ mzimltools-realclean : mzimltools-clean
 #
 # https://www.sqlite.org/
 #
-SQLITE_VER := sqlite-3.7.7.1
+SQLITE_VER := sqlite-3.32.1
 SQLITE_SRCDIR = $(BUILD_SRC)/$(SQLITE_VER)/
 SQLITE_DSTDIR = $(BUILD_DIR)/
 SQLITE_SRC = $(filter-out $(SQLITE_SRCDIR)shell.c, $(wildcard $(SQLITE_SRCDIR)*.c))
