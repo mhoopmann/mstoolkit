@@ -74,8 +74,8 @@ void CAnalysisData::buildPeptideEvidenceTable(){
       sii = &sil->spectrumIdentificationResult->at(j).spectrumIdentificationItem->at(0);
       s.spectrumIdentificationItemRef = sii->id;
       s.charge=sii->chargeState;
-      for (k = 0; k < sii->peptideEvidenceRef->size(); k++){
-        s.peptideEvidenceRef = sii->peptideEvidenceRef->at(k).peptideEvidenceRef;
+      for (k = 0; k < sii->peptideEvidenceRef.size(); k++){
+        s.peptideEvidenceRef = sii->peptideEvidenceRef[k].peptideEvidenceRef;
         peptideEvidenceTable->push_back(s);
       }
     }

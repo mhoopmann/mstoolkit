@@ -1,5 +1,5 @@
 /*
-Copyright 2017, Michael R. Hoopmann, Institute for Systems Biology
+Copyright 2020, Michael R. Hoopmann, Institute for Systems Biology
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -15,31 +15,31 @@ limitations under the License.
 
 using namespace std;
 
-CInputs::CInputs(){
-  sourceFile = new vector<CSourceFile>;
-  searchDatabase = new vector<CSearchDatabase>;
-
-  CSpectraData sd;
-  spectraData = new vector<CSpectraData>;
-  spectraData->push_back(sd);
-}
-
-CInputs::~CInputs(){
-  delete sourceFile;
-  delete searchDatabase;
-  delete spectraData;
-}
+//CInputs::CInputs(){
+//  sourceFile = new vector<CSourceFile>;
+//  searchDatabase = new vector<CSearchDatabase>;
+//
+//  CSpectraData sd;
+//  spectraData = new vector<CSpectraData>;
+//  spectraData->push_back(sd);
+//}
+//
+//CInputs::~CInputs(){
+//  delete sourceFile;
+//  delete searchDatabase;
+//  delete spectraData;
+//}
 
 string CInputs::addSearchDatabase(string& s){
   //check if DB is already in list
   size_t i;
-  for (i = 0; i < searchDatabase->size(); i++){
-    if (searchDatabase->at(i).location.compare(s) == 0) return searchDatabase->at(i).id;
+  for (i = 0; i < searchDatabase.size(); i++){
+    if (searchDatabase[i].location.compare(s) == 0) return searchDatabase[i].id;
   }
 
   CSearchDatabase sdb;
   char cID[32];
-  sprintf(cID, "SDB%zu", spectraData->size());
+  sprintf(cID, "SDB%zu", spectraData.size());
   sdb.id = cID;
   sdb.location = s;
   i = s.find_last_of("\\/");
@@ -55,7 +55,7 @@ string CInputs::addSearchDatabase(string& s){
 
   //TODO: add optional information
 
-  searchDatabase->push_back(sdb);
+  searchDatabase.push_back(sdb);
   return sdb.id;
 }
 
@@ -63,17 +63,17 @@ string CInputs::addSearchDatabase(string& s){
 //FileFormat is determined by evaluating the extension
 string CInputs::addSpectraData(string& s){
   //overwrite null file
-  if (spectraData->at(0).id.compare("null") == 0) spectraData->clear();
+  //if (spectraData->at(0).id.compare("null") == 0) spectraData->clear();
 
   //check if file is already in list
   size_t i;
-  for (i = 0; i < spectraData->size(); i++){
-    if (spectraData->at(i).location.compare(s) == 0) return spectraData->at(i).id;
+  for (i = 0; i < spectraData.size(); i++){
+    if (spectraData[i].location.compare(s) == 0) return spectraData[i].id;
   }
 
   CSpectraData sd;
   char cID[32];
-  sprintf(cID, "SF%zu", spectraData->size());
+  sprintf(cID, "SF%zu", spectraData.size());
   sd.id = cID;
   sd.location = s;
 
@@ -81,21 +81,21 @@ string CInputs::addSpectraData(string& s){
   sd.fileFormat.cvParam = checkFileFormat(s);
   sd.spectrumIDFormat.cvParam = checkSpectrumIDFormat(sd.fileFormat.cvParam);
 
-  spectraData->push_back(sd);
+  spectraData.push_back(sd);
   return sd.id;
 }
 
 string CInputs::addSpectraData(CSpectraData& c){
   //overwrite null file
-  if (spectraData->at(0).id.compare("null") == 0) spectraData->clear();
+  //if (spectraData->at(0).id.compare("null") == 0) spectraData->clear();
 
   if (c.id.compare("null") == 0){
     char cID[32];
-    sprintf(cID, "SF%zu", spectraData->size());
+    sprintf(cID, "SF%zu", spectraData.size());
     c.id = cID;
   }
 
-  spectraData->push_back(c);
+  spectraData.push_back(c);
   return c.id;
 }
 
@@ -147,17 +147,14 @@ void CInputs::writeOut(FILE* f, int tabs){
   size_t j;
   for (i = 0; i<tabs; i++) fprintf(f, " ");
   fprintf(f, "<Inputs>\n");
-  for (j = 0; j<sourceFile->size(); j++){
-    if (tabs>-1) sourceFile->at(j).writeOut(f, tabs + 1);
-    else sourceFile->at(j).writeOut(f);
-  }
-  for (j = 0; j<searchDatabase->size(); j++){
-    if (tabs>-1) searchDatabase->at(j).writeOut(f, tabs + 1);
-    else searchDatabase->at(j).writeOut(f);
-  }
-  for (j = 0; j<spectraData->size(); j++){
-    if (tabs>-1) spectraData->at(j).writeOut(f, tabs + 1);
-    else spectraData->at(j).writeOut(f);
+  if(tabs>-1){
+    for (j = 0; j<sourceFile.size(); j++) sourceFile[j].writeOut(f, tabs + 1);
+    for (j = 0; j<searchDatabase.size(); j++) searchDatabase[j].writeOut(f, tabs + 1);
+    for (j = 0; j<spectraData.size(); j++) spectraData[j].writeOut(f, tabs + 1);
+  } else{
+    for (j = 0; j<sourceFile.size(); j++) sourceFile[j].writeOut(f);
+    for (j = 0; j<searchDatabase.size(); j++) searchDatabase[j].writeOut(f);
+    for (j = 0; j<spectraData.size(); j++) spectraData[j].writeOut(f);
   }
   for (i = 0; i<tabs; i++) fprintf(f, " ");
   fprintf(f, "</Inputs>\n");

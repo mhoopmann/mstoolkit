@@ -1,5 +1,5 @@
 /*
-Copyright 2017, Michael R. Hoopmann, Institute for Systems Biology
+Copyright 2020, Michael R. Hoopmann, Institute for Systems Biology
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -24,13 +24,13 @@ class CInputs {
 public:
 
   //Constructors & Destructor
-  CInputs();
-  ~CInputs();
+  //CInputs();
+  //~CInputs();
 
   //Data members
-  std::vector<CSourceFile>* sourceFile;
-  std::vector<CSearchDatabase>* searchDatabase;
-  std::vector<CSpectraData>* spectraData;
+  std::vector<CSourceFile> sourceFile;
+  std::vector<CSearchDatabase> searchDatabase;
+  std::vector<CSpectraData> spectraData;
 
   //Functions
   std::string addSearchDatabase(std::string& sd);

@@ -15,6 +15,7 @@ limitations under the License.
 #define _CENZYME_H
 
 #include "CEnzymeName.h"
+#include "CSiteRegexp.h"
 #include "mzIMLStructs.h"
 #include <string>
 #include <vector>
@@ -34,7 +35,7 @@ public:
   std::string name;
   bool semiSpecific;
   
-  //CSiteRegexp siteRegexp;
+  CSiteRegexp siteRegexp;
   CEnzymeName enzymeName;
 
   //Functions

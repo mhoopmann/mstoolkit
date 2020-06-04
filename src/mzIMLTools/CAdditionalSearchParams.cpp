@@ -16,21 +16,21 @@ limitations under the License.
 using namespace std;
 
 CAdditionalSearchParams::CAdditionalSearchParams(){
-  sCvParam cv;
+  //sCvParam cv;
   cvParam = new vector<sCvParam>;
-  cvParam->push_back(cv);
+  //cvParam->push_back(cv);
 
-  sUserParam u;
+  //sUserParam u;
   userParam = new vector<sUserParam>;
-  userParam->push_back(u);
+  //userParam->push_back(u);
 }
 
 CAdditionalSearchParams::CAdditionalSearchParams(const CAdditionalSearchParams& c){
-  size_t i;
-  cvParam = new vector<sCvParam>;
-  userParam = new vector<sUserParam>;
-  for (i = 0; i<c.cvParam->size(); i++) cvParam->push_back(c.cvParam->at(i));
-  for (i = 0; i<c.userParam->size(); i++) userParam->push_back(c.userParam->at(i));
+  //size_t i;
+  cvParam = new vector<sCvParam>(*c.cvParam);
+  userParam = new vector<sUserParam>(*c.userParam);
+  //for (i = 0; i<c.cvParam->size(); i++) cvParam->push_back(c.cvParam->at(i));
+  //for (i = 0; i<c.userParam->size(); i++) userParam->push_back(c.userParam->at(i));
 }
 
 CAdditionalSearchParams::~CAdditionalSearchParams(){
@@ -40,13 +40,13 @@ CAdditionalSearchParams::~CAdditionalSearchParams(){
 
 CAdditionalSearchParams& CAdditionalSearchParams::operator=(const CAdditionalSearchParams& c){
   if (this != &c){
-    size_t i;
+    //size_t i;
     delete cvParam;
     delete userParam;
-    cvParam = new vector<sCvParam>;
-    userParam = new vector<sUserParam>;
-    for (i = 0; i<c.cvParam->size(); i++) cvParam->push_back(c.cvParam->at(i));
-    for (i = 0; i<c.userParam->size(); i++) userParam->push_back(c.userParam->at(i));
+    cvParam = new vector<sCvParam>(*c.cvParam);
+    userParam = new vector<sUserParam>(*c.userParam);
+    //for (i = 0; i<c.cvParam->size(); i++) cvParam->push_back(c.cvParam->at(i));
+    //for (i = 0; i<c.userParam->size(); i++) userParam->push_back(c.userParam->at(i));
   }
   return *this;
 }

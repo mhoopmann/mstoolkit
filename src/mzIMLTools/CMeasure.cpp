@@ -47,3 +47,20 @@ CMeasure& CMeasure::operator=(const CMeasure& m){
   }
   return *this;
 }
+
+void CMeasure::writeOut(FILE* f, int tabs){
+  int i;
+  size_t j;
+  for (i = 0; i<tabs; i++) fprintf(f, " ");
+  fprintf(f, "<Measure id=\"%s\"", id.c_str());
+  if (name.size()>0) fprintf(f, " name=\"%s\"", name.c_str());
+  fprintf(f, ">\n");
+
+  for(j=0;j<cvParam->size();j++){
+    if (tabs>-1) cvParam->at(j).writeOut(f, tabs + 1);
+    else cvParam->at(j).writeOut(f);
+  }
+
+  for (i = 0; i<tabs; i++) fprintf(f, " ");
+  fprintf(f, "</Measure>\n");
+}

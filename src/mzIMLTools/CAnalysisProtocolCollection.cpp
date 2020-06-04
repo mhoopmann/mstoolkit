@@ -51,7 +51,7 @@ string CAnalysisProtocolCollection::addSpectrumIdentificationProtocol(string ana
 
 string CAnalysisProtocolCollection::addSpectrumIdentificationProtocol(CSpectrumIdentificationProtocol& c){
   //remove any placeholder
-  if (spectrumIdentificationProtocol->at(0).id.compare("null") == 0) spectrumIdentificationProtocol->clear();
+  if (spectrumIdentificationProtocol->at(0).id.empty()) spectrumIdentificationProtocol->clear();
 
   if (c.id.compare("null") == 0){
     char cID[32];

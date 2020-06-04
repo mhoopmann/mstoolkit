@@ -15,46 +15,46 @@ limitations under the License.
 
 using namespace std;
 
-CSpectrumIdentificationProtocol::CSpectrumIdentificationProtocol(){
-  analysisSoftwareRef = "null";
-  id = "null";
-  name.clear();
-  massTable = new vector<CMassTable>;
-}
+//CSpectrumIdentificationProtocol::CSpectrumIdentificationProtocol(){
+//  analysisSoftwareRef = "null";
+//  id = "null";
+//  name.clear();
+//  massTable = new vector<CMassTable>;
+//}
+//
+//CSpectrumIdentificationProtocol::CSpectrumIdentificationProtocol(const CSpectrumIdentificationProtocol& c){
+//  analysisSoftwareRef = c.analysisSoftwareRef;
+//  id = c.id;
+//  name=c.name;
+//
+//  massTable = new vector<CMassTable>(*c.massTable);
+//
+//  searchType=c.searchType;
+//  additionalSearchParams=c.additionalSearchParams;
+//  modificationParams=c.modificationParams;
+//  threshold=c.threshold;
+//}
+//
+//CSpectrumIdentificationProtocol::~CSpectrumIdentificationProtocol(){
+//  delete massTable;
+//}
 
-CSpectrumIdentificationProtocol::CSpectrumIdentificationProtocol(const CSpectrumIdentificationProtocol& c){
-  analysisSoftwareRef = c.analysisSoftwareRef;
-  id = c.id;
-  name=c.name;
-
-  massTable = new vector<CMassTable>(*c.massTable);
-
-  searchType=c.searchType;
-  additionalSearchParams=c.additionalSearchParams;
-  modificationParams=c.modificationParams;
-  threshold=c.threshold;
-}
-
-CSpectrumIdentificationProtocol::~CSpectrumIdentificationProtocol(){
-  delete massTable;
-}
-
-CSpectrumIdentificationProtocol& CSpectrumIdentificationProtocol::operator=(const CSpectrumIdentificationProtocol& c){
-  if(this!=&c){
-    analysisSoftwareRef = c.analysisSoftwareRef;
-    id = c.id;
-    name = c.name;
-
-    delete massTable;
-    massTable = new vector<CMassTable>(*c.massTable);
-
-    searchType = c.searchType;
-    additionalSearchParams = c.additionalSearchParams;
-    modificationParams = c.modificationParams;
-    threshold = c.threshold;
-  }
-  return *this;
-}
+//CSpectrumIdentificationProtocol& CSpectrumIdentificationProtocol::operator=(const CSpectrumIdentificationProtocol& c){
+//  if(this!=&c){
+//    analysisSoftwareRef = c.analysisSoftwareRef;
+//    id = c.id;
+//    name = c.name;
+//
+//    delete massTable;
+//    massTable = new vector<CMassTable>(*c.massTable);
+//
+//    searchType = c.searchType;
+//    additionalSearchParams = c.additionalSearchParams;
+//    modificationParams = c.modificationParams;
+//    threshold = c.threshold;
+//  }
+//  return *this;
+//}
 
 bool CSpectrumIdentificationProtocol::operator==(const CSpectrumIdentificationProtocol& c){
   if(this==&c) return true;
@@ -76,18 +76,22 @@ void CSpectrumIdentificationProtocol::writeOut(FILE* f, int tabs){
   if (name.size()>0) fprintf(f, " name=\"%s\"", &name[0]);
   fprintf(f, ">\n");
 
-  //size_t j;
+  size_t j;
   if (tabs>-1) {
     searchType.writeOut(f,tabs+1);
     additionalSearchParams.writeOut(f,tabs+1);
     modificationParams.writeOut(f,tabs+1);
     enzymes.writeOut(f,tabs+1);
+    for(j=0;j<fragmentTolerance.size();j++) fragmentTolerance[j].writeOut(f,tabs+1);
+    for(j=0;j<parentTolerance.size();j++) parentTolerance[j].writeOut(f,tabs+1);
     threshold.writeOut(f,tabs+1);
   } else {
     searchType.writeOut(f);
     additionalSearchParams.writeOut(f);
     modificationParams.writeOut(f);
     enzymes.writeOut(f);
+    for (j = 0; j<fragmentTolerance.size(); j++) fragmentTolerance[j].writeOut(f, tabs);
+    for (j = 0; j<parentTolerance.size(); j++) parentTolerance[j].writeOut(f);
     threshold.writeOut(f);
   }
 

@@ -14,17 +14,22 @@ limitations under the License.
 #ifndef _MZIMLSTRUCTS_H
 #define _MZIMLSTRUCTS_H
 
+#include <iostream>
 #include <cstdio>
 #include <cstring>
 #include <string>
 
 enum mzidElement{
   AdditionalSearchParams,
+  Affiliation,
   AnalysisCollection,
   AnalysisData,
   AnalysisProtocolCollection,
   AnalysisSoftware,
   AnalysisSoftwareList,
+  AuditCollection,
+  ContactRole,
+  Customizations,
   CvList,
   DBSequence,
   DataCollection,
@@ -33,26 +38,40 @@ enum mzidElement{
   EnzymeName,
   Enzymes,
   FileFormat,
+  FragmentArray,
+  Fragmentation,
+  FragmentationTable,
+  FragmentTolerance,
   Inputs,
+  IonType,
   MassTable,
+  Measure,
   Modification,
   ModificationParams,
   MzIdentML,
+  Organization,
+  ParentTolerance,
   Peptide,
   PeptideEvidence,
   PeptideHypothesis,
   PeptideSequence,
+  Person,
   ProteinAmbiguityGroup,
   ProteinDetection,
   ProteinDetectionHypothesis,
   ProteinDetectionList,
   ProteinDetectionProtocol,
+  Provider,
   Residue,
+  Role,
   SearchDatabase,
   SearchModification,
   SearchType,
+  Seq,
   SequenceCollection,
+  SiteRegexp,
   SoftwareName,
+  SourceFile,
   SpecificityRules,
   SpectraData,
   SpectrumIDFormat,
@@ -148,11 +167,7 @@ typedef struct sCustomizations{
     if (text.size()==0) return;
     int i;
     for (i = 0; i<tabs; i++) fprintf(f, " ");
-    fprintf(f,"<Customizations>\n");
-    for (i = 0; i<tabs+1; i++) fprintf(f, " ");
-    fprintf(f,"%s\n",&text[0]);
-    for (i = 0; i<tabs; i++) fprintf(f, " ");
-    fprintf(f, "</Customizations>\n");
+    fprintf(f,"<Customizations>%s</Customizations>\n",text.c_str());
   }
 } sCustomizations;
 
@@ -216,11 +231,7 @@ typedef struct sExternalFormatDocumentation{
     if (text.size() == 0) return;
     int i;
     for (i = 0; i<tabs; i++) fprintf(f, " ");
-    fprintf(f, "<ExternalFormatDocumentation>\n");
-    for (i = 0; i<tabs + 1; i++) fprintf(f, " ");
-    fprintf(f, "%s\n", &text[0]);
-    for (i = 0; i<tabs; i++) fprintf(f, " ");
-    fprintf(f, "</ExternalFormatDocumentation>\n");
+    fprintf(f, "<ExternalFormatDocumentation>%s</ExternalFormatDocumentation>\n",text.c_str());
   }
 } sExternalFormatDocumentation;
 

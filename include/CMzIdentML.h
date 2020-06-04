@@ -17,8 +17,10 @@ limitations under the License.
 #include "CAnalysisCollection.h"
 #include "CAnalysisProtocolCollection.h"
 #include "CAnalysisSoftwareList.h"
+#include "CAuditCollection.h"
 #include "CCvList.h"
 #include "CDataCollection.h"
+#include "CProvider.h"
 #include "CPSM.h"
 #include "CSequenceCollection.h"
 #include "expat.h"
@@ -54,10 +56,15 @@ public:
   CAnalysisCollection analysisCollection;
   CAnalysisProtocolCollection analysisProtocolCollection;
   CDataCollection dataCollection;
+  CProvider provider;
+  std::vector<CAuditCollection> auditCollection;
 
   sMzIDDateTime creationDate;
   std::string id;
   std::string name;
+  std::string versionStr;
+  std::string xmlns;
+  std::string schema;
 
   std::string fileBase;
   std::string fileFull;

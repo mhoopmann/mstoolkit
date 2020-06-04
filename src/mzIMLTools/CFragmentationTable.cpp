@@ -16,14 +16,14 @@ limitations under the License.
 using namespace std;
 
 CFragmentationTable::CFragmentationTable(){
-  CMeasure m;
+  //CMeasure m;
   measure = new vector<CMeasure>;
-  measure->push_back(m);
+  //measure->push_back(m);
 }
 
 CFragmentationTable::CFragmentationTable(const CFragmentationTable& c){
-  measure = new vector<CMeasure>;
-  for(size_t i=0;i<c.measure->size();i++) measure->push_back(c.measure->at(i));
+  measure = new vector<CMeasure>(*c.measure);
+  //for(size_t i=0;i<c.measure->size();i++) measure->push_back(c.measure->at(i));
 }
 
 CFragmentationTable::~CFragmentationTable(){
@@ -33,13 +33,23 @@ CFragmentationTable::~CFragmentationTable(){
 CFragmentationTable& CFragmentationTable::operator=(const CFragmentationTable& c){
   if (this != &c){
     delete measure;
-    measure = new vector<CMeasure>;
-    for (size_t i = 0; i<c.measure->size(); i++) measure->push_back(c.measure->at(i));
+    measure = new vector<CMeasure>(*c.measure);
+    //for (size_t i = 0; i<c.measure->size(); i++) measure->push_back(c.measure->at(i));
   }
   return *this;
 }
 
 void CFragmentationTable::writeOut(FILE* f, int tabs){
-
+  if(measure->size()==0) return;
+  int i;
+  size_t j;
+  for (i = 0; i<tabs; i++) fprintf(f, " ");
+  fprintf(f, "<FragmentationTable>\n");
+  for(j=0;j<measure->size();j++){
+    if (tabs>-1) measure->at(j).writeOut(f, tabs + 1);
+    else measure->at(j).writeOut(f);
+  }
+  for (i = 0; i<tabs; i++) fprintf(f, " ");
+  fprintf(f, "</FragmentationTable>\n");
 }
 

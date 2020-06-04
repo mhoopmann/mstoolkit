@@ -125,8 +125,8 @@ CSpectrumIdentificationItem* CSpectrumIdentificationResult::addSpectrumIdentific
   sii.passThreshold=pass;
   sii.rank=rnk;
   sii.peptideRef=pRef;
-  sii.peptideEvidenceRef->clear();
-  for (size_t i = 0; i<peRef.size(); i++) sii.peptideEvidenceRef->push_back(peRef[i]);
+  sii.peptideEvidenceRef.clear();
+  for (size_t i = 0; i<peRef.size(); i++) sii.peptideEvidenceRef.push_back(peRef[i]);
 
   //TODO: add optional information
 

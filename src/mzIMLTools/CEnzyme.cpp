@@ -24,11 +24,14 @@ void CEnzyme::writeOut(FILE* f, int tabs){
   if (semiSpecific) fprintf(f, " semiSpecific=\"true\"");
   fprintf(f,">\n");
 
-  if (enzymeName.cvParam->at(0).accession.compare("null") != 0 || enzymeName.userParam->at(0).name.compare("null") != 0){
-    if(tabs>-1) enzymeName.writeOut(f,tabs+1);
-    else enzymeName.writeOut(f);
+  if(tabs>-1){
+    siteRegexp.writeOut(f,tabs+1);
+    enzymeName.writeOut(f,tabs+1);
+  } else {
+    siteRegexp.writeOut(f);
+    enzymeName.writeOut(f);
   }
 
   for (i = 0; i<tabs; i++) fprintf(f, " ");
-  fprintf(f, "</EnzymeName>\n");
+  fprintf(f, "</Enzyme>\n");
 }

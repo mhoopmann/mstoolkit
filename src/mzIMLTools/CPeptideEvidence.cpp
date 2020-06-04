@@ -100,6 +100,10 @@ void CPeptideEvidence::writeOut(FILE* f, int tabs){
   if (pre>0) fprintf(f, " pre=\"%c\"", pre);
   if (start>0) fprintf(f, " start=\"%d\"", start);
   if (translationTableRef.size()>0) fprintf(f, " translationTable_ref=\"%s\"", &translationTableRef[0]);
+  if(cvParam->size()==0 && userParam->size()==0) { //save the file size
+    fprintf(f,"/>\n");
+    return;
+  }
   fprintf(f, ">\n");
 
   if (tabs > -1){
