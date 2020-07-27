@@ -257,7 +257,7 @@ bool MzMLWriter::writeSpectra(Spectrum& s){
 bool MzMLWriter::writeSpectra(MSObject& o){
   for (int i = 0; i < o.size(); i++){
     bool result = writeSpectra(o.at(i));
-    if (!result) {
+    if(!result) {
       return result;
     }
   }
