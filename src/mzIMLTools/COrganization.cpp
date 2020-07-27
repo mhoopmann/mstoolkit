@@ -26,6 +26,7 @@ void COrganization::writeOut(FILE* f, int tabs){
   fprintf(f, "<Organization id=\"%s\"", id.c_str());
   if (!name.empty()) fprintf(f, " name=\"%s\"", name.c_str());
   fprintf(f, ">\n");
+
   if (tabs>-1){
     if(!parent.organizationRef.empty()) parent.writeOut(f, tabs + 1);
     for (j = 0; j<cvParam.size(); j++) cvParam[j].writeOut(f, tabs + 1);

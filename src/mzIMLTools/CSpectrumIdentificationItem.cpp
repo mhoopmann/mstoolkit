@@ -15,29 +15,15 @@ limitations under the License.
 
 using namespace std;
 
-//CSpectrumIdentificationItem::CSpectrumIdentificationItem(){
-//  calculatedMassToCharge=0;
-//  calculatedPI=0;
-//  chargeState=0;
-//  experimentalMassToCharge=0;
-//  id = "null";
-//  massTableRef.clear();
-//  name.clear();
-//  passThreshold=true;
-//  peptideRef.clear();
-//  rank=0;
-//  sampleRef.clear();
-//
-//  sPeptideEvidenceRef per;
-//  peptideEvidenceRef=new vector<sPeptideEvidenceRef>;
-//
-//  sCvParam cv;
-//  cvParam=new vector<sCvParam>;
-//
-//  sUserParam up;
-//  userParam = new vector<sUserParam>;
-//}
-//
+CSpectrumIdentificationItem::CSpectrumIdentificationItem(){
+  calculatedMassToCharge=0;
+  calculatedPI=0;
+  chargeState=0;
+  experimentalMassToCharge=0;
+  passThreshold=true;
+  rank=0;
+}
+
 //CSpectrumIdentificationItem::CSpectrumIdentificationItem(const CSpectrumIdentificationItem& s){
 //  calculatedMassToCharge = s.calculatedMassToCharge;
 //  calculatedPI = s.calculatedPI;
@@ -182,6 +168,14 @@ void CSpectrumIdentificationItem::writeOut(FILE* f, int tabs){
     cerr << "SpectrumIdentificationItem::peptide_ref required" << endl;
     exit(69);
   }
+  if (experimentalMassToCharge==0) {
+    cerr << "SpectrumIdentificationItem::experimentalMassToCharge required" << endl;
+    exit(69);
+  }
+  if (chargeState == 0) {
+    cerr << "SpectrumIdentificationItem::chargeState required" << endl;
+    exit(69);
+  }
 
   int i;
   size_t j;
@@ -194,21 +188,16 @@ void CSpectrumIdentificationItem::writeOut(FILE* f, int tabs){
   if (calculatedPI>0) fprintf(f, " calculatedPI=\"%.4f\"", calculatedPI);
   if (massTableRef.size()>0) fprintf(f, " massTable_ref=\"%s\"", &massTableRef[0]);
   if (name.size()>0) fprintf(f, " name=\"%s\"", &name[0]);
-  if (peptideRef.size()>0) fprintf(f, " peptide_ref=\"%s\"", &peptideRef[0]);
+  fprintf(f, " peptide_ref=\"%s\"", peptideRef.c_str());
   if (sampleRef.size()>0) fprintf(f, " sample_ref=\"%s\"", &sampleRef[0]);
   fprintf(f, ">\n");
 
-  if (tabs > -1){
-    for (j = 0; j<peptideEvidenceRef.size(); j++) peptideEvidenceRef[j].writeOut(f, tabs + 1);
-    for(j=0;j<fragmentation.size();j++) fragmentation[j].writeOut(f,tabs+1);
-    for (j = 0; j<cvParam.size(); j++) cvParam.at(j).writeOut(f, tabs + 1);
-    for (j = 0; j<userParam.size(); j++) userParam.at(j).writeOut(f, tabs + 1);
-  } else {
-    for (j = 0; j<peptideEvidenceRef.size(); j++) peptideEvidenceRef.at(j).writeOut(f);
-    for (j = 0; j<fragmentation.size(); j++) fragmentation[j].writeOut(f);
-    for (j = 0; j<cvParam.size(); j++) cvParam.at(j).writeOut(f);
-    for (j = 0; j<userParam.size(); j++) userParam.at(j).writeOut(f);
-  }
+  int t = tabs;
+  if (t>-1) t++;
+  for (j = 0; j<peptideEvidenceRef.size(); j++) peptideEvidenceRef[j].writeOut(f, t);
+  for(j=0;j<fragmentation.size();j++) fragmentation[j].writeOut(f,t);
+  for (j = 0; j<cvParam.size(); j++) cvParam.at(j).writeOut(f, t);
+  for (j = 0; j<userParam.size(); j++) userParam.at(j).writeOut(f, t);
 
   for (i = 0; i<tabs; i++) fprintf(f, " ");
   fprintf(f, "</SpectrumIdentificationItem>\n");

@@ -30,23 +30,24 @@ using namespace std;
 //  delete spectraData;
 //}
 
-string CInputs::addSearchDatabase(string& s){
+CSearchDatabase* CInputs::addSearchDatabase(string loc){
+
   //check if DB is already in list
   size_t i;
   for (i = 0; i < searchDatabase.size(); i++){
-    if (searchDatabase[i].location.compare(s) == 0) return searchDatabase[i].id;
+    if (searchDatabase[i].location.compare(loc) == 0) return &searchDatabase[i];
   }
 
   CSearchDatabase sdb;
   char cID[32];
-  sprintf(cID, "SDB%zu", spectraData.size());
+  sprintf(cID, "SDB%d", (int)spectraData.size());
   sdb.id = cID;
-  sdb.location = s;
-  i = s.find_last_of("\\/");
-  sdb.databaseName.userParam.name = s.substr(i + 1);
+  sdb.location = loc;
+  i = loc.find_last_of("\\/");
+  sdb.databaseName.userParam.name = loc.substr(i + 1);
   
-  i = s.find_last_of(".");
-  string format = s.substr(i+1);
+  i = loc.find_last_of(".");
+  string format = loc.substr(i+1);
   if (format.compare("fasta") == 0){
     sdb.fileFormat.cvParam.cvRef = "PSI-MS";
     sdb.fileFormat.cvParam.accession = "MS:1001348";
@@ -56,47 +57,31 @@ string CInputs::addSearchDatabase(string& s){
   //TODO: add optional information
 
   searchDatabase.push_back(sdb);
-  return sdb.id;
+  return &searchDatabase.back();
 }
 
 //Adds the spectrum data file information and returns a reference id.
 //FileFormat is determined by evaluating the extension
-string CInputs::addSpectraData(string& s){
-  //overwrite null file
-  //if (spectraData->at(0).id.compare("null") == 0) spectraData->clear();
+CSpectraData* CInputs::addSpectraData(string loc){
 
   //check if file is already in list
   size_t i;
   for (i = 0; i < spectraData.size(); i++){
-    if (spectraData[i].location.compare(s) == 0) return spectraData[i].id;
+    if (spectraData[i].location.compare(loc) == 0) return &spectraData[i];
   }
 
-  CSpectraData sd;
+  CSpectraData c;
   char cID[32];
-  sprintf(cID, "SF%zu", spectraData.size());
-  sd.id = cID;
-  sd.location = s;
+  sprintf(cID, "SF%d", (int)spectraData.size());
+  c.id = cID;
+  c.location = loc;
 
   //TODO: check file format & spectrumIDFormat (I think this is the spectrum.scan.scan.charge format....)
-  sd.fileFormat.cvParam = checkFileFormat(s);
-  sd.spectrumIDFormat.cvParam = checkSpectrumIDFormat(sd.fileFormat.cvParam);
-
-  spectraData.push_back(sd);
-  return sd.id;
-}
-
-string CInputs::addSpectraData(CSpectraData& c){
-  //overwrite null file
-  //if (spectraData->at(0).id.compare("null") == 0) spectraData->clear();
-
-  if (c.id.compare("null") == 0){
-    char cID[32];
-    sprintf(cID, "SF%zu", spectraData.size());
-    c.id = cID;
-  }
+  c.fileFormat.cvParam = checkFileFormat(loc);
+  c.spectrumIDFormat.cvParam = checkSpectrumIDFormat(c.fileFormat.cvParam);
 
   spectraData.push_back(c);
-  return c.id;
+  return &spectraData.back();
 }
 
 sCvParam CInputs::checkFileFormat(string s){
@@ -110,7 +95,10 @@ sCvParam CInputs::checkFileFormat(string s){
   if (i != string::npos){
     ext = s.substr(i);
     for (i = 0; i<ext.size(); i++) ext[i] = toupper(ext[i]);
-    if (ext.compare(".MGF") == 0) {
+    if (ext.compare(".GZ") == 0) {
+      cerr  << "Unhandled .GZ file" << endl;
+      exit(1);
+    } else if (ext.compare(".MGF") == 0) {
       cv.accession="MS:1001062"; cv.name="Mascot MGF file";
     } else if (ext.compare(".MZXML") == 0){
       cv.accession = "MS:1000566"; cv.name = "ISB mzXML format";
