@@ -480,6 +480,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
        *pStr = '\0';         
        ch = -atoi(strMGF+7); 
      } 
+     s.setCharge(ch);
    } else if(!strncmp(strMGF, "PEPMASS=", 8)) { 
      s.setMZ(atof(strMGF+8)); 
    } else if(!strncmp(strMGF, "SCANS=", 6)) { 

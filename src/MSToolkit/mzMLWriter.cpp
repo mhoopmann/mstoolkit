@@ -256,8 +256,12 @@ bool MzMLWriter::writeSpectra(Spectrum& s){
 
 bool MzMLWriter::writeSpectra(MSObject& o){
   for (int i = 0; i < o.size(); i++){
-    writeSpectra(o.at(i));
+    bool result = writeSpectra(o.at(i));
+    if (!result) {
+      return result;
+    }
   }
+  return true;
 }
 
 bool MzMLWriter::exportBinary(char* str, int len, int tabs){
