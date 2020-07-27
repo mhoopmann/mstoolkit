@@ -1,5 +1,5 @@
 /*
-Copyright 2017, Michael R. Hoopmann, Institute for Systems Biology
+Copyright 2020, Michael R. Hoopmann, Institute for Systems Biology
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -23,11 +23,11 @@ public:
 
   //Constructors & Destructors
   CModification();
-  CModification(const CModification& m);
-  ~CModification();
+  //CModification(const CModification& m);
+  //~CModification();
 
   //Operators
-  CModification& operator=(const CModification& m);
+  //CModification& operator=(const CModification& m);
   bool operator==(const CModification& m);
 
   //Data members
@@ -35,7 +35,7 @@ public:
   int location;
   double monoisotopicMassDelta;
   std::string residues;
-  std::vector<sCvParam>* cvParam;
+  std::vector<sCvParam> cvParam;
 
   //Functions
   void clear();

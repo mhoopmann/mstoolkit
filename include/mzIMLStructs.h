@@ -23,26 +23,35 @@ limitations under the License.
 enum mzidElement{
   AdditionalSearchParams,
   Affiliation,
+  AmbiguousResidue,
   AnalysisCollection,
   AnalysisData,
+  AnalysisParams,
   AnalysisProtocolCollection,
+  AnalysisSampleCollection,
   AnalysisSoftware,
   AnalysisSoftwareList,
   AuditCollection,
+  BibliographicReference,
   ContactRole,
   Customizations,
   CvList,
   DBSequence,
   DataCollection,
+  DatabaseFilters,
   DatabaseName,
   Enzyme,
   EnzymeName,
   Enzymes,
+  ExternalFormatDocumentation,
   FileFormat,
+  Filter,
+  FilterType,
   FragmentArray,
   Fragmentation,
   FragmentationTable,
   FragmentTolerance,
+  Include,
   Inputs,
   IonType,
   MassTable,
@@ -51,6 +60,7 @@ enum mzidElement{
   ModificationParams,
   MzIdentML,
   Organization,
+  Parent,
   ParentTolerance,
   Peptide,
   PeptideEvidence,
@@ -65,6 +75,7 @@ enum mzidElement{
   Provider,
   Residue,
   Role,
+  Sample,
   SearchDatabase,
   SearchModification,
   SearchType,
@@ -81,6 +92,7 @@ enum mzidElement{
   SpectrumIdentificationList,
   SpectrumIdentificationProtocol,
   SpectrumIdentificationResult,
+  SubSample,
   Threshold
 };
 
@@ -187,33 +199,25 @@ typedef struct sCV{
 
 typedef struct sInputSpectra{
   std::string spectraDataRef;
-  sInputSpectra(){
-    spectraDataRef="null";
-  }
   bool operator==(const sInputSpectra& s){
     if (spectraDataRef.compare(s.spectraDataRef)!=0) return false;
     return true;
   }
   void writeOut(FILE* f, int tabs = -1){
-    if (spectraDataRef.size() == 0) return;
     for (int i = 0; i<tabs; i++) fprintf(f, " ");
-    fprintf(f, "<InputSpectra spectraData_ref=\"%s\"/>\n",&spectraDataRef[0]);
+    fprintf(f, "<InputSpectra spectraData_ref=\"%s\"/>\n",spectraDataRef.c_str());
   }
 } sInputSpectra;
 
 typedef struct sSearchDatabaseRef{
   std::string searchDatabaseRef;
-  sSearchDatabaseRef(){
-    searchDatabaseRef = "null";
-  }
   bool operator==(const sSearchDatabaseRef& s){
     if (searchDatabaseRef.compare(s.searchDatabaseRef) != 0) return false;
     return true;
   }
   void writeOut(FILE* f, int tabs = -1){
-    if (searchDatabaseRef.size() == 0) return;
     for (int i = 0; i<tabs; i++) fprintf(f, " ");
-    fprintf(f, "<SearchDatabaseRef searchDatabase_ref=\"%s\"/>\n", &searchDatabaseRef[0]);
+    fprintf(f, "<SearchDatabaseRef searchDatabase_ref=\"%s\"/>\n", searchDatabaseRef.c_str());
   }
 } sSearchDatabaseRef;
 

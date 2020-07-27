@@ -23,7 +23,7 @@ class CSpectrumIdentificationItem {
 public:
 
   //Constructors & Destructor
-  //CSpectrumIdentificationItem();
+  CSpectrumIdentificationItem();
   //CSpectrumIdentificationItem(const CSpectrumIdentificationItem& s);
   //~CSpectrumIdentificationItem();
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2017, Michael R. Hoopmann, Institute for Systems Biology
+Copyright 2020, Michael R. Hoopmann, Institute for Systems Biology
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
@@ -25,13 +25,13 @@ class CSequenceCollection{
 public:
 
   //Constructors & Destructors
-  CSequenceCollection();
-  ~CSequenceCollection();
+  //CSequenceCollection();
+  //~CSequenceCollection();
 
   //Data members
-  std::vector<CDBSequence>* dbSequence;
-  std::vector<CPeptide>* peptide;
-  std::vector<CPeptideEvidence>* peptideEvidence;
+  std::vector<CDBSequence> dbSequence;
+  std::vector<CPeptide> peptide;
+  std::vector<CPeptideEvidence> peptideEvidence;
 
   //Functions
   std::string addDBSequence(CDBSequence& dbs);

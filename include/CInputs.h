@@ -23,9 +23,6 @@ limitations under the License.
 class CInputs {
 public:
 
-  //Constructors & Destructor
-  //CInputs();
-  //~CInputs();
 
   //Data members
   std::vector<CSourceFile> sourceFile;
@@ -33,9 +30,8 @@ public:
   std::vector<CSpectraData> spectraData;
 
   //Functions
-  std::string addSearchDatabase(std::string& sd);
-  std::string addSpectraData(std::string& sd);
-  std::string addSpectraData(CSpectraData& c);
+  CSearchDatabase* addSearchDatabase(std::string loc);
+  CSpectraData* addSpectraData(std::string loc);  //quick add if minimum information for spectradata is met
   sCvParam checkFileFormat(std::string s);
   sCvParam checkSpectrumIDFormat(sCvParam& s);
   void writeOut(FILE* f, int tabs = -1);
