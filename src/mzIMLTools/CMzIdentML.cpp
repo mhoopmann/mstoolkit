@@ -499,6 +499,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     db.searchDatabaseRef = getAttrValue("searchDatabase_ref", attr);
     db.length = atoi(getAttrValue("length", attr));
     sequenceCollection.dbSequence.push_back(db);
+    sequenceCollection.sortDBSequence=true;
 
   } else if (isElement("DataCollection", el)){
     activeEl.push_back(DataCollection);
@@ -678,6 +679,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     p.id = getAttrValue("id", attr);
     p.name = getAttrValue("name", attr);
     sequenceCollection.peptide.push_back(p);
+    sequenceCollection.sortPeptide=true;
 
   } else if (isElement("PeptideEvidence", el)){
     activeEl.push_back(PeptideEvidence);
@@ -698,6 +700,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     s = getAttrValue("start", attr);
     if (s.size()>0) pe.start = atoi(s.c_str());
     sequenceCollection.peptideEvidence.push_back(pe);
+    sequenceCollection.sortPeptideEvidence=true;
 
   } else if (isElement("PeptideEvidenceRef", el)){
     sPeptideEvidenceRef per;
@@ -1197,7 +1200,31 @@ CDBSequence CMzIdentML::getDBSequenceByAcc(string acc){
 }
 
 CPeptide CMzIdentML::getPeptide(string peptide_ref){
-  return *sequenceCollection.getPeptide(peptide_ref);
+  CPeptide* p=sequenceCollection.getPeptide(peptide_ref);
+  if(p==NULL) {
+    cerr << "CMzIdentML::getPeptide failed:: cannot find " << peptide_ref << endl;
+    exit(86);
+  }
+  return *p;
+}
+
+bool CMzIdentML::getPeptide(string peptide_ref, CPeptide& p){
+  CPeptide* pep = sequenceCollection.getPeptide(peptide_ref);
+  if (pep == NULL) {
+    cerr << "CMzIdentML::getPeptide failed:: cannot find " << peptide_ref << endl;
+    return false;
+  }
+  p=*pep;
+  return true;
+}
+
+bool CMzIdentML::getPeptide(string peptide_ref, CPeptide*& p){
+  p = sequenceCollection.getPeptide(peptide_ref);
+  if (p == NULL) {
+    cerr << "CMzIdentML::getPeptide failed:: cannot find " << peptide_ref << endl;
+    return false;
+  }
+  return true;
 }
 
 CPeptideEvidence CMzIdentML::getPeptideEvidence(string& peptideEvidence_ref){
@@ -1360,6 +1387,20 @@ CSpectrumIdentificationProtocol* CMzIdentML::getSpectrumIdentificationProtocol(s
   return NULL;
 }
 
+//This is too slow to be practical.
+CSpectrumIdentificationResult* CMzIdentML::getSpectrumIdentificationResultBySpectrumID(std::string& spectrumIdentificationList_ref, std::string& spectrumIdentificationResult_spectrumID){
+  CSpectrumIdentificationList* m_sil=getSpectrumIdentificationList(spectrumIdentificationList_ref);
+  if(m_sil==NULL) return NULL;
+
+  size_t i;
+  for (i = 0; i < m_sil->spectrumIdentificationResult.size(); i++){
+    if (m_sil->spectrumIdentificationResult[i].spectrumID.compare(spectrumIdentificationResult_spectrumID) == 0){
+      return &m_sil->spectrumIdentificationResult[i];
+    }
+  }
+  return NULL;
+}
+
 int CMzIdentML::getVersion(){
   return version;
 }
@@ -1513,6 +1554,9 @@ void CMzIdentML::processUserParam(sUserParam& u){
     break;
   case ProteinDetectionHypothesis:
     dataCollection.analysisData.proteinDetectionList.back().proteinAmbiguityGroup.back().proteinDetectionHypothesis.back().userParam.push_back(u);
+    break;
+  case SoftwareName:
+    analysisSoftwareList.analysisSoftware.back().softwareName.userParam=u;
     break;
   case SpectrumIdentificationItem:
     dataCollection.analysisData.spectrumIdentificationList.back().spectrumIdentificationResult.back().spectrumIdentificationItem.back().userParam.push_back(u);

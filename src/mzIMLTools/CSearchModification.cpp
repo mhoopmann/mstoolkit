@@ -84,10 +84,10 @@ void CSearchModification::clear(){
 }
 
 void CSearchModification::writeOut(FILE* f, int tabs){
-  if (massDelta==0){
-    cerr << "SearchModification::massDelta is required." << endl;
-    exit(69);
-  }
+  //if (massDelta==0){ //allowing this to be zero.
+  //  cerr << "SearchModification::massDelta is required." << endl;
+  //  exit(69);
+  //}
   if (cvParam.empty()){
     cerr << "SearchModification::cvParam is required." << endl;
     exit(69);

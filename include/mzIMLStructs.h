@@ -131,7 +131,19 @@ typedef struct sCvParam{
     if (unitAccession.size()>0) fprintf(f, " unitAccession=\"%s\"", &unitAccession[0]);
     if (unitCvRef.size()>0) fprintf(f, " unitCvRef=\"%s\"", &unitCvRef[0]);
     if (unitName.size()>0) fprintf(f, " unitName=\"%s\"", &unitName[0]);
-    if (value.size()>0) fprintf(f, " value=\"%s\"", &value[0]);
+    //testing code to export predefined xml entities
+    if (value.size()>0) {
+      fprintf(f, " value=\"");
+      for(size_t a=0;a<value.size();a++){
+        if(value[a]=='\"') fprintf(f,"&quot;");
+        else if (value[a] == '\'') fprintf(f, "&apos;");
+        else if (value[a] == '>') fprintf(f, "&gt;");
+        else if (value[a] == '<') fprintf(f, "&lt;");
+        else if (value[a] == '&') fprintf(f, "&amp;");
+        else fprintf(f,"%c", value[a]);
+      }
+      fprintf(f,"\"");
+    }
     fprintf(f, "/>\n");
   }
 } sCvParam;

@@ -289,6 +289,7 @@ sCvParam CModificationParams::findCvParam(double mass, string residues){
 sCvParam CModificationParams::getModificationCvParam(double monoisotopicMassDelta, string residues, bool nTerm, bool cTerm){
   size_t i;
   for (i = 0; i < searchModification.size(); i++){
+    //cout << i << "\t" << fabs(searchModification[i].massDelta - monoisotopicMassDelta) << "\t" << searchModification[i].residues << endl;
     if ((nTerm || cTerm) && fabs(searchModification[i].massDelta - monoisotopicMassDelta)<0.001 && searchModification[i].residues.compare(".") == 0){
       return searchModification[i].cvParam[0];
     } else if (fabs(searchModification[i].massDelta - monoisotopicMassDelta)<0.001 && searchModification[i].residues.compare(residues)==0) {
@@ -299,6 +300,8 @@ sCvParam CModificationParams::getModificationCvParam(double monoisotopicMassDelt
   cv.accession = "MS:1001460";
   cv.name = "unknown modification";
   cv.cvRef = "PSI-MS";
+  //cout << "Unknown: " << monoisotopicMassDelta << "\t" << residues << endl;
+  //exit(1);
   return cv;
 }
 

@@ -259,60 +259,33 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
   }
   
   //add new peptides
-  size_t a,b;
   char str[12];
-  sprintf(str,"%zu",vXLPepTable.size());
+  sprintf(str,"%d",vXLPepTable.size());
   value=str;
-  if (p1.id.compare("null") == 0){
+  if (p1.id.empty()){
     char dbid[32];
-    sprintf(dbid, "Pep%zu", peptide.size());
+    sprintf(dbid, "Pep%d", peptide.size());
     p1.id = dbid;
-    //find xl modification and change placeholder to "Donor"
-    for(a=0;a<p1.modification.size();a++){
-      for(b=0;b<p1.modification[a].cvParam.size();b++){
-        if(p1.modification[a].cvParam[b].cvRef.compare("XLtmp")==0){
-          p1.modification[a].cvParam[b].cvRef="PSI-MS";
-          p1.modification[a].cvParam[b].accession = "MS:1002509";
-          p1.modification[a].cvParam[b].name = "cross-link donor";
-          p1.modification[a].cvParam[b].value = value;
-          break;
-        }
-      }
-      if (b<p1.modification[a].cvParam.size()) break;
-    }
-    if (a == p1.modification.size()){
-      cout << "ERROR: cannot find XL peptide placeholder" << endl;
-      exit(671);
-    }
+    sCvParam cv;
+    cv.cvRef="PSI-MS";
+    cv.accession = "MS:1002509";
+    cv.name = "cross-link donor";
+    cv.value = value;
+    p1.modification.back().cvParam.push_back(cv);
   }
   peptide.push_back(p1);
   ref1=p1.id;
 
-  if (p2.id.compare("null") == 0){
+  if (p2.id.empty()){
     char dbid[32];
-    sprintf(dbid, "Pep%zu", peptide.size());
+    sprintf(dbid, "Pep%d", peptide.size());
     p2.id = dbid;
-    //find xl modification and change placeholder to "acceptor"
-    for (a = 0; a<p2.modification.size(); a++){
-      for (b = 0; b<p2.modification[a].cvParam.size(); b++){
-        if (p2.modification[a].cvParam[b].cvRef.compare("XLtmp") == 0){
-          p2.modification[a].cvParam[b].cvRef = "PSI-MS";
-          p2.modification[a].cvParam[b].accession = "MS:1002510";
-          p2.modification[a].cvParam[b].name = "cross-link acceptor";
-          p2.modification[a].cvParam[b].value = value;
-          break;
-        }
-      }
-      if (b<p2.modification[a].cvParam.size()) {
-        p2.modification[a].monoisotopicMassDelta=0;
-        p2.modification[a].cvParam.pop_back(); //remove cross-linker cvParam, it was used on the donor.
-        break;
-      }
-    }
-    if (a == p2.modification.size()){
-      cout << "ERROR: cannot find XL peptide placeholder" << endl;
-      exit(671);
-    }
+    sCvParam cv;
+    cv.cvRef = "PSI-MS";
+    cv.accession = "MS:1002510";
+    cv.name = "cross-link acceptor";
+    cv.value = value;
+    p2.cvParam.push_back(cv);
   }
   peptide.push_back(p2);
   ref2 = p2.id;
@@ -438,9 +411,10 @@ CPeptide* CSequenceCollection::getPeptide(string peptideRef){
   size_t upper = sz;
   int i;
 
-  //cout << "Starting search for " << peptideRef << endl;
+  //cout << "Starting search for " << peptideRef << " among " << sz << endl;
 
   i = peptide[mid].id.compare(peptideRef);
+  //cout << mid << "\t" << peptide[mid].id << "\t" << i << endl;
   while (i != 0){
     if (lower >= upper) return NULL;
     if (i>0){
@@ -453,6 +427,7 @@ CPeptide* CSequenceCollection::getPeptide(string peptideRef){
     }
     if (mid == sz) return NULL;
     i = peptide[mid].id.compare(peptideRef);
+    //cout << mid << "\t" << peptide[mid].id << "\t" << i << endl;
   }
   //cout << "found " << peptide[mid].id << " at " << mid <<  " " << peptide[mid].peptideSequence.text << endl;
   return &peptide[mid];

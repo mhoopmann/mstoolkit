@@ -16,6 +16,14 @@ limitations under the License.
 using namespace std;
 
 void CSpectrumIdentificationProtocol::writeOut(FILE* f, int tabs){
+  if (analysisSoftwareRef.empty()){
+    cerr << "SpectrumIdentificationProtocol::analysisSoftware_ref is required." << endl;
+    exit(69);
+  }
+  if (id.empty()){
+    cerr << "SpectrumIdentificationProtocol::id is required." << endl;
+    exit(69);
+  }
 
   int i;
   for (i = 0; i<tabs; i++) fprintf(f, " ");

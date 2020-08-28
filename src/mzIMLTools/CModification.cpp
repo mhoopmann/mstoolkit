@@ -87,7 +87,7 @@ void CModification::writeOut(FILE* f, int tabs){
   if (avgMassDelta>0) fprintf(f, " avgMassDelta=\"%.6lf\"",avgMassDelta);
   if (location>-1) fprintf(f, " location=\"%d\"", location);
   if (monoisotopicMassDelta>0) fprintf(f, " monoisotopicMassDelta=\"%.6lf\"", monoisotopicMassDelta);
-  if (!residues.empty()) fprintf(f, " residues=\"%s\"", &residues[0]);
+  if (!residues.empty()) fprintf(f, " residues=\"%s\"", residues.c_str());
   fprintf(f, ">\n");
 
   int t = tabs;

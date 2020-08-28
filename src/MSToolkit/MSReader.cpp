@@ -1675,7 +1675,6 @@ void MSReader::sql_stmt(const char* stmt)
 #endif
 
 bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
-
 	mzParser::ramp_fileoffset_t indexOffset;
   mzParser::ScanHeaderStruct scanHeader;
   mzParser::RAMPREAL *pPeaks;

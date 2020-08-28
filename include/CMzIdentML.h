@@ -87,6 +87,8 @@ public:
   CDBSequence       getDBSequence(std::string& dBSequence_ref);
   CDBSequence       getDBSequenceByAcc(std::string acc);
   CPeptide          getPeptide(std::string peptide_ref);
+  bool              getPeptide(std::string peptide_ref, CPeptide& p);
+  bool              getPeptide(std::string peptide_ref, CPeptide*& p);
   CPeptideEvidence  getPeptideEvidence(std::string& peptideEvidence_ref);
   CPSM              getPSM(int index, int rank=1);
   int               getPSMCount();
@@ -95,6 +97,7 @@ public:
   CSpectrumIdentificationList*      getSpectrumIdentificationList(std::string& spectrumIdentificationList_ref);
   CSpectrumIdentificationProtocol*  getSpectrumIdentificationProtocol(std::string& spectrumIdentificationProtocol_ref);
   CSpectrumIdentificationResult&    getSpectrumIdentificationResult(std::string& spectrumIdentificationResult_ref);
+  CSpectrumIdentificationResult*    getSpectrumIdentificationResultBySpectrumID(std::string& spectrumIdentificationList_ref, std::string& spectrumIdentificationResult_spectrumID);
 
   int getVersion();
   bool readFile(const char* fn);

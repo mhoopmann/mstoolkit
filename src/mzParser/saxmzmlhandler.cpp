@@ -140,6 +140,8 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
       curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"scan=")+5);
     } else if(strstr(&curIndex.idRef[0],"scanId=")!=NULL) {
       curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"scanId=")+7);
+    } else if (strstr(&curIndex.idRef[0], "frame") != NULL) { //TIMSTOF is indexed
+      curIndex.scanNum = ++m_scanIDXCount;
     } else if(strstr(&curIndex.idRef[0],"S")!=NULL) {
       curIndex.scanNum=atoi(strstr(&curIndex.idRef[0],"S")+1);
     } else {
@@ -159,6 +161,8 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
         spec->setPrecursorScanNum(atoi(strstr(&s[0],"scan=")+5));
       } else if(strstr(&s[0],"scanId=")!=NULL) {
         spec->setPrecursorScanNum(atoi(strstr(&s[0],"scanId=")+7));
+      } else if (strstr(&s[0], "frame") != NULL) {
+        spec->setPrecursorScanNum(++m_scanPRECCount);
       } else if(strstr(&s[0],"S")!=NULL) {
         spec->setPrecursorScanNum(atoi(strstr(&s[0],"S")+1));
       } else {
@@ -191,6 +195,8 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
       spec->setScanNum(atoi(strstr(&s[0],"scan=")+5));
     } else if(strstr(&s[0],"scanId=")!=NULL) {
       spec->setScanNum(atoi(strstr(&s[0],"scanId=")+7));
+    } else if (strstr(&s[0], "frame") != NULL) {
+      spec->setScanNum(++m_scanSPECCount);
     } else if(strstr(&s[0],"S")!=NULL) {
       spec->setScanNum(atoi(strstr(&s[0],"S")+1));
     } else if(m_scanNumOverride>-1){ //if a scan index was set (usually obtained from the calling class), use that instead.

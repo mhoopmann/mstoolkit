@@ -46,7 +46,6 @@ public:
   std::string getProtein(sPeptideEvidenceRef& s);
   void writeOut(FILE* f, int tabs = -1);
 
-private:
   //Data members
   bool sortDBSequence;
   bool sortDBSequenceAcc;
@@ -54,6 +53,8 @@ private:
   bool sortPeptideSeq;
   bool sortPeptideEvidence;
   bool sortPeptideEvidencePepRef;
+
+private:
   std::vector<sPepTable> vPepEvTable;
   std::vector<sPepTable> vPepTable;
   std::vector<sXLPepTable> vXLPepTable;
