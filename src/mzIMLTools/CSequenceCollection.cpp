@@ -285,7 +285,7 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
     cv.accession = "MS:1002510";
     cv.name = "cross-link acceptor";
     cv.value = value;
-    p2.cvParam.push_back(cv);
+    p2.modification.back().cvParam.push_back(cv);
   }
   peptide.push_back(p2);
   ref2 = p2.id;
