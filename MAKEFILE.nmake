@@ -1,6 +1,6 @@
 MSTOOLKIT_DEFS=/D"_NOSQLITE"
 
-CFLAGS=/permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Zi /Gm- /O2 /sdl /Zc:inline /fp:precise /errorReport:prompt /WX- /Zc:forScope /Gd /Oi /MD /FC /EHsc /nologo  /diagnostics:column 
+CFLAGS=/permissive- /GS /GL /W3 /Gy /Zc:wchar_t /Zi /Gm- /O2 /sdl /Zc:inline /fp:precise /errorReport:prompt /WX- /Zc:forScope /Gd /Oi /MD /FC /EHsc /nologo /diagnostics:column 
 CDEFS=/D "WIN32" /D "_CRT_SECURE_NO_WARNINGS" /D "_CRT_NONSTDC_NO_DEPRECATE" /D "XML_STATIC" /D "_MBCS"
 LIBFLAGS=/LTCG /MACHINE:X64 /NOLOGO
 

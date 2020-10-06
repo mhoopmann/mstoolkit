@@ -123,6 +123,8 @@ sCvParam CInputs::checkSpectrumIDFormat(sCvParam& s){
     cv.accession = "MS:1001530"; cv.name = "mzML unique identifier";
   } else if (s.accession.compare("MS:1000566") == 0){ //note that mzXML is being given mzML identifier
     cv.accession = "MS:1001530"; cv.name = "mzML unique identifier"; 
+  } else if (s.accession.compare("MS:1001062") == 0){ 
+    cv.accession = "MS:1000774"; cv.name = "multiple peak list nativeID format";
   }
   if (cv.accession.compare("null") != 0) cv.cvRef = "PSI-MS";
 
