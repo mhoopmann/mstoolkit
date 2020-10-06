@@ -39,6 +39,7 @@ A few hints:
  * Add _NO_THERMORAW to build without Thermo file support in Windows. This is not necessary in GNU/Linux, where Thermo support is disabled by default.
  * Older versions of MSVC may require building with XML_STATIC declared.
  * Declaring WIN32 may still be required for compiling 64-bit libraries with MSVC.
+ * MAKEFILE.nmake is for MSVC builds without creating your own solution file. Use the x64 Native Tools Command Prompt in VS (tested on VS2019) and type nmake /f MAKEFILE.nmake all
  
 ### License
 Code written for the MSToolkit uses the Apache License, Version 2.0. All 3rd party software included in the MSToolkit library retains its original license.
