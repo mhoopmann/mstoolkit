@@ -108,7 +108,7 @@ int MzParser::highScan(){
   return 0;
 }
 
-bool MzParser::load(char* fname){
+bool MzParser::load(const char* fname){
   if(mzML!=NULL) {
     delete mzML;
     mzML=NULL;
@@ -234,7 +234,7 @@ bool MzParser::readSpectrumHeader(int num){
   return false;
 }
 
-int MzParser::checkFileType(char* fname){
+int MzParser::checkFileType(const char* fname){
   char file[256];
   char ext[256];
   char *tok;

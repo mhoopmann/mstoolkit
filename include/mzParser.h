@@ -1585,7 +1585,7 @@ public:
   std::vector<cindex>*  getChromatIndex();
   int   highChromat();
   int   highScan();
-  bool  load(char* fname);
+  bool  load(const char* fname);
   int   lowScan();
   bool  readChromatogram(int num=-1);
   bool  readSpectrum(int num=-1);
@@ -1601,7 +1601,7 @@ protected:
 
 private:
   //private functions
-  int checkFileType(char* fname);
+  int checkFileType(const char* fname);
 
   //private data members
   BasicChromatogram*  chromat;
