@@ -72,6 +72,7 @@ enum MSActivation {
   mstPQD,
   mstHCD,
 	mstIRMPD,
+  mstSID,
   mstNA
 };
 
