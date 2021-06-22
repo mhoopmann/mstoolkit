@@ -1007,6 +1007,10 @@ string CMzIdentML::addAnalysisSoftware(string software, string version){
     as.softwareName.cvParam.accession = "MS:1002289";
     as.softwareName.cvParam.cvRef = "PSI-MS";
     as.softwareName.cvParam.name = "ProteinProphet";
+  } else if (software.compare("PTMProphet") == 0 || software.compare("ptmprophet") == 0){
+    as.softwareName.cvParam.accession = "MS:1002292";
+    as.softwareName.cvParam.cvRef = "PSI-MS";
+    as.softwareName.cvParam.name = "PTMProphet";
   } else if (software.compare("X! Tandem (k-score)") == 0){
     as.softwareName.cvParam.accession = "MS:1001476";
     as.softwareName.cvParam.cvRef = "PSI-MS";
@@ -1197,6 +1201,10 @@ CDBSequence CMzIdentML::getDBSequence(string& dBSequence_ref){
 
 CDBSequence CMzIdentML::getDBSequenceByAcc(string acc){
   return *sequenceCollection.getDBSequenceByAcc(acc);
+}
+
+void CMzIdentML::getDBSequenceByAcc(string acc, vector<CDBSequence>& v){
+  sequenceCollection.getDBSequenceByAcc(acc,v);
 }
 
 CPeptide CMzIdentML::getPeptide(string peptide_ref){

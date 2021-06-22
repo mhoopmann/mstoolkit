@@ -56,12 +56,13 @@ bool CModification::operator==(const CModification& m){
   if (this == &m) return true;
   if (avgMassDelta!=m.avgMassDelta) return false;
   if (location!=m.location) return false;
-  if (monoisotopicMassDelta!=m.monoisotopicMassDelta) return false;
+  if (fabs(monoisotopicMassDelta-m.monoisotopicMassDelta)>0.001) return false;
   if (residues.compare(m.residues) != 0) return false;
 
   size_t i, j;
-  if (cvParam.size() != m.cvParam.size()) return false;
+  //if (cvParam.size() != m.cvParam.size()) return false;
   for (i = 0; i < cvParam.size(); i++){
+    if(cvParam[i].accession.compare("MS:1002504")==0) continue; //skip modification index
     for (j = 0; j < m.cvParam.size(); j++){
       if (cvParam[i] == m.cvParam[j]) break;
     }

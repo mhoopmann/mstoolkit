@@ -15,6 +15,7 @@ limitations under the License.
 #define _CMODIFICATION_H
 
 #include "mzIMLStructs.h"
+#include <cmath>
 #include <string>
 #include <vector>
 

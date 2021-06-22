@@ -402,6 +402,40 @@ CDBSequence* CSequenceCollection::getDBSequenceByAcc(string acc){
 
 }
 
+//binary searches for the DBSequence. If the sequence list is out of order, it gets sorted NOW.
+void CSequenceCollection::getDBSequenceByAcc(string acc, vector<CDBSequence>& v){
+  if (sortDBSequenceAcc) doDBSequenceSortAcc();
+  size_t sz = dbSequence.size();
+  size_t lower = 0;
+  size_t mid = sz / 2;
+  size_t upper = sz;
+  int i;
+
+  v.clear();
+
+  i = dbSequence[mid].accession.compare(acc);
+  while (i != 0){
+    if (lower >= upper) return;
+    if (i>0){
+      if (mid == 0) return;
+      upper = mid - 1;
+      mid = (lower + upper) / 2;
+    } else {
+      lower = mid + 1;
+      mid = (lower + upper) / 2;
+    }
+    if (mid == sz) return;
+    i = dbSequence[mid].accession.compare(acc);
+  }
+  
+  v.push_back(dbSequence[mid]);
+  i=(int)mid-1;
+  while (i>-1 && dbSequence[i].accession.compare(acc)==0)v.push_back(dbSequence[i--]);
+  i=(int)mid+1;
+  while (i<(int)dbSequence.size() && dbSequence[i].accession.compare(acc) == 0)v.push_back(dbSequence[i++]);
+
+}
+
 //binary searches for the peptide by reference. If the peptide list is out of order, it gets sorted NOW.
 CPeptide* CSequenceCollection::getPeptide(string peptideRef){
   if (sortPeptide) doPeptideSort();
@@ -551,6 +585,7 @@ string CSequenceCollection::getPeptideEvidenceFromPeptideAndProtein(CPeptide& p,
     }
     i++;
   }
+
   return "";
 }
 

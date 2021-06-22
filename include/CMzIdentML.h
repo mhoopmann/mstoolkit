@@ -86,6 +86,7 @@ public:
   
   CDBSequence       getDBSequence(std::string& dBSequence_ref);
   CDBSequence       getDBSequenceByAcc(std::string acc);
+  void              getDBSequenceByAcc(std::string acc, std::vector<CDBSequence>& v);
   CPeptide          getPeptide(std::string peptide_ref);
   bool              getPeptide(std::string peptide_ref, CPeptide& p);
   bool              getPeptide(std::string peptide_ref, CPeptide*& p);

@@ -262,14 +262,20 @@ sCvParam CModificationParams::findCvParam(double mass, string residues){
     if (residues.size()>0 && residues[0] == 'C') {
       cv.accession = "UNIMOD:4"; cv.cvRef = "UNIMOD"; cv.name = "Carbamidomethylation";
     } 
-  } else if (fabs(mass -17.026549) < 0.001){
+  } else if (fabs(mass +17.026549) < 0.001){
     if (residues.size()>0 && residues[0] == 'Q') {
       cv.accession = "UNIMOD:28"; cv.cvRef = "UNIMOD"; cv.name = "Gln->pryo-Glu";
+    } else if (residues.size() > 0 && residues[0] == 'C') {
+      cv.accession = "UNIMOD:385"; cv.cvRef = "UNIMOD"; cv.name = "Ammonia-loss";
     } else {
       cv.accession = "UNIMOD:385"; cv.cvRef = "UNIMOD"; cv.name = "Ammonia-loss";
     }
-  } else if (fabs(mass - 18.010565) < 0.001){
-    cv.accession = "UNIMOD:23"; cv.cvRef = "UNIMOD"; cv.name = "Dehydrated";
+  } else if (fabs(mass + 18.010565) < 0.001){
+    if (residues.size() > 0 && residues[0] == 'E') {
+      cv.accession = "UNIMOD:27"; cv.cvRef = "UNIMOD"; cv.name = "Glu->pyro-Glu";
+    } else {
+      cv.accession = "UNIMOD:23"; cv.cvRef = "UNIMOD"; cv.name = "Dehydrated";
+    }
   } else if (fabs(mass - 144.102063) < 0.001){
     cv.accession = "UNIMOD:214"; cv.cvRef = "UNIMOD"; cv.name = "iTRAQ4plex";
   } else if (fabs(mass - 79.966331) < 0.001){
@@ -282,6 +288,10 @@ sCvParam CModificationParams::findCvParam(double mass, string residues){
     cv.accession = "UNIMOD:1789"; cv.cvRef = "UNIMOD"; cv.name = "Xlink:DSS[155]";
   } else if (fabs(mass - 138.06808) < 0.001){
     cv.accession = "UNIMOD:1898"; cv.cvRef = "UNIMOD"; cv.name = "Xlink:DSS[138]";
+  } else if (fabs(mass - 42.010565) < 0.001) {
+    cv.accession = "UNIMOD:1"; cv.cvRef = "UNIMOD"; cv.name = "Acetyl";
+  } else if (fabs(mass - 0.984016) < 0.001) {
+    cv.accession = "UNIMOD:7"; cv.cvRef = "UNIMOD"; cv.name = "Deamidated";
   }
   return cv;
 }

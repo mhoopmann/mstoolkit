@@ -32,11 +32,13 @@ using namespace std;
 
 CSearchDatabase* CInputs::addSearchDatabase(string loc){
 
-  //check if DB is already in list
   size_t i;
-  for (i = 0; i < searchDatabase.size(); i++){
-    if (searchDatabase[i].location.compare(loc) == 0) return &searchDatabase[i];
-  }
+
+  //not using the path+name (i.e. location) anymore. This causes duplicates when someone passes the same file from multiple locations.
+  //check if DB is already in list  
+  //for (i = 0; i < searchDatabase.size(); i++){
+  //  if (searchDatabase[i].location.compare(loc) == 0) return &searchDatabase[i];
+  //}
 
   CSearchDatabase sdb;
   char cID[32];
@@ -52,6 +54,11 @@ CSearchDatabase* CInputs::addSearchDatabase(string loc){
     sdb.fileFormat.cvParam.cvRef = "PSI-MS";
     sdb.fileFormat.cvParam.accession = "MS:1001348";
     sdb.fileFormat.cvParam.name = "FASTA format";
+  }
+
+  //check if DB is already in list  
+  for (i = 0; i < searchDatabase.size(); i++){
+    if (searchDatabase[i].databaseName.userParam.name.compare(sdb.databaseName.userParam.name) == 0) return &searchDatabase[i];
   }
 
   //TODO: add optional information
@@ -94,10 +101,19 @@ sCvParam CInputs::checkFileFormat(string s){
   i = s.rfind('.');
   if (i != string::npos){
     ext = s.substr(i);
-    for (i = 0; i<ext.size(); i++) ext[i] = toupper(ext[i]);
+    for (size_t a = 0; a<ext.size(); a++) ext[a] = toupper(ext[a]);
     if (ext.compare(".GZ") == 0) {
-      cerr  << "Unhandled .GZ file" << endl;
-      exit(1);
+      size_t j = s.rfind('.',i-1);
+      string ext2=s.substr(j);
+      for (size_t a = 0; a < ext2.size(); a++) ext2[a] = toupper(ext2[a]);
+      if(ext2.compare(".MZML.GZ")==0){
+        cv.accession = "MS:1000584"; cv.name = "mzML format";
+      } else if(ext2.compare(".MZXML.GZ")==0){
+        cv.accession = "MS:1000566"; cv.name = "ISB mzXML format";
+      } else {
+        cerr  << "mzIMLTools CInputs::checkFileFormat(): Cannot find CV for extension: " << ext2 << endl;
+        exit(1);
+      }
     } else if (ext.compare(".MGF") == 0) {
       cv.accession="MS:1001062"; cv.name="Mascot MGF file";
     } else if (ext.compare(".MZXML") == 0){
@@ -106,6 +122,9 @@ sCvParam CInputs::checkFileFormat(string s){
       cv.accession = "MS:1000584"; cv.name = "mzML format";
     } else if (ext.compare(".MZ5") == 0){
       cv.accession = "MS:1001881"; cv.name = "mz5 format";
+    } else {
+      cerr << "mzIMLTools CInputs::checkFileFormat(): Cannot find CV for extension: " << ext << endl;
+      exit(1);
     }
   }
   if (cv.accession.compare("null") != 0) cv.cvRef = "PSI-MS";

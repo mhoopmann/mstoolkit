@@ -70,7 +70,7 @@ void CAnalysisData::buildPeptideEvidenceTable(){
   peptideEvidenceTable.clear();
 
   sXRefSIIPE s;
-  size_t i,j,k;
+  size_t i,j,k,n;
 
   CSpectrumIdentificationList* sil;
   CSpectrumIdentificationItem* sii;
@@ -79,12 +79,14 @@ void CAnalysisData::buildPeptideEvidenceTable(){
   for (i = 0; i<spectrumIdentificationList.size(); i++){
     sil = &spectrumIdentificationList[i];
     for (j = 0; j < sil->spectrumIdentificationResult.size(); j++){
-      sii = &sil->spectrumIdentificationResult[j].spectrumIdentificationItem[0];
-      s.spectrumIdentificationItemRef = sii->id;
-      s.charge=sii->chargeState;
-      for (k = 0; k < sii->peptideEvidenceRef.size(); k++){
-        s.peptideEvidenceRef = sii->peptideEvidenceRef[k].peptideEvidenceRef;
-        peptideEvidenceTable.push_back(s);
+      for(n=0;n<sil->spectrumIdentificationResult[j].spectrumIdentificationItem.size();n++){
+        sii = &sil->spectrumIdentificationResult[j].spectrumIdentificationItem[n];
+        s.spectrumIdentificationItemRef = sii->id;
+        s.charge=sii->chargeState;
+        for (k = 0; k < sii->peptideEvidenceRef.size(); k++){
+          s.peptideEvidenceRef = sii->peptideEvidenceRef[k].peptideEvidenceRef;
+          peptideEvidenceTable.push_back(s);
+        }
       }
     }
   }
