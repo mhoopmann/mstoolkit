@@ -155,11 +155,11 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
   
   //add new peptides
   char str[12];
-  sprintf(str,"%d",vXLPepTable.size());
+  sprintf(str,"%d",(int)vXLPepTable.size());
   value=str;
   if (p1.id.empty()){
     char dbid[32];
-    sprintf(dbid, "Pep%d", peptide.size());
+    sprintf(dbid, "Pep%d", (int)peptide.size());
     p1.id = dbid;
     sCvParam cv;
     cv.cvRef="PSI-MS";
@@ -173,7 +173,7 @@ bool CSequenceCollection::addXLPeptides(string ID, CPeptide& p1, CPeptide& p2, s
 
   if (p2.id.empty()){
     char dbid[32];
-    sprintf(dbid, "Pep%d", peptide.size());
+    sprintf(dbid, "Pep%d", (int)peptide.size());
     p2.id = dbid;
     sCvParam cv;
     cv.cvRef = "PSI-MS";
