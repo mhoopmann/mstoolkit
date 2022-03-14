@@ -20,6 +20,7 @@ limitations under the License.
 #include <algorithm>
 #include <vector>
 #include <iostream>
+#include <map>
 
 class CSequenceCollection{
 public:
@@ -43,32 +44,27 @@ public:
   void getDBSequenceByAcc(std::string acc, std::vector<CDBSequence>& v);
   CPeptide* getPeptide(std::string peptideRef);
   CPeptideEvidence  getPeptideEvidence(std::string& id);
-  std::string getPeptideEvidenceFromPeptideAndProtein(CPeptide& p, std::string dbSequenceRef);
+  bool getPeptideEvidenceFromPeptideAndProtein(CPeptide& p, std::string dbSequenceRef, std::vector<std::string>& vPE);
   std::string getProtein(sPeptideEvidenceRef& s);
   void writeOut(FILE* f, int tabs = -1);
-
-  //Data members
-  bool sortDBSequence;
-  bool sortDBSequenceAcc;
-  bool sortPeptide;
-  bool sortPeptideSeq;
-  bool sortPeptideEvidence;
-  bool sortPeptideEvidencePepRef;
-
-private:
-  std::vector<sPepTable> vPepEvTable;
-  std::vector<sPepTable> vPepTable;
-  std::vector<sXLPepTable> vXLPepTable;
-
-  //Functions
-  void doDBSequenceSort();
-  void doDBSequenceSortAcc();
-  void doPeptideSort();
-  void doPeptideSeqSort();
-  void doPeptideEvidenceSort();
-  void doPeptideEvidencePepRefSort();
+  
+  void rebuildDBTable();
   void rebuildPepEvTable();
   void rebuildPepTable();
+
+
+private:
+  //std::vector<sPepTable> vPepEvTable;
+  //std::vector<sPepTable> vPepTable;
+  //std::vector<sPepTable> vPepIDTable;
+  std::vector<sXLPepTable> vXLPepTable;  //TODO? Update this?
+  std::multimap<std::string,size_t> mmDBTable;
+  std::map<std::string, size_t> mDBIDTable;
+  std::multimap<std::string,size_t> mmPepTable;
+  std::map<std::string,size_t> mPepIDTable;
+  std::multimap<std::string, size_t> mmPepEvTable;
+  std::map<std::string, size_t> mPepEvIDTable;
+
 
   //Sorting Functions
   static bool compareDBSequence(const CDBSequence& a, const CDBSequence& b);

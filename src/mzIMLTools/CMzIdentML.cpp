@@ -499,7 +499,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     db.searchDatabaseRef = getAttrValue("searchDatabase_ref", attr);
     db.length = atoi(getAttrValue("length", attr));
     sequenceCollection.dbSequence.push_back(db);
-    sequenceCollection.sortDBSequence=true;
+    //sequenceCollection.sortDBSequence=true;
 
   } else if (isElement("DataCollection", el)){
     activeEl.push_back(DataCollection);
@@ -679,7 +679,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     p.id = getAttrValue("id", attr);
     p.name = getAttrValue("name", attr);
     sequenceCollection.peptide.push_back(p);
-    sequenceCollection.sortPeptide=true;
+    //sequenceCollection.sortPeptide=true;
 
   } else if (isElement("PeptideEvidence", el)){
     activeEl.push_back(PeptideEvidence);
@@ -700,7 +700,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     s = getAttrValue("start", attr);
     if (s.size()>0) pe.start = atoi(s.c_str());
     sequenceCollection.peptideEvidence.push_back(pe);
-    sequenceCollection.sortPeptideEvidence=true;
+    //sequenceCollection.sortPeptideEvidence=true;
 
   } else if (isElement("PeptideEvidenceRef", el)){
     sPeptideEvidenceRef per;
@@ -897,6 +897,7 @@ void CMzIdentML::startElement(const XML_Char *el, const XML_Char **attr){
     activeEl.push_back(SpectrumIdentificationList);
     CSpectrumIdentificationList sil;
     sil.id = getAttrValue("id", attr);
+    sil.numSequencesSearched = atoi(getAttrValue("numSequencesSearched",attr));
     dataCollection.analysisData.spectrumIdentificationList.push_back(sil);
 
   } else if (isElement("SpectrumIdentificationProtocol", el)){
@@ -1647,6 +1648,10 @@ bool CMzIdentML::readFile(const char* fn) {
   if (fileBase.find_last_of("\\") != string::npos) fileBase = fileBase.substr(fileBase.find_last_of("\\")+1,fileBase.size());
   else if (fileBase.find_last_of("/") != string::npos) fileBase = fileBase.substr(fileBase.find_last_of("/")+1,fileBase.size());
   if (fileBase.find_last_of(".")!=string::npos) fileBase = fileBase.substr(0,fileBase.find_last_of("."));
+
+  sequenceCollection.rebuildDBTable();
+  sequenceCollection.rebuildPepEvTable();
+  sequenceCollection.rebuildPepTable();
 
   return true;
 }

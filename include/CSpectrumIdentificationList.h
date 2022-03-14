@@ -24,7 +24,7 @@ class CSpectrumIdentificationList {
 public:
 
   //Constructors & Destructor
-  //CSpectrumIdentificationList();
+  CSpectrumIdentificationList();
   //CSpectrumIdentificationList(const CSpectrumIdentificationList& s);
   //~CSpectrumIdentificationList();
 

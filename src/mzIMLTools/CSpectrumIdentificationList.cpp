@@ -15,18 +15,9 @@ limitations under the License.
 
 using namespace std;
 
-//CSpectrumIdentificationList::CSpectrumIdentificationList(){
-//  id = "null";
-//  name.clear();
-//  numSequencesSearched=0;
-//
-//  CSpectrumIdentificationResult sir;
-//  spectrumIdentificationResult = new vector<CSpectrumIdentificationResult>;
-//  spectrumIdentificationResult->push_back(sir);
-//
-//  cvParam = new vector<sCvParam>;
-//  userParam = new vector<sUserParam>;
-//}
+CSpectrumIdentificationList::CSpectrumIdentificationList(){
+  numSequencesSearched=0;
+}
 //
 //CSpectrumIdentificationList::CSpectrumIdentificationList(const CSpectrumIdentificationList& s){
 //  id=s.id;
