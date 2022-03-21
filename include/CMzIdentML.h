@@ -100,6 +100,7 @@ public:
   CSpectrumIdentificationResult&    getSpectrumIdentificationResult(std::string& spectrumIdentificationResult_ref);
   CSpectrumIdentificationResult*    getSpectrumIdentificationResultBySpectrumID(std::string& spectrumIdentificationList_ref, std::string& spectrumIdentificationResult_spectrumID);
 
+  std::string getMzIMLToolsVersion();
   int getVersion();
   bool readFile(const char* fn);
   void setVersion(int ver);
