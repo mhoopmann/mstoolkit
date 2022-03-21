@@ -17,6 +17,7 @@ limitations under the License.
 #include "CSpecificityRules.h"
 #include "mzIMLStructs.h"
 #include <vector>
+#include <math.h>
 
 class CSearchModification{
 public:
