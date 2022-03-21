@@ -49,7 +49,7 @@ CSearchModification::CSearchModification(){
 bool CSearchModification::operator==(const CSearchModification& c){
   if (this == &c) return true;
   if(fixedMod!=c.fixedMod) return false;
-  if(massDelta!=c.massDelta) return false;
+  if(fabs(massDelta-c.massDelta)>0.001) return false; //fuzzy maths here because people use different precisions
   if(residues.compare(c.residues)!=0) return false;
   if (specificityRules.size()!=c.specificityRules.size()) return false;
   if (cvParam.size() != c.cvParam.size()) return false;

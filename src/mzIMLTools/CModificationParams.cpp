@@ -109,7 +109,12 @@ void CModificationParams::addSearchModification(bool fixed, double mass, string 
   }
   sm.cvParam.push_back(cv);
 
-  searchModification.push_back(sm);
+  //only add if not already defined.
+  size_t a;
+  for(a=0;a<searchModification.size();a++){
+    if(sm==searchModification[a]) break;
+  }
+  if(a==searchModification.size()) searchModification.push_back(sm);
 
 }
 
@@ -292,6 +297,8 @@ sCvParam CModificationParams::findCvParam(double mass, string residues){
     cv.accession = "UNIMOD:1"; cv.cvRef = "UNIMOD"; cv.name = "Acetyl";
   } else if (fabs(mass - 0.984016) < 0.001) {
     cv.accession = "UNIMOD:7"; cv.cvRef = "UNIMOD"; cv.name = "Deamidated";
+  } else if (fabs(mass - 27.994915) < 0.001) {
+    cv.accession = "UNIMOD:122"; cv.cvRef = "UNIMOD"; cv.name = "Formyl";
   }
   return cv;
 }

@@ -1208,6 +1208,14 @@ void CMzIdentML::getDBSequenceByAcc(string acc, vector<CDBSequence>& v){
   sequenceCollection.getDBSequenceByAcc(acc,v);
 }
 
+string CMzIdentML::getMzIMLToolsVersion(){
+  string st;
+  st += mziVersion;
+  st += "\t";
+  st += mziDate;
+  return st;
+}
+
 CPeptide CMzIdentML::getPeptide(string peptide_ref){
   CPeptide* p=sequenceCollection.getPeptide(peptide_ref);
   if(p==NULL) {
