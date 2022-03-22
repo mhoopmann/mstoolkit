@@ -299,6 +299,8 @@ sCvParam CModificationParams::findCvParam(double mass, string residues){
     cv.accession = "UNIMOD:7"; cv.cvRef = "UNIMOD"; cv.name = "Deamidated";
   } else if (fabs(mass - 27.994915) < 0.001) {
     cv.accession = "UNIMOD:122"; cv.cvRef = "UNIMOD"; cv.name = "Formyl";
+  } else if (fabs(mass - 304.202200) < 0.001) { //note that the actual mass in UNIMOD is only the first four channels (304.20536)
+    cv.accession = "UNIMOD:730"; cv.cvRef = "UNIMOD"; cv.name = "iTRAQ8plex";
   }
   return cv;
 }
