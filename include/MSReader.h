@@ -93,6 +93,7 @@ class MSReader {
   void writeFile(const char* c, MSFileFormat ff, MSObject& m, const char* sha1Report=NULL);
 
   bool readMGFFile(const char* c, Spectrum& s); //Note, no random-access of MGF files.
+  bool readMGFFile2(const char* c, Spectrum& s); //Note, no random-access of MGF files.
   bool readMSTFile(const char* c, bool text, Spectrum& s, int scNum=0);
   bool readMZPFile(const char* c, Spectrum& s, int scNum=0);
   bool readFile(const char* c, Spectrum& s, int scNum=0);

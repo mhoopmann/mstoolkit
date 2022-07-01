@@ -438,6 +438,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->msLevel=0;
   scanHeader->numPossibleCharges=0;
   scanHeader->precursorCharge=0;
+  scanHeader->precursorCount=0;
   scanHeader->precursorIntensity=0.0;
   scanHeader->precursorMonoMZ=0.0;
   scanHeader->precursorMZ=0.0;

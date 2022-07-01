@@ -505,7 +505,7 @@ void Spectrum::setMZ(double d, double mono){
   monoMZ->push_back(mono);
 }
 
-void Spectrum::setNativeID(char* c){
+void Spectrum::setNativeID(const char* c){
   if(strlen(c)>256) cout << "Error - spectrumNativeID filter larger than 256 characters." << endl;
   else strcpy(nativeID,c);
 }

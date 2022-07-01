@@ -103,7 +103,7 @@ class Spectrum {
   void    				setFileType(MSSpectrumType);
   void            setIonInjectionTime(float);
   void		    		setMZ(double, double mono=0);
-  void            setNativeID(char*);
+  void            setNativeID(const char*);
   void            setRawFilter(char*);
   void				    setRTime(float);
   void            setRTimeApex(float);
