@@ -163,6 +163,7 @@ class MSReader {
   bool mgfOnePlus;
   int mgfIndex;
   std::vector<int> mgfGlobalCharge;
+  std::vector<std::string> mgfFiles;
 
   //Functions
   void closeFile();

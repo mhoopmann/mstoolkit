@@ -589,6 +589,7 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     closeFile();
     if (openFile(c, true) == 1) return false;
     mgfIndex = 1;
+    mgfFiles.clear();
   } else if (fileIn == NULL) {
     cout << "fileIn is NULL" << endl;
     return false;
@@ -612,6 +613,7 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       if(tokens[1].compare("Monoisotopic")==0) bMono=true;
       else bMono=false;
     } else if (tokens[0].compare("CHARGE") == 0){
+      mgfGlobalCharge.clear();
       strcpy(str,tokens[1].c_str());
       tok = strtok(str, " \t\n\r");
       while (tok != NULL){
@@ -631,6 +633,14 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
           break;
         }
         tok = strtok(NULL, " \t\n\r");
+      }
+    } else if(tokens[0][0]=='_') { //user and reserved parameters
+      if(tokens[0].find("_DISTILLER_RAWFILE")==0){
+        size_t pos=tokens[1].find_last_of('\\');
+        if(pos==string::npos) pos=tokens[1].find_last_of('/');
+        if(pos==string::npos) pos=0;
+        else pos++;
+        mgfFiles.push_back(tokens[1].substr(pos));
       }
     }
   }
@@ -684,9 +694,13 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       s.setCharge(ch);
     } else if (tokens[0].compare("PEPMASS")==0) {
       s.setMZ(atof(tokens[1].c_str()));
-    } else if (tokens[0].compare("SCANS")==0) {
+    } else if (tokens[0].find("SCANS")==0) {
       s.setScanNumber(atoi(tokens[1].c_str()));
-    } else if (tokens[0].compare("RTINSECONDS")==0) {
+      if(tokens[0].size()>5){ //only process file identifier from SCANS parameter
+        size_t fIndex=(size_t)atoi(&tokens[0][6]);
+        s.setFileID(mgfFiles[fIndex]);
+      }
+    } else if (tokens[0].find("RTINSECONDS")==0) {
       s.setRTime((float)(atof(tokens[1].c_str()) / 60.0));
     } else if (tokens[0].compare("TITLE")==0) {
       s.setNativeID(tokens[1].c_str());
