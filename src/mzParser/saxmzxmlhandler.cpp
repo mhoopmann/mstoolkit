@@ -270,7 +270,7 @@ bool mzpSAXMzxmlHandler::readHeader(int num){
     m_bHeaderOnly=true;
     parseOffset(m_vIndex[mid].offset);
     //force scan number; this was done for files where scan events are not numbered
-    if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+    if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum((int)m_vIndex[mid].scanNum);
     spec->setScanIndex((int)mid+1); //set the index, which starts from 1, so offset by 1
     m_bHeaderOnly=false;
     posIndex=(int)mid;
@@ -330,7 +330,7 @@ bool mzpSAXMzxmlHandler::readSpectrum(int num){
   if(m_vIndex[mid].scanNum==num) {
     parseOffset(m_vIndex[mid].offset);
     //force scan number; this was done for files where scan events are not numbered
-    if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+    if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum((int)m_vIndex[mid].scanNum);
     spec->setScanIndex((int)mid+1); //set the index, which starts from 1, so offset by 1
     posIndex=(int)mid;
     return true;
@@ -649,12 +649,12 @@ void mzpSAXMzxmlHandler::stopParser(){
 
 int mzpSAXMzxmlHandler::highScan() {
   if(m_vIndex.size()==0) return 0;
-  return m_vIndex[m_vIndex.size()-1].scanNum;
+  return (int)m_vIndex[m_vIndex.size()-1].scanNum;
 }
 
 int mzpSAXMzxmlHandler::lowScan() {
   if(m_vIndex.size()==0) return 0;
-  return m_vIndex[0].scanNum;
+  return (int)m_vIndex[0].scanNum;
 }
 
 vector<cindex>* mzpSAXMzxmlHandler::getIndex(){

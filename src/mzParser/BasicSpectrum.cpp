@@ -24,16 +24,7 @@ BasicSpectrum::BasicSpectrum() {
   msLevel=1;
   peaksCount=0;
   positiveScan=true;
-  //precursorCharge[0]=0;
-  //precursorCharge[1] = 0;
-  //precursorCharge[2] = 0;
-  //precursorCharge[3] = 0;
-  //precursorCharge[4] = 0;
-  //precursorChargeCount=0;
-  //precursorIntensity=0.0;
   compensationVoltage=0.0;
-  //precursorMonoMZ=0.0;
-  //precursorMZ=0.0;
   precursorScanNum=-1;
   rTime=0.0f;
   scanIndex=0;
@@ -41,15 +32,13 @@ BasicSpectrum::BasicSpectrum() {
   totalIonCurrent=0.0;
   idString[0]='\0';
   vData=new vector<specDP>;
+  vDataIonMob = new vector<specIonMobDP>;
   vPrecursor=new vector<sPrecursorIon>;
 }
 BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
-  vData=new vector<specDP>;
-  vPrecursor=new vector<sPrecursorIon>;
-  unsigned int i;
-  for(i=0;i<s.vData->size();i++) vData->push_back(s.vData->at(i));
-  for(i=0;i<s.vPrecursor->size();i++) vPrecursor->push_back(s.vPrecursor->at(i));
-  //for(i=0;i<5;i++) precursorCharge[i] = s.precursorCharge[i];
+  vData=new vector<specDP>(*s.vData);
+  vDataIonMob = new vector<specIonMobDP>(*s.vDataIonMob);
+  vPrecursor=new vector<sPrecursorIon>(*s.vPrecursor);
   activation=s.activation;
   basePeakIntensity=s.basePeakIntensity;
   basePeakMZ=s.basePeakMZ;
@@ -60,11 +49,7 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
   msLevel=s.msLevel;
   peaksCount=s.peaksCount;
   positiveScan=s.positiveScan;
-  //precursorChargeCount=s.precursorChargeCount;
-  //precursorIntensity=s.precursorIntensity;
   compensationVoltage=s.compensationVoltage;
-  //precursorMonoMZ=s.precursorMonoMZ;
-  //precursorMZ=s.precursorMZ;
   precursorScanNum=s.precursorScanNum;
   rTime=s.rTime;
   scanIndex=s.scanIndex;
@@ -75,6 +60,7 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
 }
 BasicSpectrum::~BasicSpectrum() {
   delete vData;
+  delete vDataIonMob;
   delete vPrecursor;
 }
 
@@ -84,13 +70,11 @@ BasicSpectrum::~BasicSpectrum() {
 BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
   if (this != &s) {
     delete vData;
+    delete vDataIonMob;
     delete vPrecursor;
-    vData=new vector<specDP>;
-    vPrecursor=new vector<sPrecursorIon>;
-    unsigned int i;
-    for(i=0;i<s.vData->size();i++) vData->push_back(s.vData->at(i));
-    for(i=0;i<s.vPrecursor->size();i++) vPrecursor->push_back(s.vPrecursor->at(i));
-    //for(i=0;i<5;i++) precursorCharge[i] = s.precursorCharge[i];
+    vData=new vector<specDP>(*s.vData);
+    vDataIonMob=new vector<specIonMobDP>(*s.vDataIonMob);
+    vPrecursor=new vector<sPrecursorIon>(*s.vPrecursor);
     activation=s.activation;
     basePeakIntensity=s.basePeakIntensity;
     basePeakMZ=s.basePeakMZ;
@@ -101,11 +85,7 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
     msLevel=s.msLevel;
     peaksCount=s.peaksCount;
     positiveScan=s.positiveScan;
-    //precursorChargeCount=s.precursorChargeCount;
-    //precursorIntensity=s.precursorIntensity;
     compensationVoltage=s.compensationVoltage;
-    //precursorMonoMZ=s.precursorMonoMZ;
-    //precursorMZ=s.precursorMZ;
     precursorScanNum=s.precursorScanNum;
     rTime=s.rTime;
     scanIndex=s.scanIndex;
@@ -124,6 +104,7 @@ specDP& BasicSpectrum::operator[ ](const size_t index) {
 //  Modifiers
 //------------------------------------------
 void BasicSpectrum::addDP(specDP dp) { vData->push_back(dp);}
+void BasicSpectrum::addDP(specIonMobDP dp) { vDataIonMob->push_back(dp); }
 void BasicSpectrum::clear(){
   activation=none;
   basePeakIntensity=0.0;
@@ -137,17 +118,14 @@ void BasicSpectrum::clear(){
   msLevel=1;
   peaksCount=0;
   positiveScan=true;
-  //precursorCharge[0]=0;
-  //precursorChargeCount=0;
-  //precursorIntensity=0.0;
   compensationVoltage=0.0;
-  //precursorMZ=0;
   precursorScanNum=-1;
   rTime=0.0f;
   scanIndex=0;
   scanNum=-1;
   totalIonCurrent=0.0;
   vData->clear();
+  vDataIonMob->clear();
   vPrecursor->clear();
 }
 void BasicSpectrum::clearPrecursor(){ vPrecursor->clear();}
@@ -187,6 +165,8 @@ double BasicSpectrum::getBasePeakMZ(){ return basePeakMZ;}
 bool BasicSpectrum::getCentroid(){ return centroid;}
 double BasicSpectrum::getCollisionEnergy(){ return collisionEnergy;}
 double BasicSpectrum::getCompensationVoltage(){ return compensationVoltage;}
+double BasicSpectrum::getInverseReducedIonMobility() { return inverseReducedIonMobility; }
+specIonMobDP& BasicSpectrum::getIonMobDP(const size_t& index) { return vDataIonMob->at(index); }
 int BasicSpectrum::getFilterLine(char* str) {
   strcpy(str,filterLine);
   return (int)strlen(str);
@@ -206,9 +186,6 @@ int BasicSpectrum::getPrecursorCharge(int i){ //legacy function. Always returns 
   if (i>=vPrecursor->size()) return 0;
   return vPrecursor->at(i).charge;
 }
-//int BasicSpectrum::getPrecursorChargeCount(){ return precursorChargeCount;}
-//double BasicSpectrum::getPrecursorIntensity(){ return precursorIntensity;}
-//double BasicSpectrum::getPrecursorMonoMZ(){ return precursorMonoMZ;}
 double BasicSpectrum::getPrecursorMZ(int i){ //legacy function. Always returns first precursor mz
   if (vPrecursor->size()==0) return 0;
   if (i >= vPrecursor->size()) return 0;

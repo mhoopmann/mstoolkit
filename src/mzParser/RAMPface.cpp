@@ -13,10 +13,10 @@ using namespace std;
 using namespace mzParser;
 
 int mzParser::checkFileType(const char* fname){
-  char file[256];
-  char ext[256];
+  char file[4096];
+  char ext[4096];
   char *tok;
-  char preExt[256];
+  char preExt[4096];
   unsigned int i;
 
   if (strlen(fname) < 4) {
@@ -117,6 +117,7 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
     strcpy(r->ionisation,"UNKNOWN");
     strcpy(r->manufacturer,"UNKNOWN");
     strcpy(r->model,"UNKNOWN");
+	strcpy(r->serial,"UNKNOWN");							
   }
 
   switch(pFI->fileType){
@@ -128,6 +129,7 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
         if(pFI->mzML->getInstrument()->at(0).ionization.size()>1) strcpy(r->ionisation,&pFI->mzML->getInstrument()->at(0).ionization[0]);
         if(pFI->mzML->getInstrument()->at(0).manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzML->getInstrument()->at(0).manufacturer[0]);
         if(pFI->mzML->getInstrument()->at(0).model.size()>1) strcpy(r->model,&pFI->mzML->getInstrument()->at(0).model[0]);
+		if(pFI->mzML->getInstrument()->at(0).serial.size()>1) strcpy(r->serial,&pFI->mzML->getInstrument()->at(0).serial[0]);																													 
       }
       break;
 
@@ -138,6 +140,7 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
       if(pFI->mzXML->getInstrument().ionization.size()>1) strcpy(r->ionisation,&pFI->mzXML->getInstrument().ionization[0]);
       if(pFI->mzXML->getInstrument().manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzXML->getInstrument().manufacturer[0]);
       if(pFI->mzXML->getInstrument().model.size()>1) strcpy(r->model,&pFI->mzXML->getInstrument().model[0]);
+      if(pFI->mzXML->getInstrument().serial.size()>1) strcpy(r->serial,&pFI->mzXML->getInstrument().serial[0]);																										   
       break;
 
     case 5:
@@ -258,7 +261,7 @@ char* mzParser::rampConstructInputPath(char *buf, int inbuflen, const char *dir_
 
   FILE* f;
   char* result = NULL;
-  char base[512];
+  char base[4096];
   strcpy(base,basename);
 
   //Try opening the base name first, then with directory:
@@ -364,8 +367,8 @@ RAMPFILE* mzParser::rampOpenFile(const char* filename){
 }
 
 char* mzParser::rampValidFileType(const char *buf){
-  char ext[256];
-  char preExt[256];
+  char ext[4096];
+  char preExt[4096];
 
   const char* result=NULL;
   const char* result2=NULL;
@@ -425,6 +428,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->centroid=false;
   scanHeader->collisionEnergy=0.0;
   scanHeader->compensationVoltage=0.0;
+  scanHeader->inverseReducedIonMobility=0.0;											
   scanHeader->filePosition=0;
   scanHeader->filterLine[0]='\0';
   scanHeader->highMZ=0.0;
@@ -501,6 +505,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->centroid=pFI->bs->getCentroid();
   scanHeader->collisionEnergy=pFI->bs->getCollisionEnergy();
   scanHeader->compensationVoltage=pFI->bs->getCompensationVoltage();
+  scanHeader->inverseReducedIonMobility=pFI->bs->getInverseReducedIonMobility();																				
   scanHeader->highMZ=pFI->bs->getHighMZ();
   scanHeader->ionInjectionTime = pFI->bs->getIonInjectionTime();
   scanHeader->lowMZ=pFI->bs->getLowMZ();
@@ -696,6 +701,8 @@ void mzParser::readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
       runHeader->scanCount=(int)v->size();
       pFI->mzML->readHeader((int)v->at(0).scanNum);
       runHeader->dStartTime=pFI->bs->getRTime(false);
+      runHeader->lowMZ=pFI->bs->getLowMZ();
+      runHeader->highMZ=pFI->bs->getHighMZ();										   									 
       pFI->mzML->readHeader((int)v->at(v->size()-1).scanNum);
       runHeader->dEndTime=pFI->bs->getRTime(false);
       pFI->bs->clear();
@@ -707,6 +714,8 @@ void mzParser::readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
       runHeader->scanCount=(int)v->size();
       pFI->mzXML->readHeader((int)v->at(0).scanNum);
       runHeader->dStartTime=pFI->bs->getRTime(false);
+	  runHeader->lowMZ=pFI->bs->getLowMZ();
+      runHeader->highMZ=pFI->bs->getHighMZ();									   									 
       pFI->mzXML->readHeader((int)v->at(v->size()-1).scanNum);
       runHeader->dEndTime=pFI->bs->getRTime(false);
       pFI->bs->clear();
@@ -718,6 +727,8 @@ void mzParser::readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
       runHeader->scanCount=v2->size();
       pFI->mz5->readHeader(v2->at(0).scanNum);
       runHeader->dStartTime=pFI->bs->getRTime(false);
+      runHeader->lowMZ=pFI->bs->getLowMZ();
+      runHeader->highMZ=pFI->bs->getHighMZ();								   									 
       pFI->mz5->readHeader(v2->at(v2->size()-1).scanNum);
       runHeader->dEndTime=pFI->bs->getRTime(false);
       pFI->bs->clear();
@@ -732,13 +743,12 @@ void mzParser::readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader){
 
 //MH: Matching the index is very indirect, but requires less code,
 //making this wrapper much easier to read
-RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int iIndex){
+RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int iIndex, bool ionMobility){
   vector<cindex>* v;
 #ifdef MZP_MZ5
   vector<cMz5Index>* v2;
 #endif
   size_t i;
-  int scNum;
   RAMPREAL* pPeaks=NULL;
 
   if(lScanIndex<0) return pPeaks;
@@ -772,12 +782,31 @@ RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int i
   v2=NULL;
 #endif
 
-  unsigned int j=0;
+  size_t j=0;
   if(pFI->bs->size()>0){
-    pPeaks = (RAMPREAL *) malloc((pFI->bs->size()+1) * 2 * sizeof(RAMPREAL) + 1);
+	  if (pFI->bs->size() > pFI->peakCapacity || pFI->pPeaks==NULL) {
+      pFI->peakCapacity = (int)pFI->bs->size();
+      if (pFI->pPeaks != NULL) {
+	      free(pFI->pPeaks);
+      }
+      if ((pFI->fileType == 3 || pFI->fileType == 1) && pFI->mzML->getIonMobility()){
+		    pPeaks = (RAMPREAL *) malloc((pFI->bs->size()+1) * 3 * sizeof(RAMPREAL) + 1);
+      } else { 														
+        pPeaks = (RAMPREAL *) malloc((pFI->bs->size()+1) * 2 * sizeof(RAMPREAL) + 1);
+	    }
+	    pFI->pPeaks = pPeaks;
+    } else {
+      pPeaks = pFI->pPeaks;
+    }   
     for(i=0;i<pFI->bs->size();i++){
-      pPeaks[j++]=pFI->bs->operator [](i).mz;
-      pPeaks[j++]=pFI->bs->operator [](i).intensity;
+      if ((pFI->fileType == 3 || pFI->fileType == 1) && pFI->mzML->getIonMobility()) {
+        pPeaks[j++]=pFI->bs->getIonMobDP(i).mz;
+        pPeaks[j++]=pFI->bs->getIonMobDP(i).intensity;
+        pPeaks[j++]=pFI->bs->getIonMobDP(i).ionMobility;
+      } else {																				  				
+        pPeaks[j++]=pFI->bs->operator [](i).mz;
+        pPeaks[j++]=pFI->bs->operator [](i).intensity;
+      }
     }
   } else {
     pPeaks = (RAMPREAL *) malloc(2 * sizeof(RAMPREAL));
@@ -814,7 +843,7 @@ void mzParser::readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struc
       v=pFI->mzML->getSpecIndex();
       runHeader->scanCount=(int)v->size();
       
-      pFI->mzML->readHeader(v->at(0).scanNum);
+      pFI->mzML->readHeader((int)v->at(0).scanNum);
       runHeader->dStartTime=(double)pFI->bs->getRTime(false);
       runHeader->lowMZ=pFI->bs->getLowMZ();
       runHeader->highMZ=pFI->bs->getHighMZ();
@@ -822,7 +851,7 @@ void mzParser::readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struc
       runHeader->endMZ=runHeader->highMZ;
       
       for(i=1;i<v->size();i++) {
-        pFI->mzML->readHeader(v->at(i).scanNum);
+        pFI->mzML->readHeader((int)v->at(i).scanNum);
         if(pFI->bs->getLowMZ()<runHeader->lowMZ) {
           runHeader->lowMZ=pFI->bs->getLowMZ();
           runHeader->startMZ=runHeader->lowMZ;
@@ -832,7 +861,7 @@ void mzParser::readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struc
           runHeader->endMZ=runHeader->highMZ;
         }
       }
-      pFI->mzML->readHeader(v->at(v->size()-1).scanNum);
+      pFI->mzML->readHeader((int)v->at(v->size()-1).scanNum);
       break;
 
     case 2:
@@ -840,7 +869,7 @@ void mzParser::readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struc
       v=pFI->mzXML->getIndex();
       runHeader->scanCount=(int)v->size();
       
-      pFI->mzXML->readHeader(v->at(0).scanNum);
+      pFI->mzXML->readHeader((int)v->at(0).scanNum);
       runHeader->dStartTime=(double)pFI->bs->getRTime(false);
       runHeader->lowMZ=pFI->bs->getLowMZ();
       runHeader->highMZ=pFI->bs->getHighMZ();
@@ -848,7 +877,7 @@ void mzParser::readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struc
       runHeader->endMZ=runHeader->highMZ;
       
       for(i=1;i<v->size();i++) {
-        pFI->mzXML->readHeader(v->at(i).scanNum);
+        pFI->mzXML->readHeader((int)v->at(i).scanNum);
         if(pFI->bs->getLowMZ()<runHeader->lowMZ) {
           runHeader->lowMZ=pFI->bs->getLowMZ();
           runHeader->startMZ=runHeader->lowMZ;
@@ -858,7 +887,7 @@ void mzParser::readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struc
           runHeader->endMZ=runHeader->highMZ;
         }
       }
-      pFI->mzXML->readHeader(v->at(v->size()-1).scanNum);
+      pFI->mzXML->readHeader((int)v->at(v->size()-1).scanNum);
       break;
 
 #ifdef MZP_MZ5

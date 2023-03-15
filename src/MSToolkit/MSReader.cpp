@@ -1987,6 +1987,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       charges=NULL;
     }
   }
+
   //store the spectrum
 	pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex],rampIndex);
 	j=0;
@@ -1996,7 +1997,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	}
   lastReadScanNum = scanHeader.acquisitionNum;
 
-	free(pPeaks);
+	//free(pPeaks);  //don't clean this up anymore. will get cleaned up in the RAMPFILE struct
 	return true;
 
 }

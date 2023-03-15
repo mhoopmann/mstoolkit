@@ -41,6 +41,8 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs){
   m_bChromatogramIndex = false;
   m_bInmzArrayBinary = false;
   m_bInintenArrayBinary = false;
+  m_bInionMobilityArrayBinary = false;
+  m_bionMobility = false;
   m_bInRefGroup = false;
   m_bNetworkData = false; //always little-endian for mzML
   m_bNumpressLinear = false;
@@ -70,6 +72,8 @@ mzpSAXMzmlHandler::mzpSAXMzmlHandler(BasicSpectrum* bs, BasicChromatogram* cs){
   m_bChromatogramIndex = false;
   m_bInmzArrayBinary = false;
   m_bInintenArrayBinary = false;
+  m_bInionMobilityArrayBinary = false;
+  m_bionMobility = false;
   m_bInRefGroup = false;
   m_bNetworkData = false; //always little-endian for mzML
   m_bNumpressLinear = false;
@@ -109,6 +113,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
   } else if (isElement("binaryDataArrayList",el)) {
     if(m_bHeaderOnly) stopParser();
+    m_bionMobility = false;
 
   } else if (isElement("chromatogram",el)) {
     string s=getAttrValue("id", attr);
@@ -416,6 +421,7 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
   } else if(!strcmp(name, "intensity array") || !strcmp(accession,"MS:1000515"))  {
     m_bInintenArrayBinary = true;
     m_bInmzArrayBinary = false;
+    m_bInionMobilityArrayBinary = false;
 
   } else if (!strcmp(name, "ion injection time") || !strcmp(accession, "MS:1000927"))  {
     spec->setIonInjectionTime(atof(value));
@@ -465,13 +471,18 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
   } else if(!strcmp(name, "m/z array") || !strcmp(accession,"MS:1000514"))  {
     m_bInmzArrayBinary = true;
     m_bInintenArrayBinary = false;
+    m_bInionMobilityArrayBinary = false;
 
   } else if(!strcmp(name,"nanoelectrospray") || !strcmp(accession,"MS:1000398")) {
     m_instrument.ionization=name;
 
-  } else if (!strcmp(name, "non-standard data array") || !strcmp(accession, "MS:1000786"))  {
+    //this looks like a mess. Fix it properly.
+  } else if ((!strcmp(name, "non-standard data array") && !strcmp(value, "Ion Mobility") && !strcmp(accession, "MS:1000786")) ||
+    (!strcmp(name, "mean inverse reduced ion mobility array") && !strcmp(accession, "MS:1003006"))) {
     m_bInmzArrayBinary = false;
     m_bInintenArrayBinary = false;
+    m_bInionMobilityArrayBinary = true;
+    m_bionMobility = true;
 
   } else if(!strcmp(name,"orbitrap") || !strcmp(accession,"MS:1000484")) {
     m_instrument.analyzer=name;
@@ -530,18 +541,11 @@ void mzpSAXMzmlHandler::processData()
 {
   if(m_bInmzArrayBinary) {
     decode(vdM);
-    //if(m_bLowPrecision && !m_bCompressedData) decode32(vdM);
-    //else if(m_bLowPrecision && m_bCompressedData) decompress32(vdM);
-    //else if(!m_bLowPrecision && !m_bCompressedData) decode64(vdM);
-    //else decompress64(vdM);
   } else if(m_bInintenArrayBinary) {
     decode(vdI);
-    //if(m_bLowPrecision && !m_bCompressedData) decode32(vdI);
-    //else if(m_bLowPrecision && m_bCompressedData) decompress32(vdI);
-    //else if(!m_bLowPrecision && !m_bCompressedData) decode64(vdI);
-    //else decompress64(vdI);
+  } else if (m_bInionMobilityArrayBinary) {
+    decode(vdIM);
   }
-  //m_bCompressedData=false;
 }
 
 bool mzpSAXMzmlHandler::readChromatogram(int num){
@@ -599,7 +603,7 @@ bool mzpSAXMzmlHandler::readHeader(int num){
     m_bHeaderOnly=true;
     parseOffset(m_vIndex[mid].offset);
     //force scan number; this was done for files where scan events are not numbered
-    if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+    if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum((int)m_vIndex[mid].scanNum);
     spec->setScanIndex((int)mid+1); //set the index, which starts from 1, so offset by 1
     m_bHeaderOnly=false;
     posIndex=(int)mid;
@@ -662,7 +666,7 @@ bool mzpSAXMzmlHandler::readSpectrum(int num){
     if(m_vIndex[mid].scanNum==num) {
       parseOffset(m_vIndex[mid].offset);
       //force scan number; this was done for files where scan events are not numbered
-      if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum(m_vIndex[mid].scanNum);
+      if(spec->getScanNum()!=m_vIndex[mid].scanNum) spec->setScanNum((int)m_vIndex[mid].scanNum);
       spec->setScanIndex((int)mid+1); //set the index, which starts from 1, so offset by 1
       posIndex=(int)mid;
       return true;
@@ -689,7 +693,7 @@ bool mzpSAXMzmlHandler::readSpectrumFromOffset(f_off offset, int scNm){
 
 void mzpSAXMzmlHandler::pushChromatogram(){
   TimeIntensityPair tip;
-  for(unsigned int i=0;i<vdM.size();i++)  {
+  for(size_t i=0;i<vdM.size();i++)  {
     tip.time = vdM[i];
     tip.intensity = vdI[i];
     chromat->addTIP(tip);
@@ -697,12 +701,21 @@ void mzpSAXMzmlHandler::pushChromatogram(){
 }
 
 void mzpSAXMzmlHandler::pushSpectrum(){
-
   specDP dp;
-  for(unsigned int i=0;i<vdM.size();i++)  {
+  specIonMobDP dp_im;
+  for(size_t i=0;i<vdM.size();i++)  {
     dp.mz = vdM[i];
     dp.intensity = vdI[i];
-    spec->addDP(dp);
+
+    if (i < vdIM.size()) {
+      dp_im.mz = vdM[i];
+      dp_im.intensity = vdI[i];
+      dp_im.ionMobility = vdIM[i];
+      spec->addDP(dp_im);
+
+    } else {
+      spec->addDP(dp);
+    }
   }
   
 }
@@ -942,12 +955,12 @@ int mzpSAXMzmlHandler::highChromat() {
 
 int mzpSAXMzmlHandler::highScan() {
   if(m_vIndex.size()==0) return 0;
-  return m_vIndex[m_vIndex.size()-1].scanNum;
+  return (int)m_vIndex[m_vIndex.size()-1].scanNum;
 }
 
 int mzpSAXMzmlHandler::lowScan() {
   if(m_vIndex.size()==0) return 0;
-  return m_vIndex[0].scanNum;
+  return (int)m_vIndex[0].scanNum;
 }
 
 vector<cindex>* mzpSAXMzmlHandler::getChromatIndex(){

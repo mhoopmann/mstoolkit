@@ -122,10 +122,11 @@ typedef struct specDP{
   double intensity;
 } specDP;
 
-typedef struct TimeIntensityPair{
-  double time;
+typedef struct specIonMobDP {
+  double mz;
   double intensity;
-} TimeIntensityPair;
+  double ionMobility;
+} specIonMobDP;
 
 typedef struct MZIntensityPair {
   double mz;
@@ -134,6 +135,17 @@ typedef struct MZIntensityPair {
   MZIntensityPair(double mz, double intensity) : mz(mz), intensity(intensity) {}
   bool operator==(const MZIntensityPair& that) const;
 } MZIntensityPair;
+
+typedef struct TimeIntensityPair{
+  double time;
+  double intensity;
+} TimeIntensityPair;
+
+typedef struct TimeIntensityIonMob {
+  double time;
+  double intensity;
+  double ionMobility;
+} TimeIntensityIonMob;
 
 enum enumActivation {
   none=0,
@@ -176,6 +188,7 @@ public:
   std::string ionization;
   std::string manufacturer;
   std::string model;
+  std::string serial;
   instrumentInfo(){
     analyzer="";
     detector="";
@@ -183,6 +196,7 @@ public:
     ionization="";
     manufacturer="";
     model="";
+    serial="";
   }
   void clear(){
     analyzer="";
@@ -191,6 +205,7 @@ public:
     ionization="";
     manufacturer="";
     model="";
+    serial="";
   }
 };
 
@@ -278,6 +293,7 @@ public:
 
   //Modifiers
   void addDP(specDP dp);
+  void addDP(specIonMobDP dp);
   void clear();
   void clearPrecursor();
   void setActivation(int a);
@@ -309,10 +325,12 @@ public:
   bool          getCentroid();
   double        getCollisionEnergy();
   double        getCompensationVoltage();
+  double        getInverseReducedIonMobility();
   int           getFilterLine(char* str);
   double        getHighMZ();
   int           getIDString(char* str);
   double        getIonInjectionTime();
+  specIonMobDP& getIonMobDP(const size_t& index);
   double        getLowMZ();
   int           getMSLevel();
   int           getPeaksCount();
@@ -340,6 +358,7 @@ protected:
   bool            centroid;
   double          collisionEnergy;
   double          compensationVoltage;  //FAIMS compensation voltage
+  double          inverseReducedIonMobility;
   char            filterLine[128];
   double          highMZ;
   char            idString[128];
@@ -354,6 +373,7 @@ protected:
   int             scanNum;              //identifying scan number
   double          totalIonCurrent;
   std::vector<specDP>* vData;                //Spectrum data points
+  std::vector<specIonMobDP>* vDataIonMob;    //Ion Mobility Spectrum data points
   std::vector<sPrecursorIon>* vPrecursor;
      
 };
@@ -502,12 +522,17 @@ public:
     return "";
   }
 
+  bool getIonMobility() {
+    return m_bionMobility;
+  }
+
 protected:
 
   XML_Parser m_parser;
   std::string  m_strFileName;
   bool m_bStopParse;
   bool m_bGZCompression;
+  bool m_bionMobility;
 
   FILE* fptr;
   Czran gzObj;
@@ -578,6 +603,7 @@ private:
   bool m_bInRefGroup;
   bool m_bInmzArrayBinary;
   bool m_bInintenArrayBinary;
+  bool m_bInionMobilityArrayBinary;
   bool m_bInSpectrumList;
   bool m_bInChromatogramList;
   bool m_bInIndexList;
@@ -625,6 +651,7 @@ private:
   BasicSpectrum*          spec;
   std::vector<double>          vdI;
   std::vector<double>          vdM;                    // Peak list std::vectors (masses and charges)
+  std::vector<double>          vdIM;                    // Peak list std::vectors Ion Mobility
 
 };
 
@@ -1293,10 +1320,15 @@ typedef struct RAMPFILE{
   int fileType;
   int bIsMzData;
   std::string fileName;
+
+  int peakCapacity;
+  RAMPREAL* pPeaks;
   RAMPFILE(){
     bs=NULL;
     mzML=NULL;
     mzXML=NULL;
+    pPeaks=NULL;
+    peakCapacity=0;
     #ifdef MZP_MZ5
     mz5=NULL;
     mz5Config=NULL;
@@ -1308,6 +1340,7 @@ typedef struct RAMPFILE{
     if(bs!=NULL) delete bs;
     if(mzML!=NULL) delete mzML;
     if(mzXML!=NULL) delete mzXML;
+    if(pPeaks!=NULL) free(pPeaks);
     bs=NULL;
     mzML=NULL;
     mzXML=NULL;
@@ -1342,6 +1375,7 @@ struct ScanHeaderStruct {
   double basePeakMZ;
   double collisionEnergy;
   double compensationVoltage;   // only if MS level > 1
+  double inverseReducedIonMobility;   // only if MS level > 1
   double highMZ;
   double ionInjectionTime;
   double ionisationEnergy;
@@ -1384,6 +1418,7 @@ typedef struct InstrumentStruct {
    char ionisation[INSTRUMENT_LENGTH];
    char analyzer[INSTRUMENT_LENGTH];
    char detector[INSTRUMENT_LENGTH];
+   char serial[INSTRUMENT_LENGTH];
 } InstrumentStruct;
 
 struct ScanCacheStruct {
@@ -1410,7 +1445,7 @@ void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, stru
 ramp_fileoffset_t*  readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
 int                 readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
-RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, int iIndex=-1);
+RAMPREAL*           readPeaks(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, int iIndex=-1, bool ionMobility = false);
 int                 readPeaksCount(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readRunHeader(RAMPFILE *pFI, ramp_fileoffset_t *pScanIndex, struct RunHeaderStruct *runHeader, int iLastScan);
 

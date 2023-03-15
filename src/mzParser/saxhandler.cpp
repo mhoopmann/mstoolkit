@@ -152,6 +152,7 @@ mzpSAXHandler::mzpSAXHandler()
 {
 	fptr = NULL;
 	m_bGZCompression = false;
+	m_bionMobility = false;
 	fptr = NULL;
 	m_parser = XML_ParserCreate(NULL);
 	XML_SetUserData(m_parser, this);
