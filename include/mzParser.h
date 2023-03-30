@@ -588,6 +588,7 @@ private:
   void  pushSpectrum();  // Load current data into pvSpec, may have to guess charge
   f_off readIndexOffset();
   void  stopParser();
+  bool  generateIndexOffset();
 
   //  mzpSAXMzmlHandler Base64 conversion functions
   void decode(std::vector<double>& d);
@@ -688,6 +689,7 @@ private:
   void  pushSpectrum();  // Load current data into pvSpec, may have to guess charge
   f_off readIndexOffset();
   void  stopParser();
+  bool  generateIndexOffset();
 
   //  mzpSAXMzxmlHandler Base64 conversion functions
   void decode32();
