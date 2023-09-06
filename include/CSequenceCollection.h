@@ -52,7 +52,6 @@ public:
   void rebuildPepEvTable();
   void rebuildPepTable();
 
-
 private:
   //std::vector<sPepTable> vPepEvTable;
   //std::vector<sPepTable> vPepTable;

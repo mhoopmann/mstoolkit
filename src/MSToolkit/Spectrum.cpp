@@ -31,6 +31,7 @@ Spectrum::Spectrum(){
   monoMZ=new vector<double>;
   mz=new vector<double>;
   sps=new vector<double>;
+  precursor=new vector<MSPrecursorInfo>;
   TIC=0;
   IIT=0;
   compensationVoltage=0;
@@ -65,6 +66,7 @@ Spectrum::~Spectrum(){
 	if(mz) delete mz;
   if(monoMZ) delete monoMZ;
   if(sps) delete sps;
+  if(precursor) delete precursor;
 }
 
 Spectrum::Spectrum(const Spectrum& s){
@@ -85,6 +87,7 @@ Spectrum::Spectrum(const Spectrum& s){
 		mz->push_back(s.mz->at(i));
 	}
   sps = new vector<double>(*s.sps);
+  precursor=new vector<MSPrecursorInfo>(*s.precursor);
   fileType = s.fileType;
   IIT = s.IIT;
   TIC = s.TIC;
@@ -127,6 +130,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     delete monoMZ;
 		delete mz;
     delete sps;
+    delete precursor;
     monoMZ = new vector<double>;
     for(i=0;i<s.monoMZ->size();i++){
 		  monoMZ->push_back(s.monoMZ->at(i));
@@ -136,18 +140,10 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
 			mz->push_back(s.mz->at(i));
 		}
     sps = new vector<double>(*s.sps);
-    vPeaks = new vector<Peak_T>;
-    for(i=0;i<s.vPeaks->size();i++){
-      vPeaks->push_back(s.vPeaks->at(i));
-    }
-    vEZ = new vector<EZState>;
-    for(i=0;i<s.vEZ->size();i++){
-      vEZ->push_back(s.vEZ->at(i));
-    }
-    vZ = new vector<ZState>;
-    for(i=0;i<s.vZ->size();i++){
-      vZ->push_back(s.vZ->at(i));
-    }
+    precursor = new vector<MSPrecursorInfo>(*s.precursor);
+    vPeaks = new vector<Peak_T>(*s.vPeaks);
+    vEZ = new vector<EZState>(*s.vEZ);
+    vZ = new vector<ZState>(*s.vZ);
     rTime = s.rTime;
     charge = s.charge;
     scanNumber = s.scanNumber;
@@ -213,6 +209,10 @@ void Spectrum::addMZ(double d, double mono){
   monoMZ->push_back(mono);
 }
 
+void Spectrum::addPrecursor(MSPrecursorInfo& pi){
+  precursor->push_back(pi);
+}
+
 void Spectrum::addSPS(double d) {
   sps->push_back(d);
 }
@@ -267,6 +267,8 @@ void Spectrum::clear(){
   monoMZ = new vector<double>;
   delete sps;
   sps = new vector<double>;
+  delete precursor;
+  precursor = new vector<MSPrecursorInfo>;
 	scanNumber = 0;
   scanNumber2 = 0;
 	rTime = 0;
@@ -290,6 +292,8 @@ void Spectrum::clearMZ(){
 	mz = new vector<double>;
   delete monoMZ;
 	monoMZ = new vector<double>;
+  delete precursor;
+  precursor = new vector<MSPrecursorInfo>;
 }
 
 void Spectrum::clearPeaks(){
@@ -421,6 +425,11 @@ bool Spectrum::getNativeID(char* c, int sz){
     strcpy(c,nativeID);
     return true;
   }
+}
+
+MSPrecursorInfo Spectrum::getPrecursor(int index){
+  if(index>=(int)precursor->size()) return MSPrecursorInfo();
+  return precursor->at(index);
 }
 
 bool Spectrum::getRawFilter(char* c, int sz, bool bLock){
@@ -600,6 +609,10 @@ int Spectrum::sizeEZ(){
 
 int Spectrum::sizeMZ(){
 	return (int)mz->size();
+}
+
+int Spectrum::sizePrecursor(){
+  return (int)precursor->size();
 }
 
 int Spectrum::sizeSPS() {

@@ -42,6 +42,7 @@ class Spectrum {
   void            addEZState(int,double,float,float);
   void            addEZState(EZState&);
 	void						addMZ(double, double mono=0);
+  void            addPrecursor(MSPrecursorInfo&);
   void            addSPS(double);
   void    				addZState(int,double);
   void		    		addZState(ZState&);
@@ -79,6 +80,7 @@ class Spectrum {
   double    			getMonoMZ(int index=0);
   double    			getMZ(int index=0);
   bool            getNativeID(char*,int);
+  MSPrecursorInfo getPrecursor(int index=0);
   bool            getRawFilter(char*,int,bool bLock=false);
   float		    		getRTime();
   float           getRTimeApex();
@@ -122,6 +124,7 @@ class Spectrum {
   int             sizeEZ();
 	int							sizeMZ();   //also returns size of monoMZ
   int             sizeSPS();
+  int             sizePrecursor();
   int     				sizeZ();
   void		    		sortIntensity();
   void				    sortIntensityRev();
@@ -154,6 +157,7 @@ class Spectrum {
   int              msLevel;
   std::vector<double>   *monoMZ;     //the monoisotopic m/z of the selected ion(s)
   std::vector<double>   *mz;         //the selected ion(s) in m/z
+  std::vector<MSPrecursorInfo> *precursor;
   std::vector<double>   *sps;        //SPS masses
   std::string      fileID;
   MSSpectrumType   fileType;

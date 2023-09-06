@@ -210,69 +210,31 @@ public:
 };
 
 typedef struct sPrecursorIon{
-  double intensity;
-  double isoLowerMZ; //lower offset of the isolation window
-  double isoMZ;      //the mz of the isolation window
-  double isoUpperMZ;  //upper offset of the isolation window
-  double mz;         //is this always redundant with isoMZ?
-  double monoMZ;
-  std::vector<int>* possibleCharges;
-  int charge;
-  int msLevel;
-  int scanNumber;
-  sPrecursorIon(){
-    intensity=0;
-    isoLowerMZ=0;
-    isoMZ=0;
-    isoUpperMZ=0;
-    mz=0;
-    monoMZ=0;
-    possibleCharges = new std::vector<int>;
-    charge=0;
-    msLevel=0;
-    scanNumber=-1;
-  }
-  sPrecursorIon(const sPrecursorIon& p){
-    intensity=p.intensity;
-    isoLowerMZ = p.isoLowerMZ;
-    isoMZ = p.isoMZ;
-    isoUpperMZ = p.isoUpperMZ;
-    mz=p.mz;
-    monoMZ=p.monoMZ;
-    possibleCharges=new std::vector<int>;
-    for(size_t i=0;i<p.possibleCharges->size();i++) possibleCharges->push_back(p.possibleCharges->at(i));
-    charge=p.charge;
-    msLevel=p.msLevel;
-    scanNumber=p.scanNumber;
-  }
-  ~sPrecursorIon(){
-    delete possibleCharges;
-  }
-  sPrecursorIon& operator=(const sPrecursorIon& p){
-    if(this!=&p){
-      intensity=p.intensity;
-      isoLowerMZ = p.isoLowerMZ;
-      isoMZ = p.isoMZ;
-      isoUpperMZ = p.isoUpperMZ;
-      mz=p.mz;
-      monoMZ=p.monoMZ;
-      delete possibleCharges;
-      possibleCharges=new std::vector<int>;
-      for(size_t i=0;i<p.possibleCharges->size();i++) possibleCharges->push_back(p.possibleCharges->at(i));
-      charge=p.charge;
-      msLevel = p.msLevel;
-      scanNumber = p.scanNumber;
-    }
-    return *this;
-  }
+  enumActivation activation=none;
+  double intensity=0;
+  double isoLowerMZ=0;      //lower offset of the isolation window
+  double isoLowerOffset=0;
+  double isoMZ=0;           //the mz of the isolation window
+  double isoUpperMZ=0;      //upper offset of the isolation window
+  double isoUpperOffset=0;
+  double mz=0;              //selected ion mz; is this always redundant with isoMZ?
+  double monoMZ=0;
+  std::vector<int> possibleCharges;
+  int charge=0;
+  int msLevel=0;
+  int scanNumber=-1;
+
   void clear(){
+    activation=none;
     intensity=0;
     isoLowerMZ = 0;
+    isoLowerOffset=0;
     isoMZ = 0;
     isoUpperMZ = 0;
+    isoUpperOffset=0;
     mz=0;
     monoMZ=0;
-    possibleCharges->clear();
+    possibleCharges.clear();
     charge=0;
     msLevel=0;
     scanNumber=0;
@@ -483,6 +445,13 @@ private:
 // X!Tandem borrowed headers
 //------------------------------------------------
 
+enum eElementState {
+  esChromatogram,
+  esIndex,
+  esPrecursor,
+  esSpectrum
+};
+
 int b64_decode_mio (char *dest, const char *src, size_t size);
 int b64_encode (char *dest, const char *src, int len);
 
@@ -632,6 +601,8 @@ private:
   std::vector<cindex>    m_vChromatIndex;
   cindex            curChromatIndex;
   int               posChromatIndex;
+
+  std::vector<eElementState> m_vState;
 
   //  mzpSAXMzmlHandler data members.
   BasicChromatogram*      chromat;
@@ -1381,6 +1352,8 @@ struct ScanHeaderStruct {
   double highMZ;
   double ionInjectionTime;
   double ionisationEnergy;
+  double isolationWindowLower;  //similar to selection window, but instead just defines the relative width
+  double isolationWindowUpper;  //of the isolation window in mz, rather than its absolute width.
   double lowMZ;
   double precursorIntensity;    // only if MS level > 1
   double precursorMonoMZ;
@@ -1434,6 +1407,7 @@ int                 checkFileType(const char* fname);
 ramp_fileoffset_t   getIndexOffset(RAMPFILE *pFI);
 InstrumentStruct*   getInstrumentStruct(RAMPFILE *pFI);
 void                getPrecursor(const struct ScanHeaderStruct *scanHeader, int index, double &mz, double &monoMZ, double &intensity, int &charge, int &possibleCharges, int *&possibleChargeArray);
+void                getPrecursor(const struct ScanHeaderStruct* scanHeader, int index, sPrecursorIon& pi);
 int                 getScanNumberFromOffset(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                getScanSpanRange(const struct ScanHeaderStruct *scanHeader, int *startScanNum, int *endScanNum);
 void                rampCloseFile(RAMPFILE *pFI);

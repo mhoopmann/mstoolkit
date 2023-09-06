@@ -1844,9 +1844,8 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	mzParser::ramp_fileoffset_t indexOffset;
   mzParser::ScanHeaderStruct scanHeader;
   mzParser::RAMPREAL *pPeaks;
-	int i,j,k;
-  double d,d2,d3;
-  int *charges=NULL;
+  mzParser::sPrecursorIon rPI;
+	int i,j;
   bool bFoundSpec=false;
 
 	if(c!=NULL) {
@@ -1966,6 +1965,16 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		s.setMZ(scanHeader.precursorMZ,scanHeader.precursorMonoMZ);
 		s.setCharge(scanHeader.precursorCharge);
     s.setSelWindow(scanHeader.selectionWindowLower,scanHeader.selectionWindowUpper);
+    MSPrecursorInfo pi;
+    pi.mz=scanHeader.precursorMZ;
+    pi.charge=scanHeader.precursorCharge;
+    pi.isoOffsetLower=scanHeader.isolationWindowLower;
+    pi.isoOffsetUpper=scanHeader.isolationWindowUpper;
+    pi.precursorScanNumber=scanHeader.precursorScanNum;
+    if (strcmp(scanHeader.activationMethod, "HCD") == 0) pi.activation = mstHCD;
+    else if (strcmp(scanHeader.activationMethod, "CID") == 0) pi.activation = mstCID;
+    else if (strcmp(scanHeader.activationMethod, "ETD") == 0) pi.activation = mstETD;
+    s.addPrecursor(pi);
 	} else {
 		s.setMZ(0);
     s.setSelWindow(0,0);
@@ -1979,13 +1988,19 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
     s.addZState(j,scanHeader.precursorMZ*j-(j-1)*1.007276466);
   }
   for(i=1;i<scanHeader.precursorCount;i++){
-    getPrecursor(&scanHeader,i,d,d2,d3,j,k,charges);
-    s.addMZ(d);
-    s.addZState(j, d*j-(j-1)*1.007276466);
-    if(charges!=NULL){
-      delete[] charges;
-      charges=NULL;
-    }
+    getPrecursor(&scanHeader,i,rPI);
+    s.addMZ(rPI.mz);
+    s.addZState(rPI.charge, rPI.mz* rPI.charge -(rPI.charge -1)*1.007276466);
+    MSPrecursorInfo pi;
+    pi.mz = rPI.mz;
+    pi.charge = rPI.charge;
+    pi.isoOffsetLower = rPI.isoLowerOffset;
+    pi.isoOffsetUpper = rPI.isoUpperOffset;
+    pi.precursorScanNumber=scanHeader.precursorScanNum;
+    if(strcmp(scanHeader.activationMethod,"HCD")==0) pi.activation=mstHCD;
+    else if (strcmp(scanHeader.activationMethod, "CID") == 0) pi.activation=mstCID;
+    else if (strcmp(scanHeader.activationMethod, "ETD") == 0) pi.activation = mstETD;
+    s.addPrecursor(pi);
   }
 
   //store the spectrum

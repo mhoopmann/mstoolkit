@@ -134,6 +134,15 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
       spec->setActivation(none);
     }
 
+    s = getAttrValue("windowWideness", attr);
+    if (s.length() > 0) {
+      m_precursorIon.isoLowerOffset = atof(&s[0])/2;
+      m_precursorIon.isoUpperOffset = m_precursorIon.isoLowerOffset;
+    } else  {
+      m_precursorIon.isoLowerOffset = 0.0;
+      m_precursorIon.isoUpperOffset = 0.0;
+    }
+
   }  
   else if (isElement("scan", el)) {
     if(m_bInScan){

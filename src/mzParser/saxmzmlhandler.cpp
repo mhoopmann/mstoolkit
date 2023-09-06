@@ -158,6 +158,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
     }
 
   } else if(isElement("precursor",el)) {
+    m_vState.push_back(esPrecursor);
     string s=getAttrValue("spectrumRef", attr);
     int preScanNum=0;
 
@@ -203,7 +204,14 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
     const char* accession = getAttrValue("accession", attr);
     const char* version = getAttrValue("version", attr);
 
+  } else if(isElement("selectedIonList", el)){
+    int count=atoi(getAttrValue("count",attr));
+    if(count>1){
+      cout << "WARNING: selectedIonList count >1. Please report." << endl;
+    }
+
   }  else if (isElement("spectrum", el)) {
+    m_vState.push_back(esSpectrum);
     string s=getAttrValue("id", attr);
     spec->setIDString(&s[0]);
     if(strstr(&s[0],"scan=")!=NULL)  {
@@ -329,15 +337,7 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
       }
     }
 
-  } else if(isElement("precursorList",el)){
-
-  } else if (isElement("product", el)){
-    m_bInProduct=false;
-    
-  } else if(isElement("referenceableParamGroup", el)) {
-    m_bInRefGroup = false;
-
-  } else if(isElement("selectedIon",el)) {
+  } else if(isElement("precursor",el)){
     if(m_precursorIon.scanNumber>0){ //only add precursors that match the precursor scan number
       if(m_precursorIon.scanNumber==spec->getPrecursorScanNum()){
         spec->setPrecursorIon(m_precursorIon);
@@ -352,10 +352,26 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
       }
     }
     m_precursorIon.clear();
+    if(m_vState.back()!=esPrecursor){
+      cout << "Error: expected state should be precursor." << endl;
+    } else m_vState.pop_back();
+
+  } else if(isElement("precursorList",el)){
+
+  } else if (isElement("product", el)){
+    m_bInProduct=false;
+    
+  } else if(isElement("referenceableParamGroup", el)) {
+    m_bInRefGroup = false;
+
+  } else if(isElement("selectedIon",el)) {
 
   }  else if(isElement("spectrum", el)) {
     pushSpectrum();
     stopParser();
+    if (m_vState.back() != esSpectrum) {
+      cout << "Error: expected state should be spectrum." << endl;
+    } else m_vState.pop_back();
     
   } else if(isElement("spectrumList",el)) {
     m_bInSpectrumList = false;
@@ -383,6 +399,10 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
   } else if(!strcmp(name, "base peak m/z") || !strcmp(accession,"MS:1000504"))  {
     spec->setBasePeakMZ(atof(value));
     
+  } else if (!strcmp(name, "beam-type collision-induced dissociation") || !strcmp(accession, "MS:1000422")) {
+    if(m_vState.back()==esPrecursor) m_precursorIon.activation=HCD;
+    spec->setActivation(HCD);
+
   } else if(!strcmp(name, "centroid spectrum") || !strcmp(accession,"MS:1000127")) {
     spec->setCentroid(true);
 
@@ -390,8 +410,13 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     m_precursorIon.charge = atoi(value);
 
   } else if(!strcmp(name, "collision-induced dissociation") || !strcmp(accession,"MS:1000133"))  {
-    if(spec->getActivation()==ETD) spec->setActivation(ETDSA);
-    else spec->setActivation(CID);
+    if(spec->getActivation()==ETD) {
+      if (m_vState.back() == esPrecursor) m_precursorIon.activation = ETDSA;
+      spec->setActivation(ETDSA);
+    } else {
+      if (m_vState.back() == esPrecursor) m_precursorIon.activation = CID;
+      spec->setActivation(CID);
+    }
 
   } else if(!strcmp(name, "collision energy") || !strcmp(accession,"MS:1000045"))  {
     spec->setCollisionEnergy(atof(value));
@@ -400,8 +425,13 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     m_instrument.detector=name;
 
   } else if(!strcmp(name, "electron transfer dissociation") || !strcmp(accession,"MS:1000598"))  {
-    if(spec->getActivation()==CID) spec->setActivation(ETDSA);
-    else spec->setActivation(ETD);
+    if(spec->getActivation()==CID) {
+      if (m_vState.back() == esPrecursor) m_precursorIon.activation = ETDSA;
+      spec->setActivation(ETDSA);
+    } else {
+      if (m_vState.back() == esPrecursor) m_precursorIon.activation = ETD;
+      spec->setActivation(ETD);
+    }
 
   } else if(!strcmp(name, "FAIMS compensation voltage") || !strcmp(accession,"MS:1001581"))  {
     spec->setCompensationVoltage(atof(value));
@@ -430,10 +460,10 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     m_precursorIon.isoMZ=atof(value);
 
   } else if (!strcmp(name, "isolation window lower offset") || !strcmp(accession, "MS:1000828")) {
-    m_precursorIon.isoLowerMZ = atof(value);
+    m_precursorIon.isoLowerOffset= atof(value);
 
   } else if (!strcmp(name, "isolation window upper offset") || !strcmp(accession, "MS:1000829")) {
-    m_precursorIon.isoUpperMZ = atof(value);
+    m_precursorIon.isoUpperOffset = atof(value);
 
   } else if(!strcmp(name,"LTQ Velos") || !strcmp(accession,"MS:1000855")) {
     m_instrument.model=name;
@@ -494,7 +524,7 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     spec->setPositiveScan(true);
 
   } else if(!strcmp(name,"possible charge state") || !strcmp(accession,"MS:1000633")) {
-    m_precursorIon.possibleCharges->push_back(atoi(value));
+    m_precursorIon.possibleCharges.push_back(atoi(value));
 
   } else if(!strcmp(name,"profile spectrum") || !strcmp(accession,"MS:1000128")) {
     spec->setCentroid(false);
