@@ -45,6 +45,7 @@ enum MSFileFormat {
   mzXML,
   mz5,
 	mzML,
+  mzMLb,
   raw,
   sqlite,
   psm,

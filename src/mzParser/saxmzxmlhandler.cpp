@@ -112,6 +112,7 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
   }  
   else if (isElement("precursorMz", el)) {
     m_strData.clear();
+    m_precursorIon.clear();
     s=getAttrValue("precursorCharge", attr);
     if(s.length()>0) m_precursorIon.charge=atoi(&s[0]);
     else  m_precursorIon.charge=0;
@@ -119,8 +120,8 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
     if(s.length()>0) m_precursorIon.intensity=atof(&s[0]);
     else  m_precursorIon.intensity=0.0;
     s=getAttrValue("precursorScanNum", attr);
-    if(s.length()>0) spec->setPrecursorScanNum(atoi(&s[0]));
-    else spec->setPrecursorScanNum(0);
+    if(s.length()>0) m_precursorIon.scanNumber=atoi(&s[0]);
+    else m_precursorIon.scanNumber=0;
     m_bInPrecursorMz = true;
     
     s=getAttrValue("activationMethod", attr);

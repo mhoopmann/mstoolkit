@@ -267,6 +267,8 @@ int MSReader::getLastScan(){
   switch (lastFileFormat){
   case mzXML:
   case mzML:
+  case mzMLb:
+  case mz5:
   case mzXMLgz:
   case mzMLgz:
     if (rampFileIn != NULL) return (rampLastScan);
@@ -309,6 +311,7 @@ int MSReader::getPercent(){
   case mzXML:
   case mz5:
   case mzML:
+  case mzMLb:
   case mzXMLgz:
   case mzMLgz:
     if (rampFileIn != NULL){
@@ -1536,6 +1539,7 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
 	case mz5:
   case mzXML:
 	case mzML:
+  case mzMLb:
 	case mzXMLgz:
 	case mzMLgz:
 		return readMZPFile(c,s,scNum);
@@ -2390,7 +2394,6 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
 
   size_t i;
 	char ext[32];
-	char tmp[1024];
 	char* c;
 
 	//extract extension & capitalize
@@ -2411,11 +2414,17 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
   if(strcmp(ext,".MSMAT")==0 ) return msmat_ff;
   if(strcmp(ext,".RAW")==0 ) return raw;
   if(strcmp(ext,".MZXML")==0 ) return mzXML;
-  if(strcmp(ext,".MZ5")==0 ) {
-    cerr << "MZ5 format is no longer supported." << endl;
+#ifdef MZP_HDF
+  if(strcmp(ext,".MZ5")==0 ) return mz5;
+  if (strcmp(ext, ".MZMLB") == 0) return mzMLb;
+#else
+  if (strcmp(ext, ".MZ5") == 0 || strcmp(ext, ".MZMLB") == 0) {
+    cerr << "mz5 and mzMLb formats require MSToolkit to be compiled with 'MZP_HDF'. Please recompile with correct flag." << endl;
     return dunno;
   }
+#endif
 	if(strcmp(ext,".MZML")==0 ) return mzML;
+  if(strcmp(ext,".MZMLB")==0 ) return mzMLb;
   if(strcmp(ext,".MGF")==0 ) return mgf;
 	//add the sqlite3 format
   if(strcmp(ext,".SQLITE3")==0 ) return sqlite;
@@ -2423,6 +2432,7 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
 	
 	if(strcmp(ext,".GZ")==0 ) {
 		i=c-fn;
+    char tmp[1024];
 		strncpy(tmp,fn,i);
 		tmp[i]='\0';
 		c=strrchr(tmp,'.');

@@ -140,7 +140,7 @@ void BasicSpectrum::setFilterLine(char* str) {
   filterLine[127]='\0';
 }
 void BasicSpectrum::setHighMZ(double d){ highMZ=d;}
-void BasicSpectrum::setIDString(char* str) { 
+void BasicSpectrum::setIDString(const char* str) { 
   strncpy(idString,str,127); 
   idString[127]='\0';
 }
@@ -149,8 +149,24 @@ void BasicSpectrum::setLowMZ(double d){ lowMZ=d;}
 void BasicSpectrum::setMSLevel(int level){ msLevel=level;}
 void BasicSpectrum::setPeaksCount(int i){ peaksCount=i;}
 void BasicSpectrum::setPositiveScan(bool b){ positiveScan=b;}
+void BasicSpectrum::setPrecursorCharge(int i){
+  if(vPrecursor->size()==0) vPrecursor->emplace_back();
+  vPrecursor->back().charge=i;
+}
+void BasicSpectrum::setPrecursorIntensity(double d) {
+  if (vPrecursor->size() == 0) vPrecursor->emplace_back();
+  vPrecursor->back().intensity = d;
+}
 void BasicSpectrum::setPrecursorIon(sPrecursorIon& p){ vPrecursor->push_back(p);}
-void BasicSpectrum::setPrecursorScanNum(int i){ precursorScanNum=i;}
+void BasicSpectrum::setPrecursorMZ(double d) {
+  if (vPrecursor->size() == 0) vPrecursor->emplace_back();
+  vPrecursor->back().mz = d;
+}
+void BasicSpectrum::setPrecursorScanNum(int i){ 
+  if (vPrecursor->size() == 0) vPrecursor->emplace_back();
+  vPrecursor->back().scanNumber=i;
+  precursorScanNum=i;
+}
 void BasicSpectrum::setRTime(float f){ rTime=f;}
 void BasicSpectrum::setScanIndex(int num) { scanIndex=num;}
 void BasicSpectrum::setScanNum(int num){scanNum=num;}
@@ -193,7 +209,10 @@ double BasicSpectrum::getPrecursorMZ(int i){ //legacy function. Always returns f
 }
 sPrecursorIon BasicSpectrum::getPrecursorIon(int i){ return vPrecursor->at(i); }
 int BasicSpectrum::getPrecursorIonCount() { return (int)vPrecursor->size(); }
-int BasicSpectrum::getPrecursorScanNum(){ return precursorScanNum;}
+int BasicSpectrum::getPrecursorScanNum(){ 
+  if(vPrecursor->size()==0) return precursorScanNum;
+  return vPrecursor->at(0).scanNumber;
+}
 float BasicSpectrum::getRTime(bool min){
   if(min) return rTime;
   else return rTime*60;

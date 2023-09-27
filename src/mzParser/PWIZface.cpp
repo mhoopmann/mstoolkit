@@ -110,7 +110,7 @@ PwizRun::~PwizRun(){
 bool PwizRun::get(){
   if (mzML != NULL) return chromatogramListPtr->get();
 #ifdef MZP_MZ5
-  else if (mz5 != NULL) vMz5Index = mz5->getChromatIndex();
+  else if (mz5 != NULL) chromatogramListPtr->vMz5Index = mz5->getChromatIndex();
 #endif
   else return false;
 }
@@ -237,7 +237,7 @@ SpectrumPtr SpectrumList::spectrum(int index, bool binaryData) {
 #ifdef MZP_MZ5
   } else if (mz5 != NULL) {
     mz5->readSpectrum(index);
-    spec->bc->getIDString(str);
+    spec->bs->getIDString(str);
     spec->id = str;
     return spec;
 #endif
