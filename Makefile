@@ -5,10 +5,19 @@
 #
 .DEFAULT_GOAL := all
 
+# -- Uncomment these two variables, and set the correct path, to support HDF5 mass spec formats (.mz5 and .mzMLb)
+#HDF5 = -DMZP_HDF
+#HDF5_DIR = ../hdf5-1.14.0/hdf5
+
 C = gcc
 CC = g++
-CFLAGS = -O3 -static -I. -I./include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H
+ifdef HDF5
+CFLAGS = -O3 -I. -I./include -I$(HDF5_DIR)/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
+SFLAGS = -O3 -shared -fPIC -g -I. -I./include -I$(HDF5_DIR)/include  -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
+else
+CFLAGS = -O3 -static -I. -I./include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H 
 SFLAGS = -O3 -shared -fPIC -g -I. -I./include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H
+endif
 LITEFLAGS = -D_NOSQLITE
 
 SOVER = 83
@@ -261,6 +270,31 @@ sqlite-realclean : sqlite-clean
 .PHONY : lib
 
 lib : expat zlib mstoolkit mzparser mzimltools sqlite
+	$(file >mstoolkit.mri,create libmstoolkit.a)
+	$(file >>mstoolkit.mri,addlib obj/libexpat.a)
+	$(file >>mstoolkit.mri,addlib obj/libz.a)
+	$(file >>mstoolkit.mri,addlib obj/libmst.a)
+	$(file >>mstoolkit.mri,addlib obj/libmzparser.a)
+	$(file >>mstoolkit.mri,addlib obj/libmzimltools.a)
+	$(file >>mstoolkit.mri,addlib obj/libsqlite.a)
+ifdef HDF5
+	$(file >>mstoolkit.mri,addlib $(HDF5_DIR)/lib/libhdf5.a)
+	$(file >>mstoolkit.mri,addlib $(HDF5_DIR)/lib/libhdf5_cpp.a)
+endif
+	$(file >>mstoolkit.mri,save)
+	$(file >>mstoolkit.mri,end)
+	$(file >mstoolkitlite.mri,create libmstoolkitlite.a)
+	$(file >>mstoolkitlite.mri,addlib obj/libexpat.a)
+	$(file >>mstoolkitlite.mri,addlib obj/libz.a)
+	$(file >>mstoolkitlite.mri,addlib obj/libmstlite.a)
+	$(file >>mstoolkitlite.mri,addlib obj/libmzparser.a)
+	$(file >>mstoolkitlite.mri,addlib obj/libmzimltools.a)
+ifdef HDF5
+	$(file >>mstoolkitlite.mri,addlib $(HDF5_DIR)/lib/libhdf5.a)
+	$(file >>mstoolkitlite.mri,addlib $(HDF5_DIR)/lib/libhdf5_cpp.a)
+endif
+	$(file >>mstoolkitlite.mri,save)
+	$(file >>mstoolkitlite.mri,end)
 	ar -M <mstoolkit.mri
 	ar -M <mstoolkitlite.mri
 	$(CC) $(SFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO) $(MZIMLTOOLS_DSO) $(EXPAT_DSO) $(ZLIB_DSO) $(SQLITE_DSO) 
@@ -285,8 +319,12 @@ lib-realclean : lib-clean
 .PHONY : MSSingleScan
 
 MSSingleScan : lib
-	$(CC) $(CFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkitlite -o MSSingleScan
-	
+ifdef HDF5
+	$(CC) $(CFLAGS) $(LITEFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -l:libmstoolkitlite.a -ldl -o MSSingleScan
+else
+	$(CC) $(CFLAGS) $(LITEFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkitlite -o MSSingleScan
+endif
+
 MSSingleScan-clean :
 	rm -rf MSSingleScan
 
