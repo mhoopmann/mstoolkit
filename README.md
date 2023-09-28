@@ -2,10 +2,12 @@
 
 The MSToolkit is a light-weight C++ library for reading, writing, and manipulating mass spectrometry data. The MSToolkit is easily linked to virtually any C++ algorithm for simple, fast file reading and analysis.
 
-### Version 83.0.1, June 4 2020
+### Version 84.0.1, September 28 2023
 
 ### Supported File Formats
   * *mzML* including internal compression (zlib and numpress) and external compression (.mzML.gz) _read/write\*_
+  * *mzMLb* _read-only_ (Requires HDF5)
+  * *mz5* _read-only_ (Requires HDF5)
   * *mzXML* including internal compression (zlib) and external compression (.mzXML.gz) _read-only_
   * *mzID* _read/write_ (a.k.a. mzIdentML)
   * *mgf* _read/write_
@@ -35,6 +37,7 @@ The MSToolkit is a light-weight C++ library for reading, writing, and manipulati
 ### Compiling
 A few hints:
  * On GNU/Linux, try "make all" to build the library. On VS/Windows, you'll have to build your own solution.
+ * To support .mzMLb and .mz5, HDF5 must be installed. Enable these formats by opening the Makefile and setting HDF5 and HDF5_DIR at the top of the file.
  * Add _NOSQLITE to build smaller library without SQLite. SQLite is only required for special case usage.
  * Add _NO_THERMORAW to build without Thermo file support in Windows. This is not necessary in GNU/Linux, where Thermo support is disabled by default.
  * Older versions of MSVC may require building with XML_STATIC declared.
