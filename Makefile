@@ -20,7 +20,7 @@ SFLAGS = -O3 -shared -fPIC -g -I. -I./include -D_LARGEFILE_SOURCE -D_FILE_OFFSET
 endif
 LITEFLAGS = -D_NOSQLITE
 
-SOVER = 83
+SOVER = 84
 RELVER = $(SOVER).0.1
 
 SRC_DIR  := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
