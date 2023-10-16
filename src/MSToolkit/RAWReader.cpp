@@ -274,6 +274,29 @@ int RAWReader::evaluateTrailerInt(const char* str){
   return ret;
 }
 
+string RAWReader::evaluateTrailerString(const char* str) {
+  VARIANT v;
+  BSTR bs;
+  int sl;
+  string ret;
+  long lRet;
+
+  VariantInit(&v);
+  sl = lstrlenA(str);
+  bs = SysAllocStringLen(NULL, sl);
+  MultiByteToWideChar(CP_ACP, 0, str, sl, bs, sl);
+  lRet=m_Raw->GetTrailerExtraValueForScanNum(rawCurSpec, bs, &v);
+  if(v.vt==VT_BSTR) {
+    int wslen = SysStringLen(v.bstrVal);
+    int len = WideCharToMultiByte(CP_ACP, 0, v.bstrVal, wslen, NULL, 0, NULL, NULL);
+    ret.resize(len,'\0');
+    WideCharToMultiByte(CP_ACP, 0, v.bstrVal, wslen,&ret[0], len, NULL, NULL);
+  }
+  SysFreeString(bs);
+  VariantClear(&v);
+  return ret;
+}
+
 void RAWReader::getInstrument(char* str){
   strcpy(str,rawInstrument);
 }
@@ -394,6 +417,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 
 	long tl;      //temp long value
   MSActivation act;
+  string SPS;
 
 
   if(!bRaw) return false;
@@ -504,11 +528,35 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 
   //Get basic spectrum metadata. It will be replaced/supplemented later, if available
   preInfo.clear();
-  m_Raw->GetScanHeaderInfoForScanNum(rawCurSpec, &tl, &td, &td, &td, &TIC, &BPM, &BPI, &tl, &tl, &td);
+  long nChannels=0;
+  long nPackets=0;
+  m_Raw->GetScanHeaderInfoForScanNum(rawCurSpec, &nPackets, &td, &td, &td, &TIC, &BPM, &BPI, &nChannels, &tl, &td);
+  //cout << "Channels: " << nChannels << endl;
+  //cout << "Packets: " << nPackets << endl;
   m_Raw->RTFromScanNum(rawCurSpec, &dRTime);
   preInfo.charge = evaluateTrailerInt("Charge State:");
   preInfo.dMonoMZ = evaluateTrailerDouble("Monoisotopic M/Z:");
   IIT = (float)evaluateTrailerDouble("Ion Injection Time (ms):");
+  SPS = evaluateTrailerString("SPS Masses:");
+
+  size_t a=0;
+  string tStr;
+  while(a<SPS.size()){
+    if(SPS[a]==','){
+      if(!tStr.empty()) {
+        double spsd=atof(tStr.c_str());
+        if(spsd>0) s.addSPS(spsd);  
+        tStr.clear();
+      }
+      a++;
+      continue;
+    }
+    tStr+=SPS[a++];
+  }
+  if (!tStr.empty()) {
+    double spsd = atof(tStr.c_str());
+    if (spsd > 0) s.addSPS(spsd);
+  }
 
   //Get more sig digits for isolation mass
   if (raw > 3 && (MSn==MS2 || MSn==MS3)){
@@ -568,7 +616,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 
 		//Get regular spectrum data
 		sl=lstrlenA("");
-		testStr = SysAllocStringLen(NULL,sl);
+    testStr = SysAllocStringLen(NULL,sl);
 		MultiByteToWideChar(CP_ACP,0,"",sl,testStr,sl);
 		j=m_Raw->GetMassListFromScanNum(&rawCurSpec,testStr,0,0,0,FALSE,&pw,&varMassList,&varPeakFlags,&lArraySize);
 		SysFreeString(testStr);
@@ -639,6 +687,9 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 //  s.setConversionI(ConversionI.dblVal);
   s.setTIC(TIC);
   s.setIonInjectionTime(IIT);
+  string ts="scan=";
+  ts+=to_string(rawCurSpec);
+  s.setNativeID(ts.c_str());
 	if(MSn==SRM) s.setMZ(MZs[0]);
   switch(MSn){
     case MS1: s.setMsLevel(1); break;

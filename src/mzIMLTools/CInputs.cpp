@@ -120,8 +120,12 @@ sCvParam CInputs::checkFileFormat(string s){
       cv.accession = "MS:1000566"; cv.name = "ISB mzXML format";
     } else if (ext.compare(".MZML") == 0){
       cv.accession = "MS:1000584"; cv.name = "mzML format";
+    } else if (ext.compare(".MZMLB") == 0) {
+      cv.accession = "MS:1002838"; cv.name = "mzMLb format";
     } else if (ext.compare(".MZ5") == 0){
       cv.accession = "MS:1001881"; cv.name = "mz5 format";
+    } else if (ext.compare(".RAW") == 0) {
+      cv.accession = "MS:1000563"; cv.name = "Thermo RAW format";
     } else {
       cerr << "mzIMLTools CInputs::checkFileFormat(): Cannot find CV for extension: " << ext << endl;
       exit(1);
@@ -142,6 +146,12 @@ sCvParam CInputs::checkSpectrumIDFormat(sCvParam& s){
     cv.accession = "MS:1001530"; cv.name = "mzML unique identifier";
   } else if (s.accession.compare("MS:1000566") == 0){ //note that mzXML is being given mzML identifier
     cv.accession = "MS:1001530"; cv.name = "mzML unique identifier"; 
+  } else if (s.accession.compare("MS:1002838") == 0) { //note that mzMLb is being given mzML identifier
+    cv.accession = "MS:1001530"; cv.name = "mzML unique identifier";
+  } else if (s.accession.compare("MS:1000563") == 0) {
+    cv.accession = "MS:1000768"; cv.name = "Thermo nativeID format";
+  } else if (s.accession.compare("MS:1001881") == 0) { 
+    cv.accession = "MS:1000777"; cv.name = "spectrum identifier nativeID format";
   } else if (s.accession.compare("MS:1001062") == 0){ 
     cv.accession = "MS:1000774"; cv.name = "multiple peak list nativeID format";
   }
