@@ -132,7 +132,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
 
   } else if (isElement("binaryDataArrayList",el)) {
 #ifdef MZP_HDF
-    if(m_bHeaderOnly && m_hdfFile<0) stopParser();
+    if(m_bHeaderOnly) stopParser();
 #else
     if (m_bHeaderOnly) stopParser();
 #endif
@@ -271,18 +271,6 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
       m_precursorIon.monoMZ = atof(value);
     } else if (strcmp(name, "ms level") == 0) {
       m_precursorIon.msLevel = atoi(value);
-#ifdef MZP_HDF
-    } else if (strcmp(name,"external dataset")==0){
-      m_strHDFDatasetID=value;
-    } else if (strcmp(name, "external array length") == 0) {
-      m_hdfArraySz = (hsize_t)atoll(value);
-      if(m_hdfFile>-1) {
-        spec->setPeaksCount((int)m_hdfArraySz);
-        if(m_bHeaderOnly) stopParser();
-      }
-    } else if (strcmp(name, "external offset") == 0) {
-      m_hdfOffset = (hsize_t)atoll(value);
-#endif
     }
 
   }
@@ -434,6 +422,21 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
       spec->setActivation(ETD);
     }
 
+#ifdef MZP_HDF
+  } else if (!strcmp(name, "external HDF5 dataset") || !strcmp(accession, "MS:1002841")) {
+    m_strHDFDatasetID = value;
+
+  } else if (!strcmp(name, "external array length") || !strcmp(accession, "MS:1002843")) {
+    m_hdfArraySz = (hsize_t)atoll(value);
+    if (m_hdfFile > -1) {
+      spec->setPeaksCount((int)m_hdfArraySz);
+      if (m_bHeaderOnly) stopParser();
+    }
+
+  } else if (!strcmp(name, "external offset") || !strcmp(accession, "MS:1002842")) {
+    m_hdfOffset = (hsize_t)atoll(value);
+#endif
+
   } else if(!strcmp(name, "FAIMS compensation voltage") || !strcmp(accession,"MS:1001581"))  {
     spec->setCompensationVoltage(atof(value));
     
@@ -569,7 +572,6 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
 }
 
 void mzpSAXMzmlHandler::processData(){
-
 #ifdef MZP_HDF
   if(m_hdfFile>-1){
 
@@ -1097,7 +1099,6 @@ bool mzpSAXMzmlHandler::openHDF(const char* fileName) {
 }
 
 bool mzpSAXMzmlHandler::parseHDFOffset(int index) {
-
   if (m_hdfFile<0) {
     cerr << "Error parseHDFOffset(): No open file." << endl;
     return false;
