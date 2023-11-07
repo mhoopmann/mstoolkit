@@ -536,6 +536,10 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
   } else if(!strcmp(name,"radial ejection linear ion trap") || !strcmp(accession,"MS:1000083")) {
     m_instrument.analyzer=name;
 
+  } else if (!strcmp(name, "inverse reduced ion mobility") || !strcmp(accession, "MS:1002815")) {
+    spec->setInverseReducedIonMobility(atof(value));
+    m_bionMobility = true;
+
   } else if(!strcmp(name, "scan start time") || !strcmp(accession,"MS:1000016"))  {
     if(!strcmp(unitName, "minute") || !strcmp(unitAccession,"UO:0000031"))  {
       spec->setRTime((float)atof(value));
@@ -821,7 +825,6 @@ void mzpSAXMzmlHandler::pushSpectrum(){
       dp_im.intensity = vdI[i];
       dp_im.ionMobility = vdIM[i];
       spec->addDP(dp_im);
-
     } else {
       spec->addDP(dp);
     }

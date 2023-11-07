@@ -1950,6 +1950,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	s.setScanNumber(scanHeader.acquisitionNum,true);
 	s.setRTime((float)scanHeader.retentionTime/60.0f);
   s.setCompensationVoltage(scanHeader.compensationVoltage);
+  s.setInverseReducedIonMobility(scanHeader.inverseReducedIonMobility);
   s.setIonInjectionTime((float)scanHeader.ionInjectionTime);
   s.setTIC(scanHeader.totIonCurrent);
   s.setScanWindow(scanHeader.lowMZ,scanHeader.highMZ);
@@ -2011,8 +2012,13 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex],rampIndex);
 	j=0;
 	for(i=0;i<scanHeader.peaksCount;i++){
-		s.add((double)pPeaks[j],(float)pPeaks[j+1]);
-		j+=2;
+    if(scanHeader.inverseReducedIonMobility!=0){
+      s.add((double)pPeaks[j], (float)pPeaks[j + 1],(double)pPeaks[j+2]);
+      j+=3;
+    } else {
+      s.add((double)pPeaks[j],(float)pPeaks[j+1]);
+      j+=2;
+    }
 	}
   lastReadScanNum = scanHeader.acquisitionNum;
 

@@ -19,6 +19,7 @@ BasicSpectrum::BasicSpectrum() {
   centroid=false;
   filterLine[0]='\0';
   highMZ=0.0;
+  inverseReducedIonMobility=0;
   ionInjectionTime=0.0;
   lowMZ=0.0;
   msLevel=1;
@@ -44,6 +45,7 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
   basePeakMZ=s.basePeakMZ;
   centroid=s.centroid;
   highMZ=s.highMZ;
+  inverseReducedIonMobility=s.inverseReducedIonMobility;
   ionInjectionTime=s.ionInjectionTime;
   lowMZ=s.lowMZ;
   msLevel=s.msLevel;
@@ -80,6 +82,7 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
     basePeakMZ=s.basePeakMZ;
     centroid=s.centroid;
     highMZ=s.highMZ;
+    inverseReducedIonMobility=s.inverseReducedIonMobility;
     ionInjectionTime=s.ionInjectionTime;
     lowMZ=s.lowMZ;
     msLevel=s.msLevel;
@@ -113,6 +116,7 @@ void BasicSpectrum::clear(){
   filterLine[0]='\0';
   highMZ=0.0;
   idString[0]='\0';
+  inverseReducedIonMobility=0;
   ionInjectionTime=0.0;
   lowMZ=0.0;
   msLevel=1;
@@ -144,6 +148,7 @@ void BasicSpectrum::setIDString(const char* str) {
   strncpy(idString,str,127); 
   idString[127]='\0';
 }
+void BasicSpectrum::setInverseReducedIonMobility(double d){ inverseReducedIonMobility=d;}
 void BasicSpectrum::setIonInjectionTime(double d){ ionInjectionTime=d;}
 void BasicSpectrum::setLowMZ(double d){ lowMZ=d;}
 void BasicSpectrum::setMSLevel(int level){ msLevel=level;}
@@ -220,5 +225,8 @@ float BasicSpectrum::getRTime(bool min){
 int BasicSpectrum::getScanIndex(){ return scanIndex;}
 int BasicSpectrum::getScanNum(){ return scanNum;}
 double BasicSpectrum::getTotalIonCurrent(){ return totalIonCurrent;}
-size_t BasicSpectrum::size(){ return vData->size();}
+size_t BasicSpectrum::size(){ 
+  if(vDataIonMob->size()>0) return vDataIonMob->size(); //ion mobility data and standard data should not exist together.
+  return vData->size();
+}
 

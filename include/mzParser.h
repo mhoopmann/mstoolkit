@@ -264,6 +264,7 @@ public:
   void setFilterLine(char* str);
   void setHighMZ(double d);
   void setIDString(const char* str);
+  void setInverseReducedIonMobility(double d);
   void setIonInjectionTime(double d);
   void setLowMZ(double d);
   void setMSLevel(int level);

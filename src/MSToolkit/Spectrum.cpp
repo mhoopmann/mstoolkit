@@ -46,9 +46,11 @@ Spectrum::Spectrum(){
   selectionWinLower = 0;
   selectionWinUpper = 0;
   centroidStatus=2;
+  inverseReducedIonMobility=0;
 
   fileType=Unspecified;
   vPeaks = new vector<Peak_T>;
+  vIonMobility = new vector<double>;
   vEZ = new vector<EZState>;
   vZ = new vector<ZState>;
   actMethod=mstNA;
@@ -61,6 +63,7 @@ Spectrum::Spectrum(){
 
 Spectrum::~Spectrum(){
   if(vPeaks) delete vPeaks;
+  if(vIonMobility) delete vIonMobility;
   if(vEZ) delete vEZ;
   if(vZ) delete vZ;
 	if(mz) delete mz;
@@ -103,6 +106,8 @@ Spectrum::Spectrum(const Spectrum& s){
   selectionWinLower=s.selectionWinLower;
   selectionWinUpper=s.selectionWinUpper;
   centroidStatus = s.centroidStatus;
+  inverseReducedIonMobility=s.inverseReducedIonMobility;
+
   vPeaks = new vector<Peak_T>;
   for(i=0;i<s.vPeaks->size();i++){
     vPeaks->push_back(s.vPeaks->at(i));
@@ -115,6 +120,7 @@ Spectrum::Spectrum(const Spectrum& s){
   for(i=0;i<s.vZ->size();i++){
     vZ->push_back(s.vZ->at(i));
   }
+  vIonMobility = new vector<double>(*s.vIonMobility);
   strcpy(rawFilter,s.rawFilter);
   strcpy(nativeID,s.nativeID);
   scanDescription=s.scanDescription;
@@ -125,6 +131,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
   unsigned int i;
   if (this != &s) {
     delete vPeaks;
+    delete vIonMobility;
     delete vEZ;
     delete vZ;
     delete monoMZ;
@@ -142,6 +149,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     sps = new vector<double>(*s.sps);
     precursor = new vector<MSPrecursorInfo>(*s.precursor);
     vPeaks = new vector<Peak_T>(*s.vPeaks);
+    vIonMobility = new vector<double>(*s.vIonMobility);
     vEZ = new vector<EZState>(*s.vEZ);
     vZ = new vector<ZState>(*s.vZ);
     rTime = s.rTime;
@@ -162,6 +170,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     IIT = s.IIT;
     fileType = s.fileType;
     centroidStatus = s.centroidStatus;
+    inverseReducedIonMobility=s.inverseReducedIonMobility;
     selectionWinLower = s.selectionWinLower;
     selectionWinUpper = s.selectionWinUpper;
     strcpy(rawFilter,s.rawFilter);
@@ -173,6 +182,14 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
 
 Peak_T& Spectrum::operator[](const int& i) {
 	return vPeaks->operator[](i);
+}
+
+Peak_T& Spectrum::operator[](const unsigned int& i) {
+  return vPeaks->operator[](i);
+}
+
+Peak_T& Spectrum::operator[](const size_t& i) {
+  return vPeaks->operator[](i);
 }
 
 
@@ -189,6 +206,14 @@ void Spectrum::add(double d1, float d2){
   p.mz=d1;
   p.intensity=d2;
   vPeaks->push_back(p);
+}
+
+void Spectrum::add(double d1, float d2, double d3) {
+  Peak_T p;
+  p.mz = d1;
+  p.intensity = d2;
+  vPeaks->push_back(p);
+  vIonMobility->push_back(d3);
 }
 
 void Spectrum::addEZState(EZState& z){
@@ -237,12 +262,32 @@ Peak_T& Spectrum::at(const unsigned int& i){
   return vPeaks->operator [](i);
 }
 
+Peak_T& Spectrum::at(const size_t& i) {
+  return vPeaks->operator [](i);
+}
+
 EZState& Spectrum::atEZ(const int& i){
 	return vEZ->operator [](i);
 }
 
 EZState& Spectrum::atEZ(const unsigned int& i){
 	return vEZ->operator [](i);
+}
+
+EZState& Spectrum::atEZ(const size_t& i) {
+  return vEZ->operator [](i);
+}
+
+double& Spectrum::atIM(const int& i) {
+  return vIonMobility->operator [](i);
+}
+
+double& Spectrum::atIM(const unsigned int& i) {
+  return vIonMobility->operator [](i);
+}
+
+double& Spectrum::atIM(const size_t& i) {
+  return vIonMobility->operator [](i);
 }
 
 ZState& Spectrum::atZ(const int& i){
@@ -253,10 +298,16 @@ ZState& Spectrum::atZ(const unsigned int& i){
 	return vZ->operator [](i);
 }
 
+ZState& Spectrum::atZ(const size_t& i) {
+  return vZ->operator [](i);
+}
+
 /* Clears the spectrum */
 void Spectrum::clear(){
 	delete vPeaks;
 	vPeaks = new vector<Peak_T>;
+  delete vIonMobility;
+  vIonMobility = new vector<double>;
   delete vEZ;
   vEZ = new vector<EZState>;
 	delete vZ;
@@ -285,6 +336,7 @@ void Spectrum::clear(){
   fileID.clear();
 	fileType = Unspecified;
   actMethod=mstNA;
+  inverseReducedIonMobility=0;
 }
 
 void Spectrum::clearMZ(){
@@ -299,6 +351,8 @@ void Spectrum::clearMZ(){
 void Spectrum::clearPeaks(){
 	delete vPeaks;
 	vPeaks = new vector<Peak_T>;
+  delete vIonMobility;
+  vIonMobility = new vector<double>;
 }
 
 /* Erases element i in the spectrum. */
@@ -306,6 +360,9 @@ void Spectrum::erase(unsigned int i){
   vector<Peak_T>::iterator vi;
   vi=vPeaks->begin()+i;
   vPeaks->erase(vi);
+  vector<double>::iterator ii;
+  ii=vIonMobility->begin()+i;
+  vIonMobility->erase(ii);
 }
 
 /* Erases element i to element j, inclusive, in the spectrum. */
@@ -315,6 +372,12 @@ void Spectrum::erase(unsigned int i, unsigned int j){
   vi1=vPeaks->begin()+i;
   vi2=vPeaks->begin()+j+1;
   vPeaks->erase(vi1,vi2);
+
+  vector<double>::iterator ii1;
+  vector<double>::iterator ii2;
+  ii1 = vIonMobility->begin() + i;
+  ii2 = vIonMobility->begin() + j + 1;
+  vIonMobility->erase(ii1, ii2);
 }
 
 void Spectrum::eraseEZ(unsigned int i){
@@ -401,6 +464,10 @@ string Spectrum::getFileID(){
 
 MSSpectrumType Spectrum::getFileType(){
 	return fileType;
+}
+
+double Spectrum::getInverseReducedIonMobility(){
+  return inverseReducedIonMobility;
 }
 
 float Spectrum::getIonInjectionTime(){
@@ -533,6 +600,10 @@ void Spectrum::setFileID(string s){
 
 void Spectrum::setFileType(MSSpectrumType f){
 	fileType=f;
+}
+
+void Spectrum::setInverseReducedIonMobility(double d){
+  inverseReducedIonMobility=d;
 }
 
 void Spectrum::setIonInjectionTime(float f){
