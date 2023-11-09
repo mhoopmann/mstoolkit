@@ -460,6 +460,9 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
   } else if (!strcmp(name, "ion injection time") || !strcmp(accession, "MS:1000927"))  {
     spec->setIonInjectionTime(atof(value));
 
+  } else if (!strcmp(name, "ion mobility drift time") || !strcmp(accession, "MS:1002476")) {
+    spec->setIonMobilityDriftTime(atof(value));
+
   } else if(!strcmp(name,"isolation window target m/z") || !strcmp(accession,"MS:1000827")) {
     m_precursorIon.isoMZ=atof(value);
 

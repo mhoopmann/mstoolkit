@@ -491,6 +491,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->collisionEnergy=0.0;
   scanHeader->compensationVoltage=0.0;
   scanHeader->inverseReducedIonMobility=0.0;			
+  scanHeader->ionMobilityDriftTime=0;
   scanHeader->isolationWindowLower=0;
   scanHeader->isolationWindowUpper=0;
   scanHeader->filePosition=0;
@@ -573,6 +574,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->highMZ=pFI->bs->getHighMZ();
   scanHeader->inverseReducedIonMobility=pFI->bs->getInverseReducedIonMobility();		
   scanHeader->ionInjectionTime = pFI->bs->getIonInjectionTime();
+  scanHeader->ionMobilityDriftTime = pFI->bs->getIonMobilityDriftTime();
   scanHeader->lowMZ=pFI->bs->getLowMZ();
   scanHeader->msLevel=pFI->bs->getMSLevel();
   scanHeader->peaksCount=pFI->bs->getPeaksCount();

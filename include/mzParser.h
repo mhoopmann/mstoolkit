@@ -266,6 +266,7 @@ public:
   void setIDString(const char* str);
   void setInverseReducedIonMobility(double d);
   void setIonInjectionTime(double d);
+  void setIonMobilityDriftTime(double d);
   void setLowMZ(double d);
   void setMSLevel(int level);
   void setPeaksCount(int i);
@@ -293,6 +294,7 @@ public:
   double        getHighMZ();
   int           getIDString(char* str);
   double        getIonInjectionTime();
+  double        getIonMobilityDriftTime();
   specIonMobDP& getIonMobDP(const size_t& index);
   double        getLowMZ();
   int           getMSLevel();
@@ -326,6 +328,7 @@ protected:
   double          highMZ;
   char            idString[128];
   double          ionInjectionTime;
+  double          ionMobilityDriftTime;
   double          lowMZ;
   int             msLevel;
   int             peaksCount;
@@ -1374,6 +1377,7 @@ struct ScanHeaderStruct {
   double inverseReducedIonMobility;   // only if MS level > 1
   double highMZ;
   double ionInjectionTime;
+  double ionMobilityDriftTime;
   double ionisationEnergy;
   double isolationWindowLower;  //similar to selection window, but instead just defines the relative width
   double isolationWindowUpper;  //of the isolation window in mz, rather than its absolute width.

@@ -47,6 +47,7 @@ Spectrum::Spectrum(){
   selectionWinUpper = 0;
   centroidStatus=2;
   inverseReducedIonMobility=0;
+  ionMobilityDriftTime=0;
 
   fileType=Unspecified;
   vPeaks = new vector<Peak_T>;
@@ -107,6 +108,7 @@ Spectrum::Spectrum(const Spectrum& s){
   selectionWinUpper=s.selectionWinUpper;
   centroidStatus = s.centroidStatus;
   inverseReducedIonMobility=s.inverseReducedIonMobility;
+  ionMobilityDriftTime=s.ionMobilityDriftTime;
 
   vPeaks = new vector<Peak_T>;
   for(i=0;i<s.vPeaks->size();i++){
@@ -171,6 +173,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     fileType = s.fileType;
     centroidStatus = s.centroidStatus;
     inverseReducedIonMobility=s.inverseReducedIonMobility;
+    ionMobilityDriftTime=s.ionMobilityDriftTime;
     selectionWinLower = s.selectionWinLower;
     selectionWinUpper = s.selectionWinUpper;
     strcpy(rawFilter,s.rawFilter);
@@ -337,6 +340,7 @@ void Spectrum::clear(){
 	fileType = Unspecified;
   actMethod=mstNA;
   inverseReducedIonMobility=0;
+  ionMobilityDriftTime=0;
 }
 
 void Spectrum::clearMZ(){
@@ -360,9 +364,12 @@ void Spectrum::erase(unsigned int i){
   vector<Peak_T>::iterator vi;
   vi=vPeaks->begin()+i;
   vPeaks->erase(vi);
-  vector<double>::iterator ii;
-  ii=vIonMobility->begin()+i;
-  vIonMobility->erase(ii);
+
+  if(vIonMobility->size()>0){
+    vector<double>::iterator ii;
+    ii=vIonMobility->begin()+i;
+    vIonMobility->erase(ii);
+  }
 }
 
 /* Erases element i to element j, inclusive, in the spectrum. */
@@ -373,11 +380,13 @@ void Spectrum::erase(unsigned int i, unsigned int j){
   vi2=vPeaks->begin()+j+1;
   vPeaks->erase(vi1,vi2);
 
-  vector<double>::iterator ii1;
-  vector<double>::iterator ii2;
-  ii1 = vIonMobility->begin() + i;
-  ii2 = vIonMobility->begin() + j + 1;
-  vIonMobility->erase(ii1, ii2);
+  if(vIonMobility->size()>0){
+    vector<double>::iterator ii1;
+    vector<double>::iterator ii2;
+    ii1 = vIonMobility->begin() + i;
+    ii2 = vIonMobility->begin() + j + 1;
+    vIonMobility->erase(ii1, ii2);
+  }
 }
 
 void Spectrum::eraseEZ(unsigned int i){
@@ -472,6 +481,10 @@ double Spectrum::getInverseReducedIonMobility(){
 
 float Spectrum::getIonInjectionTime(){
   return IIT;
+}
+
+double Spectrum::getIonMobilityDriftTime() {
+  return ionMobilityDriftTime;
 }
 
 double Spectrum::getMonoMZ(int index){
@@ -608,6 +621,10 @@ void Spectrum::setInverseReducedIonMobility(double d){
 
 void Spectrum::setIonInjectionTime(float f){
   IIT=f;
+}
+
+void Spectrum::setIonMobilityDriftTime(double d) {
+  ionMobilityDriftTime = d;
 }
 
 void Spectrum::setMZ(double d, double mono){

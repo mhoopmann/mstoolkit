@@ -87,6 +87,7 @@ class Spectrum {
   MSSpectrumType  getFileType();
   double          getInverseReducedIonMobility();
   float           getIonInjectionTime();
+  double          getIonMobilityDriftTime();
   double    			getMonoMZ(int index=0);
   double    			getMZ(int index=0);
   bool            getNativeID(char*,int);
@@ -120,6 +121,7 @@ class Spectrum {
   void    				setFileType(MSSpectrumType);
   void            setInverseReducedIonMobility(double);
   void            setIonInjectionTime(float);
+  void            setIonMobilityDriftTime(double);
   void		    		setMZ(double, double mono=0);
   void            setNativeID(const char*);
   void            setRawFilter(char*);
@@ -185,6 +187,7 @@ class Spectrum {
 	double           convE;
 	double           convI;
   double           inverseReducedIonMobility;
+  double           ionMobilityDriftTime;
   double           selectionWinLower;
   double           selectionWinUpper;
   double           TIC;

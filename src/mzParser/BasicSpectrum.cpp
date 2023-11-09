@@ -21,6 +21,7 @@ BasicSpectrum::BasicSpectrum() {
   highMZ=0.0;
   inverseReducedIonMobility=0;
   ionInjectionTime=0.0;
+  ionMobilityDriftTime=0;
   lowMZ=0.0;
   msLevel=1;
   peaksCount=0;
@@ -47,6 +48,7 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
   highMZ=s.highMZ;
   inverseReducedIonMobility=s.inverseReducedIonMobility;
   ionInjectionTime=s.ionInjectionTime;
+  ionMobilityDriftTime=s.ionMobilityDriftTime;
   lowMZ=s.lowMZ;
   msLevel=s.msLevel;
   peaksCount=s.peaksCount;
@@ -84,6 +86,7 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
     highMZ=s.highMZ;
     inverseReducedIonMobility=s.inverseReducedIonMobility;
     ionInjectionTime=s.ionInjectionTime;
+    ionMobilityDriftTime=s.ionMobilityDriftTime;
     lowMZ=s.lowMZ;
     msLevel=s.msLevel;
     peaksCount=s.peaksCount;
@@ -118,6 +121,7 @@ void BasicSpectrum::clear(){
   idString[0]='\0';
   inverseReducedIonMobility=0;
   ionInjectionTime=0.0;
+  ionMobilityDriftTime=0;
   lowMZ=0.0;
   msLevel=1;
   peaksCount=0;
@@ -150,6 +154,7 @@ void BasicSpectrum::setIDString(const char* str) {
 }
 void BasicSpectrum::setInverseReducedIonMobility(double d){ inverseReducedIonMobility=d;}
 void BasicSpectrum::setIonInjectionTime(double d){ ionInjectionTime=d;}
+void BasicSpectrum::setIonMobilityDriftTime(double d){ionMobilityDriftTime=d;}
 void BasicSpectrum::setLowMZ(double d){ lowMZ=d;}
 void BasicSpectrum::setMSLevel(int level){ msLevel=level;}
 void BasicSpectrum::setPeaksCount(int i){ peaksCount=i;}
@@ -198,6 +203,7 @@ int BasicSpectrum::getIDString(char* str) {
   return (int)strlen(str);
 }
 double BasicSpectrum::getIonInjectionTime(){return ionInjectionTime;}
+double BasicSpectrum::getIonMobilityDriftTime(){return ionMobilityDriftTime;}
 double BasicSpectrum::getLowMZ(){ return lowMZ;}
 int BasicSpectrum::getMSLevel(){ return msLevel;}
 int BasicSpectrum::getPeaksCount(){ return peaksCount;}
