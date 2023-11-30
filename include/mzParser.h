@@ -267,6 +267,7 @@ public:
   void setInverseReducedIonMobility(double d);
   void setIonInjectionTime(double d);
   void setIonMobilityDriftTime(double d);
+  void setIonMobilityScan(bool b);
   void setLowMZ(double d);
   void setMSLevel(int level);
   void setPeaksCount(int i);
@@ -296,6 +297,7 @@ public:
   double        getIonInjectionTime();
   double        getIonMobilityDriftTime();
   specIonMobDP& getIonMobDP(const size_t& index);
+  bool          getIonMobilityScan();
   double        getLowMZ();
   int           getMSLevel();
   int           getPeaksCount();
@@ -324,6 +326,7 @@ protected:
   double          collisionEnergy;
   double          compensationVoltage;  //FAIMS compensation voltage
   double          inverseReducedIonMobility;
+  bool            ionMobilityScan;
   char            filterLine[128];
   double          highMZ;
   char            idString[128];
@@ -1398,6 +1401,7 @@ struct ScanHeaderStruct {
   char   scanType[SCANTYPE_LENGTH];
         
   bool   centroid; //true if spectrum is centroided
+  bool   ionMobility; //true if spectrum contains ion mobility data
   bool   possibleChargesArray[CHARGEARRAY_LENGTH]; /* NOTE: does NOT include "precursorCharge" information; only from "possibleCharges" */
    
   ramp_fileoffset_t    filePosition; /* where in the file is this header? */
@@ -1429,6 +1433,8 @@ struct ScanCacheStruct {
   struct ScanHeaderStruct *headers;
   RAMPREAL **peaks;
 };
+
+static ramp_fileoffset_t lLastScanIndex=0;
 
 int                 checkFileType(const char* fname);
 ramp_fileoffset_t   getIndexOffset(RAMPFILE *pFI);

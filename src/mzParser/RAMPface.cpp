@@ -491,6 +491,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->collisionEnergy=0.0;
   scanHeader->compensationVoltage=0.0;
   scanHeader->inverseReducedIonMobility=0.0;			
+  scanHeader->ionMobility=false;
   scanHeader->ionMobilityDriftTime=0;
   scanHeader->isolationWindowLower=0;
   scanHeader->isolationWindowUpper=0;
@@ -521,49 +522,56 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->seqNum=-1;
 
   if(lScanIndex<0) return;
+  if(lScanIndex!=lLastScanIndex){
   
-  switch(pFI->fileType){
-    case 1:
-    case 3:
-    case 6:
-      if (!pFI->mzML->readHeaderFromOffset((f_off)lScanIndex,iIndex)){
-        v = NULL;
-        return;
-      }
-      break;
-    case 2:
-    case 4:
-      if (!pFI->mzXML->readHeaderFromOffset((f_off)lScanIndex)){
-        v = NULL;
-        return;
-      }
-      break;
-#ifdef MZP_HDF
-    case 5:
-      v2=pFI->mz5->getSpecIndex();
-      for(i=0;i<v2->size();i++) {
-        if(v2->at(i).offset==(f_off)lScanIndex) {
-          if(!pFI->mz5->readHeader((int)v2->at(i).scanNum)){
-            v2=NULL;
-            return;
-          }
-          break;
+    switch(pFI->fileType){
+      case 1:
+      case 3:
+      case 6:
+        if (!pFI->mzML->readHeaderFromOffset((f_off)lScanIndex,iIndex)){
+          v = NULL;
+          lLastScanIndex=0;
+          return;
         }
-      }
-      break;
-#endif
-    default:
-      pFI->bs->clear();
-      v=NULL;
+        break;
+      case 2:
+      case 4:
+        if (!pFI->mzXML->readHeaderFromOffset((f_off)lScanIndex)){
+          v = NULL;
+          lLastScanIndex = 0;
+          return;
+        }
+        break;
 #ifdef MZP_HDF
-      v2=NULL;
+      case 5:
+        v2=pFI->mz5->getSpecIndex();
+        for(i=0;i<v2->size();i++) {
+          if(v2->at(i).offset==(f_off)lScanIndex) {
+            if(!pFI->mz5->readHeader((int)v2->at(i).scanNum)){
+              v2=NULL;
+              lLastScanIndex = 0;
+              return;
+            }
+            break;
+          }
+        }
+        break;
 #endif
-      return;
+      default:
+        pFI->bs->clear();
+        v=NULL;
+#ifdef MZP_HDF
+        v2=NULL;
+#endif
+        lLastScanIndex = 0;
+        return;
+    }
+    v=NULL;
+#ifdef MZP_HDF
+    v2=NULL;
+#endif
+    lLastScanIndex = lScanIndex;
   }
-  v=NULL;
-#ifdef MZP_HDF
-  v2=NULL;
-#endif
 
   scanHeader->acquisitionNum=pFI->bs->getScanNum();
   scanHeader->basePeakIntensity=pFI->bs->getBasePeakIntensity();
@@ -575,6 +583,8 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->inverseReducedIonMobility=pFI->bs->getInverseReducedIonMobility();		
   scanHeader->ionInjectionTime = pFI->bs->getIonInjectionTime();
   scanHeader->ionMobilityDriftTime = pFI->bs->getIonMobilityDriftTime();
+  scanHeader->ionMobility=pFI->bs->getIonMobilityScan();
+  cout << "WTF: " << pFI->bs->getIonMobilityScan() << "\t" << scanHeader->ionMobility << endl;
   scanHeader->lowMZ=pFI->bs->getLowMZ();
   scanHeader->msLevel=pFI->bs->getMSLevel();
   scanHeader->peaksCount=pFI->bs->getPeaksCount();
@@ -841,35 +851,43 @@ RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int i
 
   if(lScanIndex<0) return pPeaks;
 
-  switch(pFI->fileType){
-    case 1:
-    case 3:
-    case 6:
-      pFI->mzML->readSpectrumFromOffset((f_off)lScanIndex,iIndex);
-      break;
-    case 2:
-    case 4:
-      pFI->mzXML->readSpectrumFromOffset((f_off)lScanIndex);
-      break;
+  //see if we already have this spectrum in memory
+  if(lScanIndex!=lLastScanIndex){
+
+    switch(pFI->fileType){
+      case 1:
+      case 3:
+      case 6:
+        pFI->mzML->readSpectrumFromOffset((f_off)lScanIndex,iIndex);
+        lLastScanIndex=lScanIndex;
+        break;
+      case 2:
+      case 4:
+        pFI->mzXML->readSpectrumFromOffset((f_off)lScanIndex);
+        lLastScanIndex = lScanIndex;
+        break;
 #ifdef MZP_HDF
-    case 5:
-      v2=pFI->mz5->getSpecIndex();
-      for(i=0;i<v2->size();i++) {
-        if(v2->at(i).offset==(f_off)lScanIndex) {
-          pFI->mz5->readSpectrum((int)v2->at(i).scanNum);
-          break;
+      case 5:
+        v2=pFI->mz5->getSpecIndex();
+        for(i=0;i<v2->size();i++) {
+          if(v2->at(i).offset==(f_off)lScanIndex) {
+            pFI->mz5->readSpectrum((int)v2->at(i).scanNum);
+            lLastScanIndex = lScanIndex;
+            break;
+          }
         }
-      }
-      break;
+        break;
 #endif
-    default:
-      pFI->bs->clear();
-      break;
-  }
-  v=NULL;
+      default:
+        pFI->bs->clear();
+        lLastScanIndex=0;
+        break;
+    }
+    v=NULL;
 #ifdef MZP_HDF
-  v2=NULL;
+    v2=NULL;
 #endif
+  }
 
   size_t j=0;
   if(pFI->bs->size()>0){

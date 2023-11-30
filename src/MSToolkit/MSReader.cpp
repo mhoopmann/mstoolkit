@@ -2029,7 +2029,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 	pPeaks = readPeaks(rampFileIn, pScanIndex[rampIndex],rampIndex);
 	j=0;
 	for(i=0;i<scanHeader.peaksCount;i++){
-    if(scanHeader.inverseReducedIonMobility!=0){
+    if(scanHeader.ionMobility){
       s.add((double)pPeaks[j], (float)pPeaks[j + 1],(double)pPeaks[j+2]);
       j+=3;
     } else {

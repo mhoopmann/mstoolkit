@@ -520,6 +520,7 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     m_bInintenArrayBinary = false;
     m_bInionMobilityArrayBinary = true;
     m_bionMobility = true;
+    spec->setIonMobilityScan(true);
 
   } else if(!strcmp(name,"orbitrap") || !strcmp(accession,"MS:1000484")) {
     m_instrument.analyzer=name;
@@ -541,6 +542,7 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
 
   } else if (!strcmp(name, "inverse reduced ion mobility") || !strcmp(accession, "MS:1002815")) {
     spec->setInverseReducedIonMobility(atof(value));
+    spec->setIonMobilityScan(true);
     m_bionMobility = true;
 
   } else if(!strcmp(name, "scan start time") || !strcmp(accession,"MS:1000016"))  {
@@ -725,14 +727,14 @@ bool mzpSAXMzmlHandler::readHeaderFromOffset(f_off offset, int scNm){
   //note that scan number will not be set if file doesn't use them.
   //also, no knowlege of current position in index is known or retained. Reading from
   //scan index will revert back to next scan from its current position.
-  m_bHeaderOnly = true;
+  //m_bHeaderOnly = true;  //MH: Changed behavior to always process entire scan whether just the header information was needed or not.
 #ifdef MZP_HDF
   if(m_hdfFile>-1) parseHDFOffset((int)offset);
   else parseOffset(offset);
 #else
   parseOffset(offset);
 #endif
-  m_bHeaderOnly = false;
+  //m_bHeaderOnly = false;
   return true;
 
 }
@@ -819,6 +821,7 @@ void mzpSAXMzmlHandler::pushChromatogram(){
 void mzpSAXMzmlHandler::pushSpectrum(){
   specDP dp;
   specIonMobDP dp_im;
+  if(vdIM.size()>0) spec->setIonMobilityScan(true);
   for(size_t i=0;i<vdM.size();i++)  {
     dp.mz = vdM[i];
     dp.intensity = vdI[i];
