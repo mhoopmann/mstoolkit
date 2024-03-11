@@ -37,11 +37,13 @@ BasicSpectrum::BasicSpectrum() {
   vData=new vector<specDP>;
   vDataIonMob = new vector<specIonMobDP>;
   vPrecursor=new vector<sPrecursorIon>;
+  vUserParam=new vector<sUParam>;
 }
 BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
   vData=new vector<specDP>(*s.vData);
   vDataIonMob = new vector<specIonMobDP>(*s.vDataIonMob);
   vPrecursor=new vector<sPrecursorIon>(*s.vPrecursor);
+  vUserParam = new vector<sUParam>(*s.vUserParam);
   activation=s.activation;
   basePeakIntensity=s.basePeakIntensity;
   basePeakMZ=s.basePeakMZ;
@@ -68,6 +70,7 @@ BasicSpectrum::~BasicSpectrum() {
   delete vData;
   delete vDataIonMob;
   delete vPrecursor;
+  delete vUserParam;
 }
 
 //------------------------------------------
@@ -78,9 +81,11 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
     delete vData;
     delete vDataIonMob;
     delete vPrecursor;
+    delete vUserParam;
     vData=new vector<specDP>(*s.vData);
     vDataIonMob=new vector<specIonMobDP>(*s.vDataIonMob);
     vPrecursor=new vector<sPrecursorIon>(*s.vPrecursor);
+    vUserParam = new vector<sUParam>(*s.vUserParam);
     activation=s.activation;
     basePeakIntensity=s.basePeakIntensity;
     basePeakMZ=s.basePeakMZ;
@@ -105,7 +110,7 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
   }
   return *this;
 }
-specDP& BasicSpectrum::operator[ ](const size_t index) {
+specDP& BasicSpectrum::operator[ ](const size_t& index) {
   return vData->at(index);
 }
 
@@ -139,6 +144,7 @@ void BasicSpectrum::clear(){
   vData->clear();
   vDataIonMob->clear();
   vPrecursor->clear();
+  vUserParam->clear();
 }
 void BasicSpectrum::clearPrecursor(){ vPrecursor->clear();}
 void BasicSpectrum::setActivation(int a){ activation=a;}
@@ -186,6 +192,12 @@ void BasicSpectrum::setRTime(float f){ rTime=f;}
 void BasicSpectrum::setScanIndex(int num) { scanIndex=num;}
 void BasicSpectrum::setScanNum(int num){scanNum=num;}
 void BasicSpectrum::setTotalIonCurrent(double d){ totalIonCurrent=d;}
+void BasicSpectrum::setUserParam(string name, string value, string type){
+  vUserParam->emplace_back();
+  vUserParam->back().name=name;
+  vUserParam->back().value=value;
+  vUserParam->back().type=type;
+}
 
 //------------------------------------------
 //  Accessors
@@ -237,6 +249,10 @@ float BasicSpectrum::getRTime(bool min){
 int BasicSpectrum::getScanIndex(){ return scanIndex;}
 int BasicSpectrum::getScanNum(){ return scanNum;}
 double BasicSpectrum::getTotalIonCurrent(){ return totalIonCurrent;}
+sUParam BasicSpectrum::getUserParam(const size_t& index) {
+  if(index>=vUserParam->size()) return sUParam();
+  return vUserParam->at(index);
+}
 size_t BasicSpectrum::size(){ 
   if(vDataIonMob->size()>0) return vDataIonMob->size(); //ion mobility data and standard data should not exist together.
   return vData->size();

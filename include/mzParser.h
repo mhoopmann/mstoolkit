@@ -23,6 +23,7 @@
 //------------------------------------------------
 // Standard libraries
 //------------------------------------------------
+#include <algorithm>
 #include <vector>
 #include <map>
 #include <stdio.h>
@@ -161,11 +162,16 @@ enum enumActivation {
 class cindex  { 
 public:
 
-  //MH: Fix this!!!
-  static int compare (const void* a, const void* b) {
-    if (*(size_t*)a < *(size_t*)b) return -1;
-    if (*(size_t*)a > *(size_t*)b) return 1;
-    return 0;
+  ////MH: Fix this!!!
+  //static int compare (const void* a, const void* b) {
+  //  if (*(size_t*)a < *(size_t*)b) return -1;
+  //  if (*(size_t*)a > *(size_t*)b) return 1;
+  //  return 0;
+  //}
+  static bool compare(cindex& a, cindex& b) {
+    if (a.scanNum > b.scanNum) return false;
+    if (a.scanNum < b.scanNum) return true;
+    return true;
   }
 
   size_t scanNum;
@@ -238,6 +244,12 @@ typedef struct sPrecursorIon{
   }
 } sPrecursorIon;
 
+typedef struct sUParam{
+  std::string name;
+  std::string value;
+  std::string type;
+} sUParam;
+
 class BasicSpectrum  {
 public:
 
@@ -248,7 +260,7 @@ public:
 
   //Operator overloads
   BasicSpectrum& operator=(const BasicSpectrum& s);
-  specDP& operator[ ](const size_t index);
+  specDP& operator[ ](const size_t& index);
 
   //Modifiers
   void addDP(specDP dp);
@@ -282,6 +294,7 @@ public:
   void setScanIndex(int num);
   void setScanNum(int num);
   void setTotalIonCurrent(double d);
+  void setUserParam(std::string name, std::string value, std::string type="");
 
   //Accessors
   int           getActivation();
@@ -314,7 +327,9 @@ public:
   int           getScanIndex();
   int           getScanNum();
   double        getTotalIonCurrent();
+  sUParam       getUserParam(const size_t& index);
   size_t        size();
+  
 
 protected:
 
@@ -344,6 +359,7 @@ protected:
   std::vector<specDP>* vData;                //Spectrum data points
   std::vector<specIonMobDP>* vDataIonMob;    //Ion Mobility Spectrum data points
   std::vector<sPrecursorIon>* vPrecursor;
+  std::vector<sUParam>* vUserParam;
      
 };
 
@@ -1306,7 +1322,7 @@ private:
 #define INSTRUMENT_LENGTH 2000
 #define SCANTYPE_LENGTH 32
 #define CHARGEARRAY_LENGTH 128
-#define PRECURSORARRAY_LENGTH 512
+#define PRECURSORARRAY_LENGTH 1024
 
 typedef double RAMPREAL; 
 typedef f_off ramp_fileoffset_t;
@@ -1399,6 +1415,7 @@ struct ScanHeaderStruct {
   char   idString[CHARGEARRAY_LENGTH];
   char   possibleCharges[SCANTYPE_LENGTH];
   char   scanType[SCANTYPE_LENGTH];
+  char   scanDescription[SCANTYPE_LENGTH]; //specific to Thermo instruments. Currently parsed from userParams in mzML...
         
   bool   centroid; //true if spectrum is centroided
   bool   ionMobility; //true if spectrum contains ion mobility data
@@ -1450,7 +1467,7 @@ char*               rampConstructInputPath(char *buf, int inbuflen, const char *
 const char**        rampListSupportedFileTypes();
 RAMPFILE*           rampOpenFile(const char *filename);
 char*               rampValidFileType(const char *buf);
-void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, int iIndex=-1);
+void                readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, int iIndex=-1, BasicSpectrum **bs=NULL);
 ramp_fileoffset_t*  readIndex(RAMPFILE *pFI, ramp_fileoffset_t indexOffset, int *iLastScan);
 int                 readMsLevel(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex);
 void                readMSRun(RAMPFILE *pFI, struct RunHeaderStruct *runHeader);
@@ -1564,7 +1581,7 @@ public:
   SpectrumListPtr     spectrumListPtr;
 
   bool get();
-  void set(mzpSAXMzmlHandler* ml, void* m5, BasicChromatogram* b);
+  void set(mzpSAXMzmlHandler* ml, void* m5, BasicChromatogram* b, BasicSpectrum* s);
 
 private:
   mzpSAXMzmlHandler*  mzML;
@@ -1572,6 +1589,7 @@ private:
   mzpMz5Handler*      mz5;
   #endif
   BasicChromatogram*  bc;
+  BasicSpectrum*      bs;
 };
 
 class MSDataFile{
@@ -1638,6 +1656,7 @@ public:
 
   //User functions
   std::vector<cindex>*  getChromatIndex();
+  std::vector<cindex>*  getSpectrumIndex();
   int   highChromat();
   int   highScan();
   bool  load(const char* fname);

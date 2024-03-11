@@ -67,6 +67,27 @@ vector<cindex>*  MzParser::getChromatIndex(){
   return NULL;
 }
 
+vector<cindex>* MzParser::getSpectrumIndex() {
+  switch (fileType) {
+  case 1:
+  case 3:
+    return mzML->getSpecIndex();
+    break;
+  case 2:
+  case 4:
+    return NULL;
+    break;
+#ifdef MZP_HDF
+  case 5:
+    return NULL;
+    break;
+#endif
+  default:
+    break;
+  }
+  return NULL;
+}
+
 int MzParser::highChromat(){
   switch(fileType){
     case 1:

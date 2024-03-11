@@ -47,6 +47,8 @@ class Spectrum {
 	void						addMZ(double, double mono=0);
   void            addPrecursor(MSPrecursorInfo&);
   void            addSPS(double);
+  void            addUserParam(const std::string&, const std::string&, const std::string&);
+  void            addUserParam(const MSUserParam&);
   void    				addZState(int,double);
   void		    		addZState(ZState&);
   Peak_T&			    at(const int&);
@@ -104,6 +106,9 @@ class Spectrum {
   double    			getSPS(size_t index = 0);
   double          getTIC();
   int             getMsLevel();
+  MSUserParam     getUserParam(const size_t& index);
+  MSUserParam     getUserParam(const int& index);
+  bool            hasIonMobilityArray();
   void            setActivationMethod(MSActivation);
   void            setArea(float);
   void            setBPI(float);
@@ -139,6 +144,7 @@ class Spectrum {
   int             sizeSPS();
   int             sizePrecursor();
   int     				sizeZ();
+  size_t          sizeUserParams();
   void		    		sortIntensity();
   void				    sortIntensityRev();
   void    				sortMZ();
@@ -200,6 +206,8 @@ class Spectrum {
   double           scanWinLower;    //the instrument spectrum m/z range
   double           scanWinUpper;    //the instrument spectrum m/z range
   std::string      scanDescription;
+
+  std::vector<MSUserParam> *userParams;
 
   //private:
   //Functions

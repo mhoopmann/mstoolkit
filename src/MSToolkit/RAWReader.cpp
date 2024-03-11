@@ -418,6 +418,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	long tl;      //temp long value
   MSActivation act;
   string SPS;
+  string ScanDescription;
 
 
   if(!bRaw) return false;
@@ -538,6 +539,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   preInfo.dMonoMZ = evaluateTrailerDouble("Monoisotopic M/Z:");
   IIT = (float)evaluateTrailerDouble("Ion Injection Time (ms):");
   SPS = evaluateTrailerString("SPS Masses:");
+  ScanDescription = evaluateTrailerString("Scan Description:");
 
   size_t a=0;
   string tStr;
@@ -679,6 +681,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   s.setBPI((float)BPI);
   s.setBPM(BPM);
   s.setCompensationVoltage(cv);
+  s.setScanDescription(ScanDescription);
 //  s.setConversionA(ConversionA.dblVal);  //Deprecating Conversion values
 //  s.setConversionB(ConversionB.dblVal);
 //	s.setConversionC(ConversionC.dblVal);

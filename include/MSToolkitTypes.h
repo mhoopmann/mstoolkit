@@ -17,6 +17,7 @@ limitations under the License.
 #define _MSTOOLKITTYPES_H
 
 #include <stddef.h>
+#include <string>
 
 namespace MSToolkit {
 
@@ -143,6 +144,23 @@ struct EZState {
   double mh;      //M+H
   float pRTime;   //precursor area
   float pArea;    //precursor retention time
+};
+
+//To accommodate user params from mzML files, which could be anything...
+enum eDataType{
+  dtInt =0,
+  dtFloat,
+  dtDouble,
+  dtString
+};
+  
+struct MSUserParam {
+  std::string name;
+  std::string value;
+  eDataType type=dtString;
+  int toInt(){return atoi(value.c_str());}
+  float toFloat(){return (float)atof(value.c_str());}
+  double toDouble(){return atof(value.c_str());}
 };
 
 }

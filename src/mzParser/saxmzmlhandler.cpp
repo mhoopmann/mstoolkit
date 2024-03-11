@@ -193,7 +193,9 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
       if (it != m_mIndex.end()) {
         m_precursorIon.scanNumber=(int)it->second;
       } else {
-        cout << "ERROR: precursor:spectrumRef " << s << " is not indexed." << endl;
+        //silence error. A non-indexed precursor (e.g., if MS1 scans have been excised) leads to a scanNumber of 0.
+        //cout << "ERROR: precursor:spectrumRef " << s << " is not indexed." << endl;
+        m_precursorIon.scanNumber = 0;
       }
     }
 
@@ -272,7 +274,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
     } else if (strcmp(name, "ms level") == 0) {
       m_precursorIon.msLevel = atoi(value);
     }
-
+    spec->setUserParam(name,value,dtype);
   }
 
   if(isElement("binary", el))  {
@@ -316,7 +318,7 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
     m_bInIndexList=false;
     stopParser();
     if (!m_bIndexSorted) {
-      qsort(&m_vIndex[0],m_vIndex.size(),sizeof(cindex),cindex::compare);
+      sort(m_vIndex.begin(),m_vIndex.end(),cindex::compare);
       m_bIndexSorted=true;
     }
 
@@ -542,8 +544,8 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
 
   } else if (!strcmp(name, "inverse reduced ion mobility") || !strcmp(accession, "MS:1002815")) {
     spec->setInverseReducedIonMobility(atof(value));
-    spec->setIonMobilityScan(true);
-    m_bionMobility = true;
+    //spec->setIonMobilityScan(true);
+    //m_bionMobility = true;
 
   } else if(!strcmp(name, "scan start time") || !strcmp(accession,"MS:1000016"))  {
     if(!strcmp(unitName, "minute") || !strcmp(unitAccession,"UO:0000031"))  {
@@ -1055,7 +1057,7 @@ bool mzpSAXMzmlHandler::load(const char* fileName){
   }
 #endif
 
-  parseOffset(0);
+  //parseOffset(0);
   indexOffset = readIndexOffset();
   if(indexOffset==0){
     m_bNoIndex=false;

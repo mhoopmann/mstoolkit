@@ -1865,6 +1865,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
   mzParser::ScanHeaderStruct scanHeader;
   mzParser::RAMPREAL *pPeaks;
   mzParser::sPrecursorIon rPI;
+  mzParser::BasicSpectrum *bs=NULL;
 	int i,j;
   bool bFoundSpec=false;
 
@@ -1905,7 +1906,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       return false; //don't grab previous scan when we're out of bounds
     }
     while(true){
-      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader,rampIndex);
+      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader,rampIndex,&bs);
       if (scNum>0 && scanHeader.acquisitionNum != scNum && scanHeader.acquisitionNum != -1) {
         cerr << "ERROR: Failure reading scan, index corrupted.  Line endings may have changed during transfer.\n" << flush;
         return false;
@@ -1941,7 +1942,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
       if (rampIndex>rampLastScan) return false;
       if (pScanIndex[rampIndex]<0) continue;
 
-      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader,rampIndex);
+      readHeader(rampFileIn, pScanIndex[rampIndex], &scanHeader,rampIndex,&bs);
       switch (scanHeader.msLevel){
       case 1: mslevel = MS1; break;
       case 2: mslevel = MS2; break;
@@ -2023,6 +2024,20 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
     else if (strcmp(scanHeader.activationMethod, "CID") == 0) pi.activation=mstCID;
     else if (strcmp(scanHeader.activationMethod, "ETD") == 0) pi.activation = mstETD;
     s.addPrecursor(pi);
+  }
+  if(strlen(scanHeader.scanDescription)>0){
+    string st=scanHeader.scanDescription;
+    s.setScanDescription(st);
+  }
+
+  //copy the user params, if any
+  if(bs!=NULL){
+    size_t index = 0;
+    mzParser::sUParam up = bs->getUserParam(index++);
+    while (!up.name.empty()) {
+      s.addUserParam(up.name,up.value,up.type);
+      up = bs->getUserParam(index++);
+    }
   }
 
   //store the spectrum

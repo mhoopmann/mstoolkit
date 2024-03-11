@@ -107,7 +107,7 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
     if(s.length()>0) m_compressLen = (uLong)atoi(&s[0]);
     else m_compressLen=0;
 
-    if(m_bHeaderOnly) stopParser();
+    //if(m_bHeaderOnly) stopParser();
 
   }  
   else if (isElement("precursorMz", el)) {
@@ -192,7 +192,7 @@ void mzpSAXMzxmlHandler::endElement(const XML_Char *el) {
     posIndex=-1;
     stopParser();
     if (!m_bIndexSorted) {
-      qsort(&m_vIndex[0],m_vIndex.size(),sizeof(cindex),cindex::compare);
+      sort(m_vIndex.begin(),m_vIndex.end(),cindex::compare);
       m_bIndexSorted=true;
     }
 

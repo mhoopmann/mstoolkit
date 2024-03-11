@@ -472,7 +472,7 @@ char* mzParser::rampValidFileType(const char *buf){
 
 //MH: Read header is redundant with readPeaks, which automatically reads the header.
 //But due to legacy issues, this function must exist.
-void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, int iIndex){
+void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct ScanHeaderStruct *scanHeader, int iIndex, BasicSpectrum **bs){
 
   vector<cindex>* v;
   sPrecursorIon p;
@@ -514,6 +514,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->precursorMZ=0.0;
   scanHeader->precursorScanNum=-1;
   scanHeader->retentionTime=0.0;
+  scanHeader->scanDescription[0]='\0';
   scanHeader->scanType[0]='\0';
   scanHeader->selectionWindowLower=0;
   scanHeader->selectionWindowUpper=0;
@@ -584,7 +585,6 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->ionInjectionTime = pFI->bs->getIonInjectionTime();
   scanHeader->ionMobilityDriftTime = pFI->bs->getIonMobilityDriftTime();
   scanHeader->ionMobility=pFI->bs->getIonMobilityScan();
-  cout << "WTF: " << pFI->bs->getIonMobilityScan() << "\t" << scanHeader->ionMobility << endl;
   scanHeader->lowMZ=pFI->bs->getLowMZ();
   scanHeader->msLevel=pFI->bs->getMSLevel();
   scanHeader->peaksCount=pFI->bs->getPeaksCount();
@@ -665,6 +665,18 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
     case 5: strcpy(scanHeader->activationMethod,"ECD"); break;
     default: strcpy(scanHeader->activationMethod,""); break;
   }
+
+  //process user params
+  size_t index=0;
+  sUParam up=pFI->bs->getUserParam(index++);
+  while(!up.name.empty()){
+    if(up.name.compare("scan description")==0) strcpy(scanHeader->scanDescription,up.value.c_str());
+    up = pFI->bs->getUserParam(index++);
+  }
+
+  //pass the BasicSpectrum back to the caller, if a pointer was provided, for any additional
+  //processing beyond what RAMP provides.
+  if (bs != NULL) *bs = pFI->bs;
 
 }
 

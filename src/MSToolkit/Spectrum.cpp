@@ -58,6 +58,8 @@ Spectrum::Spectrum(){
 
   strcpy(rawFilter,"");
   strcpy(nativeID,"");
+
+  userParams = new vector<MSUserParam>;
 }
 
 
@@ -71,6 +73,7 @@ Spectrum::~Spectrum(){
   if(monoMZ) delete monoMZ;
   if(sps) delete sps;
   if(precursor) delete precursor;
+  if(userParams) delete userParams;
 }
 
 Spectrum::Spectrum(const Spectrum& s){
@@ -126,6 +129,8 @@ Spectrum::Spectrum(const Spectrum& s){
   strcpy(rawFilter,s.rawFilter);
   strcpy(nativeID,s.nativeID);
   scanDescription=s.scanDescription;
+
+  userParams = new vector<MSUserParam>(*s.userParams);
 }
 
 Spectrum& Spectrum::operator=(const Spectrum& s){
@@ -140,6 +145,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
 		delete mz;
     delete sps;
     delete precursor;
+    delete userParams;
     monoMZ = new vector<double>;
     for(i=0;i<s.monoMZ->size();i++){
 		  monoMZ->push_back(s.monoMZ->at(i));
@@ -154,6 +160,7 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     vIonMobility = new vector<double>(*s.vIonMobility);
     vEZ = new vector<EZState>(*s.vEZ);
     vZ = new vector<ZState>(*s.vZ);
+    userParams = new vector<MSUserParam>(*s.userParams);
     rTime = s.rTime;
     charge = s.charge;
     scanNumber = s.scanNumber;
@@ -243,6 +250,21 @@ void Spectrum::addPrecursor(MSPrecursorInfo& pi){
 
 void Spectrum::addSPS(double d) {
   sps->push_back(d);
+}
+
+void Spectrum::addUserParam(const string& name, const string& value, const string& sType) {
+  MSUserParam up;
+  up.name=name;
+  up.value=value;
+  if(sType.find("string")!=string::npos) up.type=dtString;
+  else if (sType.find("double") != string::npos) up.type = dtDouble;
+  else if (sType.find("float") != string::npos) up.type = dtFloat;
+  else if (sType.find("int") != string::npos) up.type = dtInt;
+  userParams->push_back(up);
+}
+
+void Spectrum::addUserParam(const MSUserParam& up){
+  userParams->push_back(up);
 }
 
 void Spectrum::addZState(ZState& z){
@@ -341,6 +363,9 @@ void Spectrum::clear(){
   actMethod=mstNA;
   inverseReducedIonMobility=0;
   ionMobilityDriftTime=0;
+  scanDescription.clear();
+  delete userParams;
+  userParams=new vector<MSUserParam>;
 }
 
 void Spectrum::clearMZ(){
@@ -562,6 +587,21 @@ double Spectrum::getTIC(){
   return TIC;
 }
 
+MSUserParam Spectrum::getUserParam(const size_t& index) {
+  if (index >= userParams->size())  return MSUserParam();
+  return userParams->at(index);
+}
+
+MSUserParam Spectrum::getUserParam(const int& index) {
+  if (index >= (int)userParams->size()) return MSUserParam();
+  return userParams->at(index);
+}
+
+bool Spectrum::hasIonMobilityArray(){
+  if(vIonMobility->size()>0) return true;
+  return false;
+}
+
 void Spectrum::setBPI(float f){
   BPI=f;
 }
@@ -705,6 +745,10 @@ int Spectrum::sizePrecursor(){
 
 int Spectrum::sizeSPS() {
   return (int)sps->size();
+}
+
+size_t Spectrum::sizeUserParams(){
+  return userParams->size();
 }
 
 int Spectrum::sizeZ(){
