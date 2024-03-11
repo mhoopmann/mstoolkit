@@ -43,6 +43,8 @@ A few hints:
  * Older versions of MSVC may require building with XML_STATIC declared.
  * Declaring WIN32 may still be required for compiling 64-bit libraries with MSVC.
  * MAKEFILE.nmake is for MSVC builds without creating your own solution file. Use the x64 Native Tools Command Prompt in VS (tested on VS2019) and type nmake /f MAKEFILE.nmake all
- 
+ * CMakelists.txt is provided for CMake builds on Linux and Windows.
+	* On Windows, use the x64 Native Tools Command Prompt in VS (tested on VS2022) and type `cmake -S . -B build && cmake --build build --config Release`
+	* On Linux, use the cmake and type `cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build`
 ### License
 Code written for the MSToolkit uses the Apache License, Version 2.0. All 3rd party software included in the MSToolkit library retains its original license.
