@@ -632,6 +632,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
     pi.charge = preInfo.charge;
     pi.monoMz = preInfo.dMonoMZ;
     pi.mz = preInfo.dIsoMZ;
+    pi.isoMz = preInfo.dIsoMZ;
     pi.precursorScanNumber = preInfo.parScanNum;
     s.addPrecursor(pi);
 
