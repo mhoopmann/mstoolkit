@@ -1990,6 +1990,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
     s.setSelWindow(scanHeader.selectionWindowLower,scanHeader.selectionWindowUpper);
     MSPrecursorInfo pi;
     pi.mz=scanHeader.precursorMZ;
+    pi.monoMz=scanHeader.precursorMonoMZ;
     pi.charge=scanHeader.precursorCharge;
     pi.isoOffsetLower=scanHeader.isolationWindowLower;
     pi.isoOffsetUpper=scanHeader.isolationWindowUpper;

@@ -183,7 +183,11 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
   } else if(isElement("precursor",el)) {
     m_vState.push_back(esPrecursor);
     string s=getAttrValue("spectrumRef", attr);
+
+    //clear all precursor info, EXCEPT for the parent ion monoMz, which is captured in thermo trailer in the <scan> element.
+    double parentMonoMz=m_precursorIon.monoMZ;
     m_precursorIon.clear();
+    m_precursorIon.monoMZ=parentMonoMz;
 
     //if spectrumRef is not provided
     if (s.length() < 1) {
@@ -222,6 +226,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
     }
 
   }  else if (isElement("spectrum", el)) {
+    m_precursorIon.clear(); //clear all precursor information here
     m_vState.push_back(esSpectrum);
     string s=getAttrValue("id", attr);
     spec->setIDString(&s[0]);
@@ -270,7 +275,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
     if(strcmp(name,"[Thermo Trailer Extra]Monoisotopic M/Z:")==0){
       m_precursorIon.monoMZ=atof(value);
     } else if (strcmp(name, "scan description") == 0) {
-      m_precursorIon.monoMZ = atof(value);
+      //m_precursorIon.monoMZ = atof(value);
     } else if (strcmp(name, "ms level") == 0) {
       m_precursorIon.msLevel = atoi(value);
     }
@@ -342,7 +347,6 @@ void mzpSAXMzmlHandler::endElement(const XML_Char *el) {
 
   } else if(isElement("precursor",el)){
     spec->setPrecursorIon(m_precursorIon);
-    m_precursorIon.clear();
     if(m_vState.back()!=esPrecursor){
       cout << "Error: expected state should be precursor." << endl;
     } else m_vState.pop_back();
@@ -563,9 +567,16 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     spec->setHighMZ(atof(value));
     
   } else if(!strcmp(name, "selected ion m/z") || !strcmp(accession,"MS:1000744"))  {
+    //MH: Note the change here. From now on, selected ion m/z always goes in the m_precursorIon.mz variable.
+    //Isolation mz (different cvParam) always goes in m_precursionIon.isoMZ, and the thermo trailer (userParam) goes in m_precursorIon.monoMZ.
+    //However, the meaning of selected ion m/z can mean different things in ProteoWizard converted mzML files. If no thermo trailer is
+    //provided, the selected ion m/z == isolated m/z. But if thermo trailer, then it selected ion m/z == monoisotopic m/z.
+    //But if there are multiple precursors and thermo trailer, the same monoisotopic m/z will be applied to all instances of
+    //m_precursorIon.monoMZ, regardless of whether or not it matches the selected ion m/z of that instance.
     m_precursorIon.mz=atof(value); //in Thermo instruments this is the monoisotopic peak (if known) or the selected ion peak.
-    if(m_precursorIon.monoMZ!=0) m_precursorIon.monoMZ=atof(value); //if the monoisotopic peak was specified earlier, this is a better value to use.
-    else if (m_precursorIon.mz<m_precursorIon.isoMZ) m_precursorIon.monoMZ = atof(value); //failsafe? for when thermo trailer info is missing.
+    //if(m_precursorIon.monoMZ!=0) m_precursorIon.monoMZ=atof(value); //if the monoisotopic peak was specified in the thermo trailer, this is a better value to use.
+    //else if (m_precursorIon.mz<m_precursorIon.isoMZ) m_precursorIon.monoMZ = atof(value); //failsafe? for when thermo trailer info is missing.
+    //This still gets complicated when there are multiple precursors, but only one thermo trailer value...
 
   } else if(!strcmp(name, "time array") || !strcmp(accession,"MS:1000595"))  {
     m_bInmzArrayBinary = true; //note that this uses the m/z designation, although it is a time series

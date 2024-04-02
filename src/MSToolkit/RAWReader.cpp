@@ -535,6 +535,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   //cout << "Channels: " << nChannels << endl;
   //cout << "Packets: " << nPackets << endl;
   m_Raw->RTFromScanNum(rawCurSpec, &dRTime);
+  preInfo.parScanNum = evaluateTrailerInt("Master Scan Number:");
   preInfo.charge = evaluateTrailerInt("Charge State:");
   preInfo.dMonoMZ = evaluateTrailerDouble("Monoisotopic M/Z:");
   IIT = (float)evaluateTrailerDouble("Ion Injection Time (ms):");
@@ -627,21 +628,28 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
 	//Handle MS2 and MS3 files differently to create Z-lines
 	if(MSn==MS2 || MSn==MS3){
 
+    MSPrecursorInfo pi;
+    pi.charge = preInfo.charge;
+    pi.monoMz = preInfo.dMonoMZ;
+    pi.mz = preInfo.dIsoMZ;
+    pi.precursorScanNumber = preInfo.parScanNum;
+    s.addPrecursor(pi);
+
 		//if charge state is assigned to spectrum, add Z-lines.
     if (preInfo.dIsoMZ>0.01) MZs[0]=preInfo.dIsoMZ;  //overwrite isolation mass if we have more sig figs.
 		if(preInfo.charge>0){ //if(Charge.iVal>0){
 			if(preInfo.dMonoMZ>0.01) { //if(MonoMZ.dblVal>0.01) {
 				//pm1 = MonoMZ.dblVal * Charge.iVal - ((Charge.iVal-1)*1.007276466);
         pm1 = preInfo.dMonoMZ * preInfo.charge - ((preInfo.charge - 1)*1.007276466);
-        s.setMZ(MZs[0], preInfo.dMonoMZ);
+        s.addMZ(MZs[0], preInfo.dMonoMZ);
 			}	else {
         pm1 = MZs[0] * preInfo.charge - ((preInfo.charge - 1)*1.007276466);
-        s.setMZ(MZs[0]);
+        s.addMZ(MZs[0]);
 			}
       s.addZState(preInfo.charge, pm1);
       s.setCharge(preInfo.charge);
     } else {
-      s.setMZ(preInfo.dIsoMZ); s.setMZ(MZs[0]);
+      s.addMZ(preInfo.dIsoMZ); //s.setMZ(MZs[0]);
       charge = calcChargeState(MZs[0], highmass, &varMassList, lArraySize);
 
       //Charge greater than 0 means the charge state is known

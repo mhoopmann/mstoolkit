@@ -217,11 +217,11 @@ typedef struct sPrecursorIon{
   double intensity=0;
   double isoLowerMZ=0;      //lower offset of the isolation window
   double isoLowerOffset=0;
-  double isoMZ=0;           //the mz of the isolation window
+  double isoMZ=0;           //the mz of the isolation window. Often this is the mz of the ion to be isolated
   double isoUpperMZ=0;      //upper offset of the isolation window
   double isoUpperOffset=0;
-  double mz=0;              //selected ion mz; is this always redundant with isoMZ?
-  double monoMZ=0;
+  double mz=0;              //selected ion mz; is this always redundant with isoMZ? probably on thermo instruments
+  double monoMZ=0;          //the true monoisotopic mz as determined by Thermo.
   std::vector<int> possibleCharges;
   int charge=0;
   int msLevel=0;
