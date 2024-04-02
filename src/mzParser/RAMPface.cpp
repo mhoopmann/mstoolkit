@@ -493,6 +493,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->inverseReducedIonMobility=0.0;			
   scanHeader->ionMobility=false;
   scanHeader->ionMobilityDriftTime=0;
+  scanHeader->isolationMZ=0;
   scanHeader->isolationWindowLower=0;
   scanHeader->isolationWindowUpper=0;
   scanHeader->filePosition=0;
@@ -516,6 +517,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->retentionTime=0.0;
   scanHeader->scanDescription[0]='\0';
   scanHeader->scanType[0]='\0';
+  scanHeader->selectedIonMZ=0;
   scanHeader->selectionWindowLower=0;
   scanHeader->selectionWindowUpper=0;
   scanHeader->totIonCurrent=0.0;
@@ -601,6 +603,8 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   for(i=0;i<(unsigned int)scanHeader->precursorCount;i++){
     p=pFI->bs->getPrecursorIon(i);
     if(i==0){
+      scanHeader->selectedIonMZ=p.mz;
+      scanHeader->isolationMZ=p.isoMZ;
       scanHeader->precursorCharge=p.charge;
       scanHeader->precursorIntensity=p.intensity;
       scanHeader->precursorMonoMZ=p.monoMZ;

@@ -1989,6 +1989,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		s.setCharge(scanHeader.precursorCharge);
     s.setSelWindow(scanHeader.selectionWindowLower,scanHeader.selectionWindowUpper);
     MSPrecursorInfo pi;
+    pi.isoMz=scanHeader.isolationMZ;
     pi.mz=scanHeader.precursorMZ;
     pi.monoMz=scanHeader.precursorMonoMZ;
     pi.charge=scanHeader.precursorCharge;
@@ -2016,6 +2017,7 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
     s.addMZ(rPI.mz);
     s.addZState(rPI.charge, rPI.mz* rPI.charge -(rPI.charge -1)*1.007276466);
     MSPrecursorInfo pi;
+    pi.isoMz=rPI.mz; //MH: Fix this by expanding the extra precursor information.
     pi.mz = rPI.mz;
     pi.charge = rPI.charge;
     pi.isoOffsetLower = rPI.isoLowerOffset;

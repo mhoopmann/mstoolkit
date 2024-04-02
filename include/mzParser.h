@@ -1398,6 +1398,7 @@ struct ScanHeaderStruct {
   double ionInjectionTime;
   double ionMobilityDriftTime;
   double ionisationEnergy;
+  double isolationMZ;           //conforms to MS:1000827 in mzML files
   double isolationWindowLower;  //similar to selection window, but instead just defines the relative width
   double isolationWindowUpper;  //of the isolation window in mz, rather than its absolute width.
   double lowMZ;
@@ -1405,6 +1406,7 @@ struct ScanHeaderStruct {
   double precursorMonoMZ;
   double precursorMZ;           //only if MS level > 1 
   double retentionTime;         //in seconds
+  double selectedIonMZ;         //matches MS:1000744 in mzML files.
   double selectionWindowLower;  //the range of ions acquired
   double selectionWindowUpper;  //in DDA, for example, +/-1 Da around precursor
   double totIonCurrent;

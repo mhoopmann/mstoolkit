@@ -85,6 +85,7 @@ struct MSHeader {
 struct MSPrecursorInfo {
   double mz=0;
   double monoMz=0;
+  double isoMz=0;
   int charge=0;
   MSActivation activation=mstNA;
   int precursorScanNumber=0;
