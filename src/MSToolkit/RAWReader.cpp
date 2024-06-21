@@ -301,12 +301,20 @@ void RAWReader::getInstrument(char* str){
   strcpy(str,rawInstrument);
 }
 
+void RAWReader::getInstrument(string& str) {
+  str=rawInstrument;
+}
+
 long RAWReader::getLastScanNumber(){
 	return rawCurSpec;
 }
 
 void RAWReader::getManufacturer(char* str){
   strcpy(str,rawManufacturer);
+}
+
+void RAWReader::getManufacturer(string& str) {
+  str=rawManufacturer;
 }
 
 long RAWReader::getScanCount(){

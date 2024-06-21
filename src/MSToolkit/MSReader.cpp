@@ -263,6 +263,10 @@ void MSReader::getInstrument(char* str){
   strcpy(str,&sInstrument[0]);
 }
 
+void MSReader::getInstrument(string& str) {
+  str=sInstrument;
+}
+
 int MSReader::getLastScan(){
   switch (lastFileFormat){
   case mzXML:
@@ -291,6 +295,10 @@ int MSReader::getLastScan(){
 
 void MSReader::getManufacturer(char* str){
   strcpy(str,&sManufacturer[0]);
+}
+
+void MSReader::getManufacturer(string& str) {
+  str=sManufacturer;
 }
 
 int MSReader::getPercent(){
@@ -1572,8 +1580,8 @@ bool MSReader::readFile(const char* c, Spectrum& s, int scNum){
       if(bNewRead) b=cRAW.readRawFile(c,s,scNum);
       else b=cRAW.readRawFile(NULL, s, scNum);
       if(b && bNewRead) {
-        cRAW.getInstrument(&sInstrument[0]);
-        cRAW.getManufacturer(&sManufacturer[0]);
+        cRAW.getInstrument(sInstrument);
+        cRAW.getManufacturer(sManufacturer);
       }
 			return b;
 		} else {
