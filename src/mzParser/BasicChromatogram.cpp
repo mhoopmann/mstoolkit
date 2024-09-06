@@ -24,7 +24,7 @@ BasicChromatogram::BasicChromatogram(const BasicChromatogram& c){
   productOffsetLower=c.productOffsetLower;
   productOffsetUpper=c.productOffsetUpper;
   for(unsigned int i=0;i<c.vData.size();i++) vData.push_back(c.vData[i]);
-  strcpy_s(idString,sizeof(idString),c.idString);
+  strcpy(idString,c.idString);
 }
 
 BasicChromatogram::~BasicChromatogram(){}
@@ -40,7 +40,7 @@ BasicChromatogram& BasicChromatogram::operator=(const BasicChromatogram& c){
     productOffsetLower = c.productOffsetLower;
     productOffsetUpper = c.productOffsetUpper;
     for(unsigned int i=0;i<c.vData.size();i++) vData.push_back(c.vData[i]);
-    strcpy_s(idString,sizeof(idString),c.idString);
+    strcpy(idString,c.idString);
   }
   return *this;
 }
@@ -68,7 +68,7 @@ double BasicChromatogram::getPreOffsetUpper(){ return precursorOffsetUpper; }
 double BasicChromatogram::getProdMZ(){ return productMZ; }
 double BasicChromatogram::getProdOffsetLower(){return productOffsetLower;}
 double BasicChromatogram::getProdOffsetUpper(){ return productOffsetUpper; }
-void BasicChromatogram::setIDString(char* str) { strcpy_s(idString,sizeof(idString),str); }
+void BasicChromatogram::setIDString(char* str) { strcpy(idString,str); }
 void BasicChromatogram::setPrecursor(double mz, int z, double offLow, double offHigh){
   precursorMZ=mz;
   charge=z;

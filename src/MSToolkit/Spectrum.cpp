@@ -56,8 +56,8 @@ Spectrum::Spectrum(){
   vZ = new vector<ZState>;
   actMethod=mstNA;
 
-  strcpy_s(rawFilter,sizeof(rawFilter),"");
-  strcpy_s(nativeID,sizeof(nativeID),"");
+  strcpy(rawFilter,"");
+  strcpy(nativeID,"");
 
   userParams = new vector<MSUserParam>;
 }
@@ -126,8 +126,8 @@ Spectrum::Spectrum(const Spectrum& s){
     vZ->push_back(s.vZ->at(i));
   }
   vIonMobility = new vector<double>(*s.vIonMobility);
-  strcpy_s(rawFilter,sizeof(rawFilter),s.rawFilter);
-  strcpy_s(nativeID,sizeof(nativeID),s.nativeID);
+  strcpy(rawFilter,s.rawFilter);
+  strcpy(nativeID,s.nativeID);
   scanDescription=s.scanDescription;
 
   userParams = new vector<MSUserParam>(*s.userParams);
@@ -183,8 +183,8 @@ Spectrum& Spectrum::operator=(const Spectrum& s){
     ionMobilityDriftTime=s.ionMobilityDriftTime;
     selectionWinLower = s.selectionWinLower;
     selectionWinUpper = s.selectionWinUpper;
-    strcpy_s(rawFilter,sizeof(rawFilter),s.rawFilter);
-    strcpy_s(nativeID,sizeof(nativeID),s.nativeID);
+    strcpy(rawFilter,s.rawFilter);
+    strcpy(nativeID,s.nativeID);
     scanDescription = s.scanDescription;
   }
   return *this;
@@ -527,7 +527,7 @@ bool Spectrum::getNativeID(char* c, int sz){
     cout << "Buffer too small to retrieve spectrumNativeID. " << sizeof(c) << " " << strlen(nativeID) << endl;
     return false;
   } else {
-    strcpy_s(c,sz,nativeID);
+    strcpy(c,nativeID);
     return true;
   }
 }
@@ -542,7 +542,7 @@ bool Spectrum::getRawFilter(char* c, int sz){
     cout << "Buffer too small to retrieve RAW filter. " << sizeof(c) << " " << strlen(rawFilter) << endl;
     return false;
   } else {
-		strcpy_s(c,sz,rawFilter);
+		strcpy(c,rawFilter);
     return true;
   }
 }
@@ -673,12 +673,12 @@ void Spectrum::setMZ(double d, double mono){
 
 void Spectrum::setNativeID(const char* c){
   if(strlen(c)>256) cout << "Error - spectrumNativeID filter larger than 256 characters." << endl;
-  else strcpy_s(nativeID,sizeof(nativeID),c);
+  else strcpy(nativeID,c);
 }
 
 void Spectrum::setRawFilter(char* c){
   if(strlen(c)>256) cout << "Error - RAW filter larger than 256 characters." << endl;
-  else strcpy_s(rawFilter,sizeof(rawFilter),c);
+  else strcpy(rawFilter,c);
 }
 
 void Spectrum::setRTime(float d){

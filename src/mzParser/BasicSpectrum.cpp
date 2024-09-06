@@ -63,8 +63,8 @@ BasicSpectrum::BasicSpectrum(const BasicSpectrum& s){
   scanIndex=s.scanIndex;
   scanNum=s.scanNum;
   totalIonCurrent=s.totalIonCurrent;
-  strcpy_s(idString,sizeof(idString),s.idString);
-  strcpy_s(filterLine,sizeof(filterLine),s.filterLine);
+  strcpy(idString,s.idString);
+  strcpy(filterLine,s.filterLine);
 }
 BasicSpectrum::~BasicSpectrum() {
   delete vData;
@@ -105,8 +105,8 @@ BasicSpectrum& BasicSpectrum::operator=(const BasicSpectrum& s){
     scanIndex=s.scanIndex;
     scanNum=s.scanNum;
     totalIonCurrent=s.totalIonCurrent;
-    strcpy_s(filterLine,sizeof(filterLine),s.filterLine);
-    strcpy_s(idString,sizeof(idString),s.idString);
+    strcpy(filterLine,s.filterLine);
+    strcpy(idString,s.idString);
   }
   return *this;
 }
@@ -154,12 +154,12 @@ void BasicSpectrum::setCentroid(bool b){ centroid=b;}
 void BasicSpectrum::setCollisionEnergy(double d){ collisionEnergy=d;}
 void BasicSpectrum::setCompensationVoltage(double d){ compensationVoltage=d; }
 void BasicSpectrum::setFilterLine(char* str) { 
-  strncpy_s(filterLine,sizeof(filterLine),str,127);
+  strncpy(filterLine,str,127);
   filterLine[127]='\0';
 }
 void BasicSpectrum::setHighMZ(double d){ highMZ=d;}
 void BasicSpectrum::setIDString(const char* str) { 
-  strncpy_s(idString,sizeof(idString),str,127); 
+  strncpy(idString,str,127); 
   idString[127]='\0';
 }
 void BasicSpectrum::setInverseReducedIonMobility(double d){ inverseReducedIonMobility=d;}

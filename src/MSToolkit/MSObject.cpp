@@ -40,7 +40,7 @@ MSObject::MSObject(const MSObject& m){
 
   fileType = m.fileType;
   fileName = m.fileName;
-	for(i=0;i<16;i++)	strcpy_s(header.header[i],sizeof(header.header[i]),m.header.header[i]);
+	for(i=0;i<16;i++)	strcpy(header.header[i],m.header.header[i]);
 
 }
 
@@ -54,7 +54,7 @@ MSObject& MSObject::operator=(const MSObject& m){
     }
     fileType = m.fileType;
     fileName = m.fileName;
-		for(i=0;i<16;i++)	strcpy_s(header.header[i],sizeof(header.header[i]),m.header.header[i]);
+		for(i=0;i<16;i++)	strcpy(header.header[i],m.header.header[i]);
   }
   return *this;
 }
@@ -68,7 +68,7 @@ bool MSObject::addToHeader(char* c){
 	if(strlen(c)>127) return false;
 	for(int i=0;i<16;i++){
 		if(header.header[i][0]=='\0'){
-			strcpy_s(header.header[i],sizeof(header.header[i]),c);
+			strcpy(header.header[i],c);
 			return true;
 		};
 	};
@@ -79,7 +79,7 @@ bool MSObject::addToHeader(string s){
 	if(s.size()>127) return false;
 	for(int i=0;i<16;i++){
 		if(header.header[i][0]=='\0'){
-			strcpy_s(header.header[i],sizeof(header.header[i]),&s[0]);
+			strcpy(header.header[i],&s[0]);
 			return true;
 		};
 	};
@@ -105,7 +105,7 @@ MSHeader& MSObject::getHeader(){
 };
 
 void MSObject::setHeader(const MSHeader& h){
-	for(int i=0;i<16;i++)	strcpy_s(header.header[i],sizeof(header.header[i]),h.header[i]);
+	for(int i=0;i<16;i++)	strcpy(header.header[i],h.header[i]);
 };
 
 int MSObject::size(){

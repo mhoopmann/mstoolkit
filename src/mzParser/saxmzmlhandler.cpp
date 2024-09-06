@@ -448,7 +448,7 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
     
   } else if(!strcmp(name, "filter string") || !strcmp(accession,"MS:1000512"))  {
     char str[128];
-    strncpy_s(str,sizeof(str),value,127);
+    strncpy(str,value,127);
     str[127]='\0';
     spec->setFilterLine(str);
 
@@ -1013,8 +1013,7 @@ f_off mzpSAXMzmlHandler::readIndexOffset() {
   size_t sz;
 
   if(!m_bGZCompression){
-    FILE* f;
-    errno_t err=fopen_s(&f,&m_strFileName[0],"r");
+    FILE* f=fopen(&m_strFileName[0],"r");
     mzpfseek(f,-200,SEEK_END);
     sz = fread(buffer,1,200,f);
     fclose(f);
@@ -1034,7 +1033,7 @@ f_off mzpSAXMzmlHandler::readIndexOffset() {
 
   char offset[64];
   int len=(int)(stop-start-17);
-  strncpy_s(offset,sizeof(offset),start+17,len);
+  strncpy(offset,start+17,len);
   offset[len]='\0';
   return mzpatoi64(offset);
 
@@ -1226,8 +1225,7 @@ bool mzpSAXMzmlHandler::generateIndexOffset() {
   long lOffset = 0;
 
   if(!m_bGZCompression){
-    FILE* f;
-    errno_t err=fopen_s(&f,&m_strFileName[0],"r");
+    FILE* f=fopen(&m_strFileName[0],"r");
     char *pStr;
 
     if (f==NULL){

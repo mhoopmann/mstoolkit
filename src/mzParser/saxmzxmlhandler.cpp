@@ -594,8 +594,7 @@ f_off mzpSAXMzxmlHandler::readIndexOffset() {
   size_t sz;
 
   if(!m_bGZCompression){
-    FILE* f;
-    errno_t err=fopen_s(&f,&m_strFileName[0],"r");
+    FILE* f=fopen(&m_strFileName[0],"r");
     mzpfseek(f,-200,SEEK_END);
     sz = fread(buffer,1,200,f);
     fclose(f);
@@ -614,7 +613,7 @@ f_off mzpSAXMzxmlHandler::readIndexOffset() {
 
   char offset[64];
   int len=(int)(stop-start-13);
-  strncpy_s(offset,sizeof(offset),start+13,len);
+  strncpy(offset,start+13,len);
   offset[len]='\0';
   return mzpatoi64(offset);
 
@@ -652,8 +651,7 @@ bool mzpSAXMzxmlHandler::generateIndexOffset() {
   long lOffset = 0;
 
   if(!m_bGZCompression){
-    FILE* f;
-    errno_t err=fopen_s(&f,&m_strFileName[0],"r");
+    FILE* f=fopen(&m_strFileName[0],"r");
     char *pStr;
 
     if (f==NULL){

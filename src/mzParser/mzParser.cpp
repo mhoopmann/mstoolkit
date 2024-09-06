@@ -275,11 +275,11 @@ int MzParser::checkFileType(const char* fname){
 
   ext[0]='\0';
 
-  strcpy_s(file,sizeof(file),fname);
+  strcpy(file,fname);
   tok=strtok_s(file,".\n",&nextTok);
   while(tok!=NULL){
-    strcpy_s(preExt,sizeof(preExt),ext);
-    strcpy_s(ext,sizeof(ext),tok);
+    strcpy(preExt,ext);
+    strcpy(ext,tok);
     tok=strtok_s(NULL,".\n",&nextTok);
   }
 

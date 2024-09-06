@@ -45,8 +45,8 @@ bool MzMLWriter::closeList(){
     cout << "Error: closeList() - no lists are open." << endl;
     return false;
   }
-  if (bTabs) fprintf_s(fptr, "   ");
-  fprintf_s(fptr, "</spectrumList>\n");
+  if (bTabs) fprintf(fptr, "   ");
+  fprintf(fptr, "</spectrumList>\n");
   return true;
 }
 
@@ -57,19 +57,19 @@ bool MzMLWriter::closeMzML(){
     return false;
   }
 
-  if(bTabs) fprintf_s(fptr,"  ");
-  fprintf_s(fptr,"</run>\n");
-  if(bTabs) fprintf_s(fptr," ");
-  fprintf_s(fptr,"</mzML>\n");
+  if(bTabs) fprintf(fptr,"  ");
+  fprintf(fptr,"</run>\n");
+  if(bTabs) fprintf(fptr," ");
+  fprintf(fptr,"</mzML>\n");
   if(!writeIndex()) return false;
-  fprintf_s(fptr,"</indexedmzML>\n");
+  fprintf(fptr,"</indexedmzML>\n");
   if (iSpecList == 2){
     fseek(fptr,fSpecList,0);
-    fprintf_s(fptr,"%.10d",index);
+    fprintf(fptr,"%.10d",index);
   }
   if (iChromList == 2){
     fseek(fptr, fChromList, 0);
-    fprintf_s(fptr, "%.10d", chromIndex);
+    fprintf(fptr, "%.10d", chromIndex);
   }
 
   fclose(fptr);
@@ -88,10 +88,10 @@ bool MzMLWriter::createList(bool specList){
       return false;
     }
     iSpecList=1;
-    if (bTabs)fprintf_s(fptr, "   ");
-    fprintf_s(fptr, "<spectrumList count=\"");
+    if (bTabs)fprintf(fptr, "   ");
+    fprintf(fptr, "<spectrumList count=\"");
     fSpecList = ftell(fptr);
-    fprintf_s(fptr, "%.10d\">\n", 0);
+    fprintf(fptr, "%.10d\">\n", 0);
     return true;
   }
 
@@ -103,21 +103,20 @@ bool MzMLWriter::createList(bool specList){
     return false;
   }
   iChromList = 1;
-  if (bTabs)fprintf_s(fptr, "   ");
-  fprintf_s(fptr, "<chromatogramList count=\"");
+  if (bTabs)fprintf(fptr, "   ");
+  fprintf(fptr, "<chromatogramList count=\"");
   fChromList = ftell(fptr);
-  fprintf_s(fptr, "%.10d\">\n", 0);
+  fprintf(fptr, "%.10d\">\n", 0);
   return true;
 
 }
 
 bool MzMLWriter::createMzML(char* fn){
-  errno_t err;
   if(bFileOpen){
     cout << "Error: createMzML() - cannot create new mzML file. Please finalize existing file first." << endl;
     return false;
   }
-  err = fopen_s(&fptr,fn,"wt");
+  fptr = fopen(fn,"wt");
   if(!fptr){
     cout << "Error: createMzML() - cannot create " << fn << endl;
     return false;
@@ -131,12 +130,12 @@ bool MzMLWriter::createMzML(char* fn){
   iSpecList = 0;
   iChromList = 0;
 
-  fprintf_s(fptr,"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
-  fprintf_s(fptr,"<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.2_idx.xsd\">\n");
-  if(bTabs)fprintf_s(fptr," ");
-  fprintf_s(fptr,"<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\">\n");
-  if(bTabs)fprintf_s(fptr,"  ");
-  fprintf_s(fptr,"<run id=\"0\">\n");
+  fprintf(fptr,"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
+  fprintf(fptr,"<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.2_idx.xsd\">\n");
+  if(bTabs)fprintf(fptr," ");
+  fprintf(fptr,"<mzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd\">\n");
+  if(bTabs)fprintf(fptr,"  ");
+  fprintf(fptr,"<run id=\"0\">\n");
 
   return true;
 }
@@ -188,7 +187,7 @@ bool MzMLWriter::writeIndex(){
   unsigned int i;
   f_off offset;
 
-  if(bTabs) fprintf_s(fptr," ");
+  if(bTabs) fprintf(fptr," ");
 
   offset=ftell(fptr);
 
@@ -196,44 +195,44 @@ bool MzMLWriter::writeIndex(){
   if (vIndex.size()>0)count++;
   if (vChromIndex.size()>0)count++;
 
-  fprintf_s(fptr,"<indexList count=\"%d\">\n",count);
+  fprintf(fptr,"<indexList count=\"%d\">\n",count);
   
   if (vIndex.size()>0){
     if(bTabs) {
-      fprintf_s(fptr," ");
-      fprintf_s(fptr," ");
+      fprintf(fptr," ");
+      fprintf(fptr," ");
     }
-    fprintf_s(fptr,"<index name=\"spectrum\">\n");
+    fprintf(fptr,"<index name=\"spectrum\">\n");
     for(i=0;i<vIndex.size();i++) {
       if(!exportOffset(vIndex[i].id,vIndex[i].offset,3)) return false;
     }
     if(bTabs) {
-      fprintf_s(fptr," ");
-      fprintf_s(fptr," ");
+      fprintf(fptr," ");
+      fprintf(fptr," ");
     }
-    fprintf_s(fptr,"</index>\n");
+    fprintf(fptr,"</index>\n");
   }
 
   if (vChromIndex.size()>0){
     if (bTabs) {
-      fprintf_s(fptr, " ");
-      fprintf_s(fptr, " ");
+      fprintf(fptr, " ");
+      fprintf(fptr, " ");
     }
-    fprintf_s(fptr, "<index name=\"chromatogram\">\n");
+    fprintf(fptr, "<index name=\"chromatogram\">\n");
     for (i = 0; i<vChromIndex.size(); i++) {
       if (!exportOffset(vChromIndex[i].id, vChromIndex[i].offset, 3)) return false;
     }
     if (bTabs) {
-      fprintf_s(fptr, " ");
-      fprintf_s(fptr, " ");
+      fprintf(fptr, " ");
+      fprintf(fptr, " ");
     }
-    fprintf_s(fptr, "</index>\n");
+    fprintf(fptr, "</index>\n");
   }
 
-  if(bTabs) fprintf_s(fptr," ");
-  fprintf_s(fptr,"</indexList>\n");
-  if(bTabs) fprintf_s(fptr," ");
-  fprintf_s(fptr,"<indexListOffset>%lld</indexListOffset>\n",offset);
+  if(bTabs) fprintf(fptr," ");
+  fprintf(fptr,"</indexList>\n");
+  if(bTabs) fprintf(fptr," ");
+  fprintf(fptr,"<indexListOffset>%lld</indexListOffset>\n",offset);
 
   return true;
 }
@@ -270,11 +269,11 @@ bool MzMLWriter::exportBinary(char* str, int len, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
-  fprintf_s(fptr,"<binary>");
-  for(i=0;i<len;i++) fprintf_s(fptr,"%c",str[i]);
-  fprintf_s(fptr,"</binary>\n");
+  fprintf(fptr,"<binary>");
+  for(i=0;i<len;i++) fprintf(fptr,"%c",str[i]);
+  fprintf(fptr,"</binary>\n");
   return true;
 }
 
@@ -362,9 +361,9 @@ bool MzMLWriter::exportBinaryDataArray(mzParser::BasicChromatogram& c, bool bRT,
   //write to file
   if (bTabs) {
     tbs.append(tabs, ' ');
-    fprintf_s(fptr, "%s", &tbs[0]);
+    fprintf(fptr, "%s", &tbs[0]);
   }
-  fprintf_s(fptr, "<binaryDataArray encodedLength=\"%d\">\n", i);
+  fprintf(fptr, "<binaryDataArray encodedLength=\"%d\">\n", i);
   if (bZlib) exportCvParam("MS:1000574", "MS", "zlib compression", "", "", "", "", tabs + 1);
   if (bNumpress) {
     if (bRT) exportCvParam("MS:1002312", "MS", "MS-Numpress linear prediction compression", "", "", "", "", tabs + 1);
@@ -376,8 +375,8 @@ bool MzMLWriter::exportBinaryDataArray(mzParser::BasicChromatogram& c, bool bRT,
   if (bRT) exportCvParam("MS:1000595", "MS", "time array", "UO:0000010", "MS", "second", "", tabs + 1);
   else exportCvParam("MS:1000515", "MS", "intensity array", "MS:1000131", "MS", "number of detector counts", "", tabs + 1);
   if (!exportBinary(arr64, i, tabs + 1)) return false;
-  if (bTabs) fprintf_s(fptr, "%s", &tbs[0]);
-  fprintf_s(fptr, "</binaryDataArray>\n");
+  if (bTabs) fprintf(fptr, "%s", &tbs[0]);
+  fprintf(fptr, "</binaryDataArray>\n");
 
   //clean up memory
   delete[] arr64;
@@ -471,9 +470,9 @@ bool MzMLWriter::exportBinaryDataArray(Spectrum& s, bool bMZ, int tabs){
   //write to file
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
-  fprintf_s(fptr,"<binaryDataArray encodedLength=\"%d\">\n",i);
+  fprintf(fptr,"<binaryDataArray encodedLength=\"%d\">\n",i);
   if(bZlib) exportCvParam("MS:1000574","MS","zlib compression","","","","",tabs+1);
   if(bNumpress) {
     if(bMZ) exportCvParam("MS:1002312","MS","MS-Numpress linear prediction compression","","","","",tabs+1);
@@ -485,8 +484,8 @@ bool MzMLWriter::exportBinaryDataArray(Spectrum& s, bool bMZ, int tabs){
   if(bMZ) exportCvParam("MS:1000514","MS","m/z array","MS:1000040","MS","m/z","",tabs+1);
   else exportCvParam("MS:1000515","MS","intensity array","MS:1000131","MS","number of detector counts","",tabs+1);
   if(!exportBinary(arr64,i,tabs+1)) return false;
-  if(bTabs) fprintf_s(fptr,"%s",&tbs[0]);
-  fprintf_s(fptr,"</binaryDataArray>\n");
+  if(bTabs) fprintf(fptr,"%s",&tbs[0]);
+  fprintf(fptr,"</binaryDataArray>\n");
 
   //clean up memory
   delete [] arr64;
@@ -500,13 +499,13 @@ bool MzMLWriter::exportBinaryDataArrayList(mzParser::BasicChromatogram& c, int t
   string tbs = "";
   if (bTabs) {
     tbs.append(tabs, ' ');
-    fprintf_s(fptr, "%s", &tbs[0]);
+    fprintf(fptr, "%s", &tbs[0]);
   }
-  fprintf_s(fptr, "<binaryDataArrayList count=\"2\">\n");
+  fprintf(fptr, "<binaryDataArrayList count=\"2\">\n");
   if (!exportBinaryDataArray(c, true, tabs + 1)) return false;
   if (!exportBinaryDataArray(c, false, tabs + 1)) return false;
-  if (bTabs) fprintf_s(fptr, "%s", &tbs[0]);
-  fprintf_s(fptr, "</binaryDataArrayList>\n");
+  if (bTabs) fprintf(fptr, "%s", &tbs[0]);
+  fprintf(fptr, "</binaryDataArrayList>\n");
   return true;
 }
 
@@ -514,13 +513,13 @@ bool MzMLWriter::exportBinaryDataArrayList(Spectrum& s, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
-  fprintf_s(fptr,"<binaryDataArrayList count=\"2\">\n");
+  fprintf(fptr,"<binaryDataArrayList count=\"2\">\n");
   if(!exportBinaryDataArray(s,true,tabs+1)) return false;
   if(!exportBinaryDataArray(s,false,tabs+1)) return false;
-  if(bTabs) fprintf_s(fptr,"%s",&tbs[0]);
-  fprintf_s(fptr,"</binaryDataArrayList>\n");
+  if(bTabs) fprintf(fptr,"%s",&tbs[0]);
+  fprintf(fptr,"</binaryDataArrayList>\n");
   return true;
 }
 
@@ -530,10 +529,10 @@ bool MzMLWriter::exportActivation(Spectrum& s, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
   
-  fprintf_s(fptr,"<activation>\n");
+  fprintf(fptr,"<activation>\n");
   switch(s.getActivationMethod()){
     case mstCID:
       exportCvParam("MS:1000133","MS","collision-induced dissociation","","","","",tabs+1);
@@ -546,8 +545,8 @@ bool MzMLWriter::exportActivation(Spectrum& s, int tabs){
     default:
       break;
   }
-  if(bTabs) fprintf_s(fptr,"%s",&tbs[0]);
-  fprintf_s(fptr,"</activation>\n");
+  if(bTabs) fprintf(fptr,"%s",&tbs[0]);
+  fprintf(fptr,"</activation>\n");
 
   return true;
 }
@@ -560,7 +559,7 @@ bool MzMLWriter::exportChromatogram(mzParser::BasicChromatogram& c, int tabs){
 
   if (bTabs) {
     tbs.append(tabs, ' ');
-    fprintf_s(fptr, "%s", &tbs[0]);
+    fprintf(fptr, "%s", &tbs[0]);
   }
 
   c.getIDString(tmp);
@@ -568,15 +567,15 @@ bool MzMLWriter::exportChromatogram(mzParser::BasicChromatogram& c, int tabs){
   x.offset = ftell(fptr);
   vChromIndex.push_back(x);
 
-  fprintf_s(fptr, "<chromatogram index=\"%d\" id=\"%s\" defaultArrayLength=\"%zd\">\n", chromIndex++, tmp.c_str(), c.size());
+  fprintf(fptr, "<chromatogram index=\"%d\" id=\"%s\" defaultArrayLength=\"%zd\">\n", chromIndex++, tmp.c_str(), c.size());
   if (!exportPrecursor(c, tabs + 1)) return false;
   if (c.getProdMZ()>0) {
     if (!exportProduct(c,tabs+1)) return false;
   }
   if (!exportBinaryDataArrayList(c, tabs + 1)) return false;
 
-  if (bTabs) fprintf_s(fptr, "%s", &tbs[0]);
-  fprintf_s(fptr, "</chromatogram>\n");
+  if (bTabs) fprintf(fptr, "%s", &tbs[0]);
+  fprintf(fptr, "</chromatogram>\n");
   return true;
 }
 
@@ -590,7 +589,7 @@ bool MzMLWriter::exportCvParam(string ac, string ref, string name, string unitAc
   if(unitAc.size()>0) ex+=" unitAccession=\"" + unitAc + "\"";
   if(unitName.size()>0) ex+=" unitName=\"" + unitName + "\"";
   ex+="/>";
-  fprintf_s(fptr,"%s\n",&ex[0]);
+  fprintf(fptr,"%s\n",&ex[0]);
   return true;
 }
 
@@ -600,24 +599,24 @@ bool MzMLWriter::exportIsolationWindow(mzParser::BasicChromatogram& c, bool bPre
   string tbs = "";
   if (bTabs) {
     tbs.append(tabs, ' ');
-    fprintf_s(fptr, "%s", &tbs[0]);
+    fprintf(fptr, "%s", &tbs[0]);
   }
 
-  fprintf_s(fptr, "<isolationWindow>\n");
-  if (bPre) sprintf_s(tmp, "%.4lf", c.getPreMZ());
-  else sprintf_s(tmp, "%.4lf", c.getProdMZ());
+  fprintf(fptr, "<isolationWindow>\n");
+  if (bPre) sprintf(tmp, "%.4lf", c.getPreMZ());
+  else sprintf(tmp, "%.4lf", c.getProdMZ());
   value = tmp;
   exportCvParam("MS:1000827", "MS", "isolation window target m/z", "MS:1000040", "MS", "m/z", value, tabs + 1);
-  if (bPre) sprintf_s(tmp, "%.4lf", c.getPreOffsetLower());
-  else sprintf_s(tmp, "%.4lf", c.getProdOffsetLower());
+  if (bPre) sprintf(tmp, "%.4lf", c.getPreOffsetLower());
+  else sprintf(tmp, "%.4lf", c.getProdOffsetLower());
   value = tmp;
   exportCvParam("MS:1000828", "MS", "isolation window lower offset", "MS:1000040", "MS", "m/z", value, tabs + 1);
-  if (bPre) sprintf_s(tmp, "%.4lf", c.getPreOffsetUpper());
-  else sprintf_s(tmp, "%.4lf", c.getProdOffsetUpper());
+  if (bPre) sprintf(tmp, "%.4lf", c.getPreOffsetUpper());
+  else sprintf(tmp, "%.4lf", c.getProdOffsetUpper());
   value = tmp;
   exportCvParam("MS:1000829", "MS", "isolation window upper offset", "MS:1000040", "MS", "m/z", value, tabs + 1);
-  if (bTabs) fprintf_s(fptr, "%s", &tbs[0]);
-  fprintf_s(fptr, "</isolationWindow>\n");
+  if (bTabs) fprintf(fptr, "%s", &tbs[0]);
+  fprintf(fptr, "</isolationWindow>\n");
 
   return true;
 }
@@ -628,15 +627,15 @@ bool MzMLWriter::exportIsolationWindow(Spectrum& s, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
   
-  fprintf_s(fptr,"<isolationWindow>\n");
-  sprintf_s(tmp,"%.2lf",s.getMZ());
+  fprintf(fptr,"<isolationWindow>\n");
+  sprintf(tmp,"%.2lf",s.getMZ());
   value=tmp;
   exportCvParam("MS:1000827","MS","isolation window target m/z","MS:1000040","MS","m/z",value,tabs+1);
-  if(bTabs) fprintf_s(fptr,"%s",&tbs[0]);
-  fprintf_s(fptr,"</isolationWindow>\n");
+  if(bTabs) fprintf(fptr,"%s",&tbs[0]);
+  fprintf(fptr,"</isolationWindow>\n");
 
   return true;
 }
@@ -646,9 +645,9 @@ bool MzMLWriter::exportOffset(string idRef, f_off offset, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
-  fprintf_s(fptr,"<offset idRef=\"%s\">%lld</offset>\n",&idRef[0],offset);
+  fprintf(fptr,"<offset idRef=\"%s\">%lld</offset>\n",&idRef[0],offset);
   return true;
 }
 
@@ -656,18 +655,18 @@ bool MzMLWriter::exportPrecursor(mzParser::BasicChromatogram& c, int tabs){
   string tbs = "";
   if (bTabs) {
     tbs.append(tabs, ' ');
-    fprintf_s(fptr, "%s", &tbs[0]);
+    fprintf(fptr, "%s", &tbs[0]);
   }
 
-  fprintf_s(fptr, "<precursor>\n");
+  fprintf(fptr, "<precursor>\n");
   if (!exportIsolationWindow(c, true, tabs + 1)) return false;
   if (c.getPreMZ()>0) {
     if (!exportSelectedIonList(c, tabs + 1)) return false;
   }
   //if (!exportActivation(s, tabs + 1)) return false;
 
-  if (bTabs) fprintf_s(fptr, "%s", &tbs[0]);
-  fprintf_s(fptr, "</precursor>\n");
+  if (bTabs) fprintf(fptr, "%s", &tbs[0]);
+  fprintf(fptr, "</precursor>\n");
 
   return true;
 }
@@ -676,18 +675,18 @@ bool MzMLWriter::exportPrecursor(Spectrum& s, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
   
-  fprintf_s(fptr,"<precursor>\n");
+  fprintf(fptr,"<precursor>\n");
   if(!exportIsolationWindow(s,tabs+1)) return false;
   //if(s.getMonoMZ()>0) {
     if(!exportSelectedIonList(s,tabs+1)) return false;
   //}
   if(!exportActivation(s,tabs+1)) return false;
 
-  if(bTabs) fprintf_s(fptr,"%s",&tbs[0]);
-  fprintf_s(fptr,"</precursor>\n");
+  if(bTabs) fprintf(fptr,"%s",&tbs[0]);
+  fprintf(fptr,"</precursor>\n");
 
   return true;
 }
@@ -696,21 +695,21 @@ bool MzMLWriter::exportPrecursorList(Spectrum& s, int tabs){
   string tbs="";
   if(bTabs) {
     tbs.append(tabs,' ');
-    fprintf_s(fptr,"%s",&tbs[0]);
+    fprintf(fptr,"%s",&tbs[0]);
   }
-  fprintf_s(fptr,"<precursorList count=\"1\">\n");
+  fprintf(fptr,"<precursorList count=\"1\">\n");
   if(!exportPrecursor(s,tabs+1)) return false;
-  if(bTabs) fprintf_s(fptr,"%s",&tbs[0]);
-  fprintf_s(fptr,"</precursorList>\n");
+  if(bTabs) fprintf(fptr,"%s",&tbs[0]);
+  fprintf(fptr,"</precursorList>\n");
   return true;
 }
 
 bool MzMLWriter::exportProduct(mzParser::BasicChromatogram& c, int tabs){
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "<product>\n");
+  fprintf(fptr, "<product>\n");
   if (!exportIsolationWindow(c, false, tabs + 1)) return false;
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "</product>\n");
+  fprintf(fptr, "</product>\n");
 
   return true;
 }
@@ -720,9 +719,9 @@ bool MzMLWriter::exportScan(Spectrum& s, int tabs){
   string value;
   
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"<scan>\n");
+  fprintf(fptr,"<scan>\n");
 
-  sprintf_s(tmp,"%f",s.getRTime());
+  sprintf(tmp,"%f",s.getRTime());
   value=tmp;
   exportCvParam("MS:1000016","MS","scan start time","UO:0000031","UO","minute",value,tabs+1);
   s.getRawFilter(tmp,128);
@@ -734,17 +733,17 @@ bool MzMLWriter::exportScan(Spectrum& s, int tabs){
   if (!exportScanWindowList(s, tabs + 1)) return false;
 
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"</scan>\n");
+  fprintf(fptr,"</scan>\n");
 
   return true;
 }
 
 bool MzMLWriter::exportScanList(Spectrum& s, int tabs){
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"<scanList count=\"1\">\n");
+  fprintf(fptr,"<scanList count=\"1\">\n");
   if(!exportScan(s,tabs+1)) return false;
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"</scanList>\n");
+  fprintf(fptr,"</scanList>\n");
   return true;
 }
 
@@ -753,29 +752,29 @@ bool MzMLWriter::exportScanWindow(Spectrum& s, int tabs){
   string value;
  
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "<scanWindow>\n");
+  fprintf(fptr, "<scanWindow>\n");
 
-  sprintf_s(tmp, "%.8lf", s.getScanWindowLower());
+  sprintf(tmp, "%.8lf", s.getScanWindowLower());
   value = tmp;
   exportCvParam("MS:1000501", "MS", "scan window lower limit", "MS:1000040", "MS", "m/z", value, tabs + 1);
 
-  sprintf_s(tmp, "%.8lf", s.getScanWindowUpper());
+  sprintf(tmp, "%.8lf", s.getScanWindowUpper());
   value = tmp;
   exportCvParam("MS:1000500", "MS", "scan window upper limit", "MS:1000040", "MS", "m/z", value, tabs + 1);
 
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "</scanWindow>\n");
+  fprintf(fptr, "</scanWindow>\n");
   return true;
 }
 
 bool MzMLWriter::exportScanWindowList(Spectrum& s, int tabs){
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "<scanWindowList count=\"1\">\n");
+  fprintf(fptr, "<scanWindowList count=\"1\">\n");
 
   if (!exportScanWindow(s, tabs + 1)) return false;
 
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "</scanWindowList>\n");
+  fprintf(fptr, "</scanWindowList>\n");
   return true;
 }
 
@@ -784,18 +783,18 @@ bool MzMLWriter::exportSelectedIon(mzParser::BasicChromatogram& c, int tabs){
   string value;
   
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "<selectedIon>\n");
+  fprintf(fptr, "<selectedIon>\n");
 
-  sprintf_s(tmp, "%.8lf", c.getPreMZ());
+  sprintf(tmp, "%.8lf", c.getPreMZ());
   value = tmp;
   exportCvParam("MS:1000744", "MS", "selected ion m/z", "MS:1000040", "MS", "m/z", value, tabs + 1);
-  sprintf_s(tmp, "%d", c.getCharge());
+  sprintf(tmp, "%d", c.getCharge());
   value = tmp;
   exportCvParam("MS:1000041", "MS", "charge state", "", "", "", value, tabs + 1);
   exportCvParam("MS:1000042", "MS", "peak intensity", "MS:1000132", "MS", "percent of base peak",value,tabs+1);
 
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "</selectedIon>\n");
+  fprintf(fptr, "</selectedIon>\n");
 
   return true;
 }
@@ -806,43 +805,43 @@ bool MzMLWriter::exportSelectedIon(Spectrum& s, int tabs){
   string value;
   
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"<selectedIon>\n");
-  if(s.getMonoMZ()>0) sprintf_s(tmp,"%.12lf",s.getMonoMZ());
-  else sprintf_s(tmp, "%.2lf", s.getMZ());
+  fprintf(fptr,"<selectedIon>\n");
+  if(s.getMonoMZ()>0) sprintf(tmp,"%.12lf",s.getMonoMZ());
+  else sprintf(tmp, "%.2lf", s.getMZ());
   value=tmp;
   exportCvParam("MS:1000744","MS","selected ion m/z","MS:1000040","MS","m/z",value,tabs+1);
   if(s.sizeZ()==1) {
-    sprintf_s(tmp,"%d",s.atZ(0).z);
+    sprintf(tmp,"%d",s.atZ(0).z);
     value=tmp;
     exportCvParam("MS:1000041","MS","charge state","","","",value,tabs+1);
   } else {
     for(i=0;i<s.sizeZ();i++){
-      sprintf_s(tmp,"%d",s.atZ(i).z);
+      sprintf(tmp,"%d",s.atZ(i).z);
       value=tmp;
       exportCvParam("MS:1000633","MS","possible charge state","","","",value,tabs+1);
     }
   }
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"</selectedIon>\n");
+  fprintf(fptr,"</selectedIon>\n");
 
   return true;
 }
 
 bool MzMLWriter::exportSelectedIonList(mzParser::BasicChromatogram& c, int tabs){
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "<selectedIonList count=\"1\">\n");
+  fprintf(fptr, "<selectedIonList count=\"1\">\n");
   if (!exportSelectedIon(c, tabs + 1)) return false;
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr, "</selectedIonList>\n");
+  fprintf(fptr, "</selectedIonList>\n");
   return true;
 }
 
 bool MzMLWriter::exportSelectedIonList(Spectrum& s, int tabs){
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"<selectedIonList count=\"1\">\n");
+  fprintf(fptr,"<selectedIonList count=\"1\">\n");
   if(!exportSelectedIon(s,tabs+1)) return false;
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"</selectedIonList>\n");
+  fprintf(fptr,"</selectedIonList>\n");
   return true;
 }
 
@@ -853,19 +852,19 @@ bool MzMLWriter::exportSpectrum(Spectrum& s, int tabs){
 
   if (bTabs) exportTabs(tabs);
 
-  sprintf_s(tmp,"scan=%d",s.getScanNumber());
+  sprintf(tmp,"scan=%d",s.getScanNumber());
   x.id=tmp;
   x.offset=ftell(fptr);
   vIndex.push_back(x);
 
-  fprintf_s(fptr,"<spectrum index=\"%d\" id=\"scan=%d\" defaultArrayLength=\"%d\">\n",index++,s.getScanNumber(),s.size());
-  sprintf_s(tmp,"%d",s.getMsLevel());
+  fprintf(fptr,"<spectrum index=\"%d\" id=\"scan=%d\" defaultArrayLength=\"%d\">\n",index++,s.getScanNumber(),s.size());
+  sprintf(tmp,"%d",s.getMsLevel());
   value=tmp;
   exportCvParam("MS:1000511","MS","ms level","","","",value,tabs+1);
-  sprintf_s(tmp,"%.12lf",s[0].mz);
+  sprintf(tmp,"%.12lf",s[0].mz);
   value=tmp;
   exportCvParam("MS:1000528","MS","lowest observed m/z","MS:1000040","MS","m/z",value,tabs+1);
-  sprintf_s(tmp,"%.12lf",s[s.size()-1].mz);
+  sprintf(tmp,"%.12lf",s[s.size()-1].mz);
   value=tmp;
   exportCvParam("MS:1000527","MS","highest observed m/z","MS:1000040","MS","m/z",value,tabs+1);
   if(!exportScanList(s,tabs+1)) return false;
@@ -875,12 +874,12 @@ bool MzMLWriter::exportSpectrum(Spectrum& s, int tabs){
   if(!exportBinaryDataArrayList(s,tabs+1)) return false;
 
   if (bTabs) exportTabs(tabs);
-  fprintf_s(fptr,"</spectrum>\n");
+  fprintf(fptr,"</spectrum>\n");
   return true;
 }
 
 void MzMLWriter::exportTabs(int tabs){
   string tbs = "";
   tbs.append(tabs, ' ');
-  fprintf_s(fptr, "%s", &tbs[0]);
+  fprintf(fptr, "%s", &tbs[0]);
 }

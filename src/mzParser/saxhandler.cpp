@@ -182,10 +182,9 @@ void mzpSAXHandler::characters(const XML_Char *s, int len)
 }
 
 bool mzpSAXHandler::open(const char* fileName){
-	errno_t err;
 	if(fptr!=NULL) fclose(fptr);
-	if(m_bGZCompression) err=fopen_s(&fptr,fileName,"rb");
-	else err=fopen_s(&fptr,fileName,"r");
+	if(m_bGZCompression) fptr=fopen(fileName,"rb");
+	else fptr=fopen(fileName,"r");
 	if(fptr==NULL){
 		//cerr << "Failed to open input file '" << fileName << "'.\n";
 		return false;
@@ -203,16 +202,16 @@ bool mzpSAXHandler::open(const char* fileName){
         fclose(fptr);
         switch (len) {
         case Z_MEM_ERROR:
-            fprintf_s(stderr, "Error reading .gz file: out of memory\n");
+            fprintf(stderr, "Error reading .gz file: out of memory\n");
             break;
         case Z_DATA_ERROR:
-            fprintf_s(stderr, "Error reading .gz file: compressed data error in %s\n", fileName);
+            fprintf(stderr, "Error reading .gz file: compressed data error in %s\n", fileName);
             break;
         case Z_ERRNO:
-            fprintf_s(stderr, "Error reading .gz file: read error on %s\n", fileName);
+            fprintf(stderr, "Error reading .gz file: read error on %s\n", fileName);
             break;
         default:
-            fprintf_s(stderr, "Error reading .gz file: error %d while building index\n", len);
+            fprintf(stderr, "Error reading .gz file: error %d while building index\n", len);
         }
 				fptr=NULL;
         return false;
