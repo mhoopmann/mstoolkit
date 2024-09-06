@@ -1068,7 +1068,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	        }
 	      }
 	      //otherwise, read in the line
-	      i=fscanf_s(fileIn,"%lf %f\n",&p.mz,&p.intensity);
+	      i=fscanf(fileIn,"%lf %f\n",&p.mz,&p.intensity);
 	      s.add(p);
 	      break;
 
