@@ -594,7 +594,8 @@ f_off mzpSAXMzxmlHandler::readIndexOffset() {
   size_t sz;
 
   if(!m_bGZCompression){
-    FILE* f=fopen(&m_strFileName[0],"r");
+    FILE* f;
+    errno_t err=fopen_s(&f,&m_strFileName[0],"r");
     mzpfseek(f,-200,SEEK_END);
     sz = fread(buffer,1,200,f);
     fclose(f);
@@ -613,7 +614,7 @@ f_off mzpSAXMzxmlHandler::readIndexOffset() {
 
   char offset[64];
   int len=(int)(stop-start-13);
-  strncpy(offset,start+13,len);
+  strncpy_s(offset,sizeof(offset),start+13,len);
   offset[len]='\0';
   return mzpatoi64(offset);
 
@@ -651,7 +652,8 @@ bool mzpSAXMzxmlHandler::generateIndexOffset() {
   long lOffset = 0;
 
   if(!m_bGZCompression){
-    FILE* f=fopen(&m_strFileName[0],"r");
+    FILE* f;
+    errno_t err=fopen_s(&f,&m_strFileName[0],"r");
     char *pStr;
 
     if (f==NULL){
@@ -668,7 +670,7 @@ bool mzpSAXMzxmlHandler::generateIndexOffset() {
         do{
           // "<scan" and "num=" can be on different lines
           if ((pStr = strstr(chunk, " num=\"")) != NULL){
-            sscanf(pStr+6, "%ld", &scanNum);
+            sscanf_s(pStr+6, "%ld", &scanNum);
             bSuccessfullyReadScan = true;
             curIndex.scanNum = scanNum;
             curIndex.idRef = "";

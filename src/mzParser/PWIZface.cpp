@@ -47,7 +47,7 @@ ChromatogramList::~ChromatogramList(){
 }
 
 ChromatogramPtr ChromatogramList::chromatogram(int index, bool binaryData) {
-  char str[128];
+  string str;
   if(mzML!=NULL) {
     mzML->readChromatogram(index);
     chromat->bc->getIDString(str);
@@ -276,7 +276,7 @@ size_t SpectrumList::size() {
 }
 
 SpectrumPtr SpectrumList::spectrum(int index, bool binaryData) {
-  char str[128];
+  string str;
   if (mzML != NULL) {
     mzML->readSpectrum(index);
     spec->bs->getIDString(str);

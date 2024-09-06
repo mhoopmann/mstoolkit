@@ -19,6 +19,10 @@ limitations under the License.
 #include <stddef.h>
 #include <string>
 
+#ifdef _MSC_VER
+#define strtok_r strtok_s
+#endif
+
 namespace MSToolkit {
 
 enum MSSpectrumType {

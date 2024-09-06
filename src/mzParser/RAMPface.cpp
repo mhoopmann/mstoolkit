@@ -16,6 +16,7 @@ int mzParser::checkFileType(const char* fname){
   char file[4096];
   char ext[4096];
   char *tok;
+  char *nextTok;
   char preExt[4096];
   unsigned int i;
 
@@ -24,14 +25,14 @@ int mzParser::checkFileType(const char* fname){
     return 0;
   }
 
-  strcpy(ext,"");
+  ext[0]='\0';
 
-  strcpy(file,fname);
-  tok=strtok(file,".\n");
+  strcpy_s(file,sizeof(file),fname);
+  tok=strtok_s(file,".\n",&nextTok);
   while(tok!=NULL){
-    strcpy(preExt,ext);
-    strcpy(ext,tok);
-    tok=strtok(NULL,".\n");
+    strcpy_s(preExt,sizeof(preExt),ext);
+    strcpy_s(ext,sizeof(ext),tok);
+    tok=strtok_s(NULL,".\n",&nextTok);
   }
 
   for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
@@ -169,12 +170,12 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
     printf("Cannot allocate memory\n");
     return NULL;
   } else {
-    strcpy(r->analyzer,"UNKNOWN");
-    strcpy(r->detector,"UNKNOWN");
-    strcpy(r->ionisation,"UNKNOWN");
-    strcpy(r->manufacturer,"UNKNOWN");
-    strcpy(r->model,"UNKNOWN");
-	strcpy(r->serial,"UNKNOWN");							
+    strcpy_s(r->analyzer,sizeof(r->analyzer),"UNKNOWN");
+    strcpy_s(r->detector,sizeof(r->detector),"UNKNOWN");
+    strcpy_s(r->ionisation,sizeof(r->ionisation),"UNKNOWN");
+    strcpy_s(r->manufacturer,sizeof(r->manufacturer),"UNKNOWN");
+    strcpy_s(r->model,sizeof(r->model),"UNKNOWN");
+	  strcpy_s(r->serial,sizeof(r->serial),"UNKNOWN");							
   }
 
   switch(pFI->fileType){
@@ -182,23 +183,23 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
     case 3:
     case 6:
       if(pFI->mzML->getInstrument()->size()>0){
-        if(pFI->mzML->getInstrument()->at(0).analyzer.size()>1) strcpy(r->analyzer,&pFI->mzML->getInstrument()->at(0).analyzer[0]);
-        if(pFI->mzML->getInstrument()->at(0).detector.size()>1) strcpy(r->detector,&pFI->mzML->getInstrument()->at(0).detector[0]);
-        if(pFI->mzML->getInstrument()->at(0).ionization.size()>1) strcpy(r->ionisation,&pFI->mzML->getInstrument()->at(0).ionization[0]);
-        if(pFI->mzML->getInstrument()->at(0).manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzML->getInstrument()->at(0).manufacturer[0]);
-        if(pFI->mzML->getInstrument()->at(0).model.size()>1) strcpy(r->model,&pFI->mzML->getInstrument()->at(0).model[0]);
-		    if(pFI->mzML->getInstrument()->at(0).serial.size()>1) strcpy(r->serial,&pFI->mzML->getInstrument()->at(0).serial[0]);																													 
+        if(pFI->mzML->getInstrument()->at(0).analyzer.size()>1) strcpy_s(r->analyzer, sizeof(r->analyzer),&pFI->mzML->getInstrument()->at(0).analyzer[0]);
+        if(pFI->mzML->getInstrument()->at(0).detector.size()>1) strcpy_s(r->detector, sizeof(r->detector),&pFI->mzML->getInstrument()->at(0).detector[0]);
+        if(pFI->mzML->getInstrument()->at(0).ionization.size()>1) strcpy_s(r->ionisation, sizeof(r->ionisation),&pFI->mzML->getInstrument()->at(0).ionization[0]);
+        if(pFI->mzML->getInstrument()->at(0).manufacturer.size()>1) strcpy_s(r->manufacturer, sizeof(r->manufacturer),&pFI->mzML->getInstrument()->at(0).manufacturer[0]);
+        if(pFI->mzML->getInstrument()->at(0).model.size()>1) strcpy_s(r->model, sizeof(r->model),&pFI->mzML->getInstrument()->at(0).model[0]);
+		    if(pFI->mzML->getInstrument()->at(0).serial.size()>1) strcpy_s(r->serial, sizeof(r->serial),&pFI->mzML->getInstrument()->at(0).serial[0]);
       }
       break;
 
     case 2:
     case 4:
-      if(pFI->mzXML->getInstrument().analyzer.size()>1) strcpy(r->analyzer,&pFI->mzXML->getInstrument().analyzer[0]);
-      if(pFI->mzXML->getInstrument().detector.size()>1) strcpy(r->detector,&pFI->mzXML->getInstrument().detector[0]);
-      if(pFI->mzXML->getInstrument().ionization.size()>1) strcpy(r->ionisation,&pFI->mzXML->getInstrument().ionization[0]);
-      if(pFI->mzXML->getInstrument().manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzXML->getInstrument().manufacturer[0]);
-      if(pFI->mzXML->getInstrument().model.size()>1) strcpy(r->model,&pFI->mzXML->getInstrument().model[0]);
-      if(pFI->mzXML->getInstrument().serial.size()>1) strcpy(r->serial,&pFI->mzXML->getInstrument().serial[0]);																										   
+      if(pFI->mzXML->getInstrument().analyzer.size()>1) strcpy_s(r->analyzer, sizeof(r->analyzer),&pFI->mzXML->getInstrument().analyzer[0]);
+      if(pFI->mzXML->getInstrument().detector.size()>1) strcpy_s(r->detector, sizeof(r->detector),&pFI->mzXML->getInstrument().detector[0]);
+      if(pFI->mzXML->getInstrument().ionization.size()>1) strcpy_s(r->ionisation, sizeof(r->ionisation),&pFI->mzXML->getInstrument().ionization[0]);
+      if(pFI->mzXML->getInstrument().manufacturer.size()>1) strcpy_s(r->manufacturer, sizeof(r->manufacturer),&pFI->mzXML->getInstrument().manufacturer[0]);
+      if(pFI->mzXML->getInstrument().model.size()>1) strcpy_s(r->model, sizeof(r->model),&pFI->mzXML->getInstrument().model[0]);
+      if(pFI->mzXML->getInstrument().serial.size()>1) strcpy_s(r->serial, sizeof(r->serial),&pFI->mzXML->getInstrument().serial[0]);
       break;
 
     case 5:
@@ -319,32 +320,33 @@ char* mzParser::rampConstructInputPath(char *buf, int inbuflen, const char *dir_
   }
 
   FILE* f;
+  errno_t err;
   char* result = NULL;
   char base[4096];
-  strcpy(base,basename);
+  strcpy_s(base,sizeof(base),basename);
 
   //Try opening the base name first, then with directory:
   for(int j=0;j<2;j++){
     for(int i=0;i<5;i++){
 
       if(j==1){
-        strcpy(buf,dir_in);
-        strcat(buf,"/");
-        strcat(buf,base);
+        strcpy_s(buf,inbuflen,dir_in);
+        strcat_s(buf,inbuflen,"/");
+        strcat_s(buf,inbuflen,base);
       } else {
-        strcpy(buf,base);
+        strcpy_s(buf,inbuflen,base);
       }
 
       switch(i){
-        case 0:  strcat(buf,".mzML");  break;
-        case 1:  strcat(buf,".mzXML"); break;
-        case 2:  strcat(buf,".mzML.gz"); break;
-        case 3:  strcat(buf,".mzXML.gz");  break;
-        case 4: strcat(buf,".mz5"); break;
+        case 0:  strcat_s(buf,inbuflen,".mzML");  break;
+        case 1:  strcat_s(buf, inbuflen,".mzXML"); break;
+        case 2:  strcat_s(buf, inbuflen,".mzML.gz"); break;
+        case 3:  strcat_s(buf, inbuflen,".mzXML.gz");  break;
+        case 4:  strcat_s(buf, inbuflen,".mz5"); break;
         default: break;
       }
       
-      f=fopen(buf,"r");
+      err=fopen_s(&f,buf,"r");
       if(f==NULL) continue;
         
       fclose(f);
@@ -355,7 +357,7 @@ char* mzParser::rampConstructInputPath(char *buf, int inbuflen, const char *dir_
 
   //Can't output error messages in TPP software that use this function
   //printf("rampConstructInputPath: file not found\n");
-  strcpy(buf,"");
+  strcpy_s(buf, inbuflen,"");
   result=NULL;
   return result;
 
@@ -447,11 +449,11 @@ char* mzParser::rampValidFileType(const char *buf){
 
   if(result==NULL) return (char*) result;
 
-  strcpy(ext,result);
+  strcpy_s(ext,sizeof(ext),result);
   for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
 
   if(result2){
-    strcpy(preExt,result2);
+    strcpy_s(preExt,sizeof(preExt),result2);
     for(i=0;i<strlen(preExt);i++) preExt[i]=toupper(preExt[i]);
   }
 
@@ -658,23 +660,26 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
     }
   }
   
-  pFI->bs->getFilterLine(scanHeader->filterLine);
-  pFI->bs->getIDString(scanHeader->idString);
+  string ts;
+  pFI->bs->getFilterLine(ts);
+  strcpy_s(scanHeader->filterLine,sizeof(scanHeader->filterLine),ts.c_str());
+  pFI->bs->getIDString(ts);
+  strcpy_s(scanHeader->idString,sizeof(scanHeader->idString),ts.c_str());
 
   switch(pFI->bs->getActivation()){
-    case 1: strcpy(scanHeader->activationMethod,"CID"); break;
-    case 2: strcpy(scanHeader->activationMethod,"HCD"); break;
-    case 3: strcpy(scanHeader->activationMethod,"ETD"); break;
-    case 4: strcpy(scanHeader->activationMethod,"ETD+SA"); break;
-    case 5: strcpy(scanHeader->activationMethod,"ECD"); break;
-    default: strcpy(scanHeader->activationMethod,""); break;
+    case 1: strcpy_s(scanHeader->activationMethod,sizeof(scanHeader->activationMethod),"CID"); break;
+    case 2: strcpy_s(scanHeader->activationMethod, sizeof(scanHeader->activationMethod),"HCD"); break;
+    case 3: strcpy_s(scanHeader->activationMethod, sizeof(scanHeader->activationMethod),"ETD"); break;
+    case 4: strcpy_s(scanHeader->activationMethod, sizeof(scanHeader->activationMethod),"ETD+SA"); break;
+    case 5: strcpy_s(scanHeader->activationMethod, sizeof(scanHeader->activationMethod),"ECD"); break;
+    default: strcpy_s(scanHeader->activationMethod, sizeof(scanHeader->activationMethod),""); break;
   }
 
   //process user params
   size_t index=0;
   sUParam up=pFI->bs->getUserParam(index++);
   while(!up.name.empty()){
-    if(up.name.compare("scan description")==0) strcpy(scanHeader->scanDescription,up.value.c_str());
+    if(up.name.compare("scan description")==0) strcpy_s(scanHeader->scanDescription,sizeof(scanHeader->scanDescription),up.value.c_str());
     up = pFI->bs->getUserParam(index++);
   }
 

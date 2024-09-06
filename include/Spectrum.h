@@ -94,7 +94,7 @@ class Spectrum {
   double    			getMZ(int index=0);
   bool            getNativeID(char*,int);
   MSPrecursorInfo getPrecursor(int index=0);
-  bool            getRawFilter(char*,int,bool bLock=false);
+  bool            getRawFilter(char*,int);
   float		    		getRTime();
   float           getRTimeApex();
   std::string     getScanDescription();

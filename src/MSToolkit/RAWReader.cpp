@@ -35,10 +35,10 @@ RAWReader::RAWReader(){
 	rawFileOpen=false;
   rawLabel=false;
   rawUserFilterExact=true;
-  strcpy(rawCurrentFile,".");
-  strcpy(rawInstrument,"unknown");
-  strcpy(rawManufacturer,"Thermo Scientific");
-  strcpy(rawUserFilter,"");
+  strcpy_s(rawCurrentFile,sizeof(rawCurrentFile),".");
+  strcpy_s(rawInstrument,sizeof(rawInstrument),"unknown");
+  strcpy_s(rawManufacturer,sizeof(rawManufacturer),"Thermo Scientific");
+  strcpy_s(rawUserFilter,sizeof(rawUserFilter),"");
 	msLevelFilter=NULL;
 
 }
@@ -156,10 +156,11 @@ MSSpectrumType RAWReader::evaluateFilter(long scan, char* chFilter, vector<doubl
 	WideCharToMultiByte(CP_ACP,0,Filter,-1,chFilter,sl,NULL,NULL);
 	SysFreeString(Filter);
 
-	strcpy(cStr,chFilter);
+	strcpy_s(cStr,sizeof(cStr),chFilter);
 	MSSpectrumType mst=Unspecified;
 	char* tok;
-	tok=strtok(cStr," \n");
+  char* nextTok;
+	tok=strtok_r(cStr," \n",&nextTok);
 	while(tok!=NULL){
 
 		if(strcmp(tok,"c")==0){
@@ -221,7 +222,7 @@ MSSpectrumType RAWReader::evaluateFilter(long scan, char* chFilter, vector<doubl
 			cout << "Unknown token: " << tok << endl;
 		}
 
-		tok=strtok(NULL," \n");
+		tok=strtok_r(NULL," \n",&nextTok);
 	}
 
 	return mst;
@@ -297,9 +298,10 @@ string RAWReader::evaluateTrailerString(const char* str) {
   return ret;
 }
 
-void RAWReader::getInstrument(char* str){
-  strcpy(str,rawInstrument);
-}
+//REMOVED 2024.09.06
+//void RAWReader::getInstrument(char* str){
+//  strcpy(str,rawInstrument);
+//}
 
 void RAWReader::getInstrument(string& str) {
   str=rawInstrument;
@@ -309,9 +311,10 @@ long RAWReader::getLastScanNumber(){
 	return rawCurSpec;
 }
 
-void RAWReader::getManufacturer(char* str){
-  strcpy(str,rawManufacturer);
-}
+//REMOVED 2024.09.06
+//void RAWReader::getManufacturer(char* str){
+//  strcpy(str,rawManufacturer);
+//}
 
 void RAWReader::getManufacturer(string& str) {
   str=rawManufacturer;
@@ -479,7 +482,7 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
       sl = SysStringLen(testStr)+1;
 	    WideCharToMultiByte(CP_ACP,0,testStr,-1,rawInstrument,sl,NULL,NULL);
       SysFreeString(testStr);
-      strcpy(rawCurrentFile,c);
+      strcpy_s(rawCurrentFile,sizeof(rawCurrentFile),c);
 
 		  //if scan number is requested, grab it
       if(scNum<0) return false;
@@ -490,8 +493,8 @@ bool RAWReader::readRawFile(const char *c, Spectrum &s, int scNum){
   }
 
 	//Initialize members
-	strcpy(chFilter,"");
-  strcpy(curFilter,"");
+	strcpy_s(chFilter,sizeof(chFilter),"");
+  strcpy_s(curFilter,sizeof(curFilter),"");
 	VariantInit(&varMassList);
 	VariantInit(&varPeakFlags);
 
@@ -736,7 +739,7 @@ void RAWReader::setMSLevelFilter(vector<MSSpectrumType>* v){
 }
 
 void RAWReader::setRawFilter(char *c){
-  strcpy(rawUserFilter,c);
+  strcpy_s(rawUserFilter,sizeof(rawUserFilter),c);
 }
 
 #endif

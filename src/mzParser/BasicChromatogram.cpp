@@ -9,6 +9,7 @@ Version 1.1, March 14, 2012.
 */
 
 #include "mzParser.h"
+using namespace std;
 using namespace mzParser;
 
 BasicChromatogram::BasicChromatogram(){}
@@ -23,7 +24,7 @@ BasicChromatogram::BasicChromatogram(const BasicChromatogram& c){
   productOffsetLower=c.productOffsetLower;
   productOffsetUpper=c.productOffsetUpper;
   for(unsigned int i=0;i<c.vData.size();i++) vData.push_back(c.vData[i]);
-  strcpy(idString,c.idString);
+  strcpy_s(idString,sizeof(idString),c.idString);
 }
 
 BasicChromatogram::~BasicChromatogram(){}
@@ -39,7 +40,7 @@ BasicChromatogram& BasicChromatogram::operator=(const BasicChromatogram& c){
     productOffsetLower = c.productOffsetLower;
     productOffsetUpper = c.productOffsetUpper;
     for(unsigned int i=0;i<c.vData.size();i++) vData.push_back(c.vData[i]);
-    strcpy(idString,c.idString);
+    strcpy_s(idString,sizeof(idString),c.idString);
   }
   return *this;
 }
@@ -49,7 +50,7 @@ TimeIntensityPair& BasicChromatogram::operator[ ](const unsigned int index){ ret
 void BasicChromatogram::addTIP(TimeIntensityPair tip){ vData.push_back(tip); }
 void BasicChromatogram::clear(){
   vData.clear();
-  strcpy(idString,"");
+  idString[0]='\0';
   charge=0;
   precursorMZ=0;
   precursorOffsetLower=0;
@@ -60,17 +61,14 @@ void BasicChromatogram::clear(){
 }
 int BasicChromatogram::getCharge(){return charge;}
 std::vector<TimeIntensityPair>&  BasicChromatogram::getData() { return vData; }
-int BasicChromatogram::getIDString(char* str){
-  strcpy(str,idString);
-  return (int)strlen(str);
-}
+void BasicChromatogram::getIDString(string& str) { str=idString; }
 double BasicChromatogram::getPreMZ(){ return precursorMZ;}
 double BasicChromatogram::getPreOffsetLower(){ return precursorOffsetLower; }
 double BasicChromatogram::getPreOffsetUpper(){ return precursorOffsetUpper; }
 double BasicChromatogram::getProdMZ(){ return productMZ; }
 double BasicChromatogram::getProdOffsetLower(){return productOffsetLower;}
 double BasicChromatogram::getProdOffsetUpper(){ return productOffsetUpper; }
-void BasicChromatogram::setIDString(char* str) { strcpy(idString,str); }
+void BasicChromatogram::setIDString(char* str) { strcpy_s(idString,sizeof(idString),str); }
 void BasicChromatogram::setPrecursor(double mz, int z, double offLow, double offHigh){
   precursorMZ=mz;
   charge=z;

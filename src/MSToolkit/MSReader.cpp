@@ -31,7 +31,7 @@ MSReader::MSReader(){
   mgfOnePlus=false;
   iFType=0;
   iVersion=0;
-  for(int i=0;i<16;i++)	strcpy(header.header[i],"\0");
+  for(int i=0;i<16;i++)	header.header[i][0]='\0';
   headerIndex=0;
   sCurrentFile.clear();
   sInstrument="unknown";
@@ -63,11 +63,12 @@ void MSReader::addFilter(MSSpectrumType m){
 
 void MSReader::appendFile(char* c, bool text, Spectrum& s){
   FILE* fileOut;
+  errno_t err;
 
   if (c == NULL) return;
 
-  if (text)fileOut = fopen(c, "at");
-  else fileOut = fopen(c, "ab");
+  if (text)err = fopen_s(&fileOut,c, "at");
+  else err = fopen_s(&fileOut,c, "ab");
 
   //output spectrum header
   writeSpecHeader(fileOut, text, s);
@@ -88,6 +89,7 @@ void MSReader::appendFile(char* c, bool text, Spectrum& s){
 void MSReader::appendFile(char* c, Spectrum& s){
   MSFileFormat ff;
   FILE* fileOut;
+  errno_t err;
 
   if (c == NULL) return;
   ff = checkFileFormat(c);
@@ -95,7 +97,7 @@ void MSReader::appendFile(char* c, Spectrum& s){
   switch (ff){
   case mgf:
     exportMGF = true;
-    fileOut = fopen(c, "at");
+    err = fopen_s(&fileOut,c, "at");
     writeTextSpec(fileOut, s);
     fclose(fileOut);
     exportMGF = false;
@@ -104,21 +106,21 @@ void MSReader::appendFile(char* c, Spectrum& s){
   case ms2:
   case  zs:
   case uzs:
-    fileOut = fopen(c, "at");
+    err = fopen_s(&fileOut,c, "at");
     writeSpecHeader(fileOut, true, s);
     writeTextSpec(fileOut, s);
     fclose(fileOut);
     break;
   case bms1:
   case bms2:
-    fileOut = fopen(c, "ab");
+    err = fopen_s(&fileOut,c, "ab");
     writeSpecHeader(fileOut, false, s);
     writeBinarySpec(fileOut, s);
     fclose(fileOut);
     break;
   case cms1:
   case cms2:
-    fileOut = fopen(c, "ab");
+    err = fopen_s(&fileOut,c, "ab");
     writeSpecHeader(fileOut, false, s);
     writeCompressSpec(fileOut, s);
     fclose(fileOut);
@@ -138,6 +140,7 @@ void MSReader::appendFile(char* c, Spectrum& s){
 void MSReader::appendFile(char* c, bool text, MSObject& m){
 
   FILE* fileOut;
+  errno_t err;
   int i;
 
   //if a filename isn't specified, check to see if the
@@ -145,8 +148,8 @@ void MSReader::appendFile(char* c, bool text, MSObject& m){
   if (c == NULL) {
     return;
   } else {
-    if (text) fileOut = fopen(c, "at");
-    else fileOut = fopen(c, "ab");
+    if (text) err = fopen_s(&fileOut,c, "at");
+    else err = fopen_s(&fileOut,c, "ab");
   }
 
   //output spectra;
@@ -173,6 +176,7 @@ void MSReader::appendFile(char* c, MSObject& m){
 
   MSFileFormat ff;
   FILE* fileOut;
+  errno_t err;
   int i;
 
   if (c == NULL) return;
@@ -181,7 +185,7 @@ void MSReader::appendFile(char* c, MSObject& m){
   switch (ff){
   case mgf:
     exportMGF = true;
-    fileOut = fopen(c, "at");
+    err = fopen_s(&fileOut,c, "at");
     for (i = 0; i<m.size(); i++) writeTextSpec(fileOut, m.at(i));
     fclose(fileOut);
     exportMGF = false;
@@ -190,7 +194,7 @@ void MSReader::appendFile(char* c, MSObject& m){
   case ms2:
   case  zs:
   case uzs:
-    fileOut = fopen(c, "at");
+    err = fopen_s(&fileOut,c, "at");
     for (i = 0; i<m.size(); i++){
       writeSpecHeader(fileOut, true, m.at(i));
       writeTextSpec(fileOut, m.at(i));
@@ -199,7 +203,7 @@ void MSReader::appendFile(char* c, MSObject& m){
     break;
   case bms1:
   case bms2:
-    fileOut = fopen(c, "ab");
+    err = fopen_s(&fileOut,c, "ab");
     for (i = 0; i<m.size(); i++){
       writeSpecHeader(fileOut, false, m.at(i));
       writeBinarySpec(fileOut, m.at(i));
@@ -208,7 +212,7 @@ void MSReader::appendFile(char* c, MSObject& m){
     break;
   case cms1:
   case cms2:
-    fileOut = fopen(c, "ab");
+    err = fopen_s(&fileOut,c, "ab");
     for (i = 0; i<m.size(); i++){
       writeSpecHeader(fileOut, false, m.at(i));
       writeCompressSpec(fileOut, m.at(i));
@@ -259,9 +263,10 @@ MSHeader& MSReader::getHeader(){
   return header;
 }
 
-void MSReader::getInstrument(char* str){
-  strcpy(str,&sInstrument[0]);
-}
+//REMOVED 2024.09.06
+//void MSReader::getInstrument(char* str){
+//  strcpy(str,&sInstrument[0]);
+//}
 
 void MSReader::getInstrument(string& str) {
   str=sInstrument;
@@ -293,9 +298,10 @@ int MSReader::getLastScan(){
   return -1;
 }
 
-void MSReader::getManufacturer(char* str){
-  strcpy(str,&sManufacturer[0]);
-}
+//REMOVED 2024.09.06
+//void MSReader::getManufacturer(char* str){
+//  strcpy(str,&sManufacturer[0]);
+//}
 
 void MSReader::getManufacturer(string& str) {
   str=sManufacturer;
@@ -347,12 +353,13 @@ int MSReader::getPercent(){
 int MSReader::openFile(const char *c,bool text){
 	int i;
   size_t ret;
+  errno_t err;
 
-	if(text) fileIn=fopen(c,"rt");
-	else fileIn=fopen(c,"rb");
+	if(text) err=fopen_s(&fileIn,c,"rt");
+	else err=fopen_s(&fileIn,c,"rb");
 
   if(fileIn==NULL) {
-		for(i=0;i<16;i++) strcpy(header.header[i],"\0");
+		for(i=0;i<16;i++) header.header[i][0]='\0';
     headerIndex=0;
     fileType=Unspecified;
     return 1;
@@ -369,7 +376,7 @@ int MSReader::openFile(const char *c,bool text){
 		fseek(fileIn,0,0);
 
 		if(text){
-			for(i=0;i<16;i++) strcpy(header.header[i],"\0");
+			for(i=0;i<16;i++) header.header[i][0]='\0';
 			headerIndex=0;
 		} else {
       ret=fread(&iFType,4,1,fileIn);
@@ -392,6 +399,7 @@ bool MSReader::prevSpectrum(Spectrum& s){
 bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
   char* tok;
+  char* nextTok;
   char str[1024];
   char num[6];
   unsigned int i;
@@ -427,8 +435,8 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
       if(!strncmp(strMGF,"CHARGE",7)) {
         mgfGlobalCharge.clear();
-        strcpy(str, strMGF+7);
-        tok=strtok(str," \t\n\r");
+        strcpy_s(str, sizeof(str),strMGF+7);
+        tok=strtok_r(str," \t\n\r",&nextTok);
         while(tok!=NULL){
           for(i=0;i<strlen(tok);i++){
             if(isdigit(tok[i])) {
@@ -445,7 +453,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
             }
             break;
           }
-          tok=strtok(NULL," \t\n\r");
+          tok=strtok_r(NULL," \t\n\r",&nextTok);
         }
       } else if (!strncmp(strMGF, "MASS", 5)){
 
@@ -523,8 +531,8 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
   if(s.getScanNumber()==0){
     //attempt to obtain scan number from title using ISB/ProteoWizard format
     if (s.getNativeID(str, 1024)){
-      tok = strtok(str, ".");
-      tok = strtok(NULL, ".");
+      tok = strtok_r(str, ".",&nextTok);
+      tok = strtok_r(NULL, ".", &nextTok);
       if (tok!=NULL) {
         s.setScanNumber(atoi(tok));
         s.setScanNumber(atoi(tok),true);
@@ -540,20 +548,20 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
   //Read peak data
   while(!isalpha(strMGF[0])){
 
-    tok=strtok(strMGF," \t\n\r");
+    tok=strtok_r(strMGF," \t\n\r", &nextTok);
     if(tok==NULL){
       cout << "Error in MGF file: bad m/z or intensity value." << endl;
       exit(-13);
     }
     mz=atof(tok);
-    tok=strtok(NULL," \t\n\r");
+    tok=strtok_r(NULL," \t\n\r", &nextTok);
     if(tok==NULL){
       cout << "Error in MGF file: bad m/z or intensity value." << endl;
       exit(-13);
     }
     intensity=(float)atof(tok);
     if(!mgfOnePlus){
-      tok=strtok(NULL," \t\n\r");
+      tok=strtok_r(NULL," \t\n\r", &nextTok);
       if(tok!=NULL) {
         ch=atoi(tok);
         mz *= ch;                  // if fragment charge specified, convert m/z to 1+
@@ -579,6 +587,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 bool MSReader::readMGFFile2(const char* c, Spectrum& s){
 
   char* tok;
+  char* nextTok;
   char str[1024];
   char num[6];
   unsigned int i;
@@ -614,10 +623,10 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     if(strlen(strMGF)<2) continue; //skip blank lines
     if (strMGF[0] == '#' || strMGF[0] == ';' || strMGF[0] == '!' || strMGF[0] == '/') continue; //skip comment lines
     tokens.clear();
-    tok=strtok(strMGF,"=\n\r");
+    tok=strtok_r(strMGF,"=\n\r", &nextTok);
     while(tok!=NULL){
       tokens.push_back(string(tok));
-      tok=strtok(NULL,"=\n\r");
+      tok=strtok_r(NULL,"=\n\r", &nextTok);
     }
     if(tokens[0].compare("BEGIN IONS")==0) break;
     else if(tokens[0].compare("MASS")==0){
@@ -625,8 +634,8 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       else bMono=false;
     } else if (tokens[0].compare("CHARGE") == 0){
       mgfGlobalCharge.clear();
-      strcpy(str,tokens[1].c_str());
-      tok = strtok(str, " \t\n\r");
+      strcpy_s(str,sizeof(str),tokens[1].c_str());
+      tok = strtok_r(str, " \t\n\r", &nextTok);
       while (tok != NULL){
         for (i = 0; i<strlen(tok); i++){
           if (isdigit(tok[i])) {
@@ -643,7 +652,7 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
           }
           break;
         }
-        tok = strtok(NULL, " \t\n\r");
+        tok = strtok_r(NULL, " \t\n\r", &nextTok);
       }
     } else if(tokens[0][0]=='_') { //user and reserved parameters
       if(tokens[0].find("_DISTILLER_RAWFILE")==0){
@@ -663,10 +672,10 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     if (strlen(strMGF)<2) continue; //skip blank lines
     if (strMGF[0] == '#' || strMGF[0] == ';' || strMGF[0] == '!' || strMGF[0] == '/') continue; //skip comment lines
     tokens.clear();
-    tok = strtok(strMGF, "=\n\r");
+    tok = strtok_r(strMGF, "=\n\r", &nextTok);
     while (tok != NULL){
       tokens.push_back(string(tok));
-      tok = strtok(NULL, "=\n\r");
+      tok = strtok_r(NULL, "=\n\r", &nextTok);
     }
     if (tokens[0].find("END IONS") != string::npos) {
       //convert any header information to MST spectrum information
@@ -684,8 +693,8 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       if (s.getScanNumber() == 0){
         //attempt to obtain scan number from title using ISB/ProteoWizard format
         if (s.getNativeID(str, 1024)){
-          tok = strtok(str, ".");
-          tok = strtok(NULL, ".");
+          tok = strtok_r(str, ".", &nextTok);
+          tok = strtok_r(NULL, ".", &nextTok);
           if (tok != NULL) {
             s.setScanNumber(atoi(tok));
             s.setScanNumber(atoi(tok), true);
@@ -717,13 +726,13 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       for(size_t a=2;a<tokens.size();a++) tokens[1]+='='+tokens[a];
       s.setNativeID(tokens[1].c_str());
     } else if(isdigit(tokens[0][0])){
-      strcpy(str, tokens[0].c_str());
-      tok = strtok(str, " \t\n\r");
+      strcpy_s(str,sizeof(str), tokens[0].c_str());
+      tok = strtok_r(str, " \t\n\r", &nextTok);
       mz = atof(tok);
-      tok = strtok(NULL, " \t\n\r");
+      tok = strtok_r(NULL, " \t\n\r", &nextTok);
       intensity = (float)atof(tok);
       if (!mgfOnePlus){
-        tok = strtok(NULL, " \t\n\r");
+        tok = strtok_r(NULL, " \t\n\r", &nextTok);
         if (tok != NULL) {
           ch = atoi(tok);
           mz *= ch;                  // if fragment charge specified, convert m/z to 1+
@@ -753,6 +762,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
   char tstr[256];
   char ch;
   char *tok;
+  char *nextTok;
   char *retC;
 
   //variables for compressed files
@@ -925,10 +935,13 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	      //Header lines are recorded as strings up to 16 lines at 256 characters each
         retC = fgets(tstr, 256, fileIn);
 	      if(!bDoneHeader) {
-	        tok=strtok(tstr," \t\n\r");
-	        tok=strtok(NULL,"\n\r");
-	        strcat(tok,"\n");
-	        if(headerIndex<16) strcpy(header.header[headerIndex++],tok);
+	        tok=strtok_r(tstr," \t\n\r", &nextTok);
+	        tok=strtok_r(NULL,"\n\r", &nextTok);
+	        if(headerIndex<16) {
+            strcpy_s(header.header[headerIndex],sizeof(header.header[headerIndex]),tok);
+            strcat_s(header.header[headerIndex],sizeof(header.header[headerIndex]),"\n");
+            headerIndex++;
+          }
 	        else cout << "Header too big!!" << endl;
 	      }
 	      break;
@@ -936,49 +949,49 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
       case 'I':
 	      //I lines are recorded only if they contain retention times
         retC = fgets(tstr, 256, fileIn);
-        tok=strtok(tstr," \t\n\r");
-        tok=strtok(NULL," \t\n\r");
+        tok=strtok_r(tstr," \t\n\r", &nextTok);
+        tok=strtok_r(NULL," \t\n\r", &nextTok);
         if(strcmp(tok,"RTime")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setRTime((float)atof(tok));
         }	else if(strcmp(tok,"TIC")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setTIC((float)atof(tok));
         }	else if(strcmp(tok,"IIT")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setIonInjectionTime((float)atof(tok));
         }	else if(strcmp(tok,"BPI")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setBPI((float)atof(tok));
         }	else if(strcmp(tok,"BPM")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setBPM((float)atof(tok));
         }	else if(strcmp(tok,"ConvA")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionA(atof(tok));
         }	else if(strcmp(tok,"ConvB")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionB(atof(tok));
         }	else if(strcmp(tok,"ConvC")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionC(atof(tok));
         }	else if(strcmp(tok,"ConvD")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionD(atof(tok));
         }	else if(strcmp(tok,"ConvE")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionE(atof(tok));
         }	else if(strcmp(tok,"ConvI")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionI(atof(tok));
         } else if(strcmp(tok,"EZ")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.z=atoi(tok);
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.mh=atof(tok);
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.pRTime=(float)atof(tok);
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.pArea=(float)atof(tok);
           s.addEZState(ez);
         }
@@ -998,18 +1011,18 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 
 	      } else {
           retC = fgets(tstr, 256, fileIn);
-	        tok=strtok(tstr," \t\n\r");
-	        tok=strtok(NULL," \t\n\r");
+	        tok=strtok_r(tstr," \t\n\r", &nextTok);
+	        tok=strtok_r(NULL," \t\n\r", &nextTok);
           s.setScanNumber(atoi(tok));
-	        tok=strtok(NULL," \t\n\r");
+	        tok=strtok_r(NULL," \t\n\r", &nextTok);
 	        s.setScanNumber(atoi(tok),true);
-	        tok=strtok(NULL," \t\n\r");
+	        tok=strtok_r(NULL," \t\n\r", &nextTok);
 	        if(tok!=NULL)	s.setMZ(atof(tok));
 					else s.setMZ(0);
-					tok=strtok(NULL," \t\n\r");
+					tok=strtok_r(NULL," \t\n\r", &nextTok);
 					while(tok!=NULL) {
 						s.addMZ(atof(tok));
-						tok=strtok(NULL," \t\n\r");
+						tok=strtok_r(NULL," \t\n\r", &nextTok);
 					}
 	        if(scNum != 0){
 	          if(s.getScanNumber() != scNum) {
@@ -1033,10 +1046,10 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
  	        break;
 	      }
         retC = fgets(tstr, 256, fileIn);
-	      tok=strtok(tstr," \t\n\r");
-	      tok=strtok(NULL," \t\n\r");
+	      tok=strtok_r(tstr," \t\n\r", &nextTok);
+	      tok=strtok_r(NULL," \t\n\r", &nextTok);
 	      z.z=atoi(tok);
-	      tok=strtok(NULL," \t\n\r");
+	      tok=strtok_r(NULL," \t\n\r", &nextTok);
 	      z.mh=atof(tok);
 	      s.addZState(z);
 	      break;
@@ -1060,7 +1073,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	        }
 	      }
 	      //otherwise, read in the line
-	      i=fscanf(fileIn,"%lf %f\n",&p.mz,&p.intensity);
+	      i=fscanf_s(fileIn,"%lf %f\n",&p.mz,&p.intensity);
 	      s.add(p);
 	      break;
 
@@ -1081,6 +1094,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 void MSReader::writeFile(const char* c, bool text, MSObject& m){
 
   FILE* fileOut;
+  errno_t err;
   int i;
 
   //if a filename isn't specified, check to see if the
@@ -1088,8 +1102,8 @@ void MSReader::writeFile(const char* c, bool text, MSObject& m){
   if(c == NULL) {
     return;
   } else {
-    if(text) fileOut=fopen(c,"wt");
-    else fileOut=fopen(c,"wb");
+    if(text) err=fopen_s(&fileOut,c,"wt");
+    else err=fopen_s(&fileOut,c,"wb");
   }
 
   //output file header lines;
@@ -2204,41 +2218,41 @@ void MSReader::writeTextSpec(FILE* fileOut, Spectrum& s) {
     //MGF spectrum header is here
     if(highResMGF){
       for(i=0;i<s.sizeZ();i++){
-        fprintf(fileOut,"BEGIN IONS\n");
-        fprintf(fileOut,"PEPMASS=%.*f\n",6,(s.atZ(i).mh+(s.atZ(i).z-1)*1.007276466)/s.atZ(i).z);
-        fprintf(fileOut,"CHARGE=%d+\n",s.atZ(i).z);
-        fprintf(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
-        fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(i).z,i,s.getRTime());
+        fprintf_s(fileOut,"BEGIN IONS\n");
+        fprintf_s(fileOut,"PEPMASS=%.*f\n",6,(s.atZ(i).mh+(s.atZ(i).z-1)*1.007276466)/s.atZ(i).z);
+        fprintf_s(fileOut,"CHARGE=%d+\n",s.atZ(i).z);
+        fprintf_s(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
+        fprintf_s(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(i).z,i,s.getRTime());
         for(j=0;j<s.size();j++){
-		      sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
+		      sprintf_s(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
 		      k=(int)strlen(t);
 		      if(k>2 && iIntensityPrecision>0){
 		        if(t[0]=='0'){
-		          fprintf(fileOut,"%.*f 0\n",iMZPrecision,s.at(j).mz);
+		          fprintf_s(fileOut,"%.*f 0\n",iMZPrecision,s.at(j).mz);
 			      } else if(t[k-1]=='0'){
-			        fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision-1,s.at(j).intensity);
+			        fprintf_s(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision-1,s.at(j).intensity);
        			} else {
-			        fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
+			        fprintf_s(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
 			      }
 		      } else {
-			      fprintf(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
+			      fprintf_s(fileOut,"%.*f %.*f\n",iMZPrecision,s.at(j).mz,iIntensityPrecision,s.at(j).intensity);
 		      }
 	      }
-        fprintf(fileOut,"END IONS\n");
+        fprintf_s(fileOut,"END IONS\n");
       }
 
     } else {
-      fprintf(fileOut,"BEGIN IONS\n");
-      fprintf(fileOut,"PEPMASS=%.*f\n",6,s.getMZ());
-      fprintf(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
+      fprintf_s(fileOut,"BEGIN IONS\n");
+      fprintf_s(fileOut,"PEPMASS=%.*f\n",6,s.getMZ());
+      fprintf_s(fileOut,"RTINSECONDS=%d\n",(int)(s.getRTime()*60));
       if(s.sizeZ()==1){
-        if(s.atZ(0).z==1) fprintf(fileOut,"CHARGE=1+\n");
-        fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(0).z,0,s.getRTime());
+        if(s.atZ(0).z==1) fprintf_s(fileOut,"CHARGE=1+\n");
+        fprintf_s(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),s.atZ(0).z,0,s.getRTime());
       } else {
-        fprintf(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),0,0,s.getRTime());
+        fprintf_s(fileOut,"TITLE=%s.%d.%d.%d %d %.4f\n","test",s.getScanNumber(),s.getScanNumber(true),0,0,s.getRTime());
       }
       for(j=0;j<s.size();j++){
-		    sprintf(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
+		    sprintf_s(t,"%.*f",iIntensityPrecision,s.at(j).intensity);
 		    k=(int)strlen(t);
 		    if(k>2 && iIntensityPrecision>0){
 		      if(t[0]=='0'){
@@ -2448,7 +2462,7 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
 	//extract extension & capitalize
 	c=(char*)strrchr(fn,'.');
 	if(c==NULL) return dunno;
-	strcpy(ext,c);
+	strcpy_s(ext,sizeof(ext),c);
 	for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
 
   //check extension first - we must trust MS1 & MS2 & ZS & UZS
@@ -2482,11 +2496,11 @@ MSFileFormat MSReader::checkFileFormat(const char *fn){
 	if(strcmp(ext,".GZ")==0 ) {
 		i=c-fn;
     char tmp[1024];
-		strncpy(tmp,fn,i);
+		strncpy_s(tmp,sizeof(tmp),fn,i);
 		tmp[i]='\0';
 		c=strrchr(tmp,'.');
 		if(c==NULL) return dunno;
-		strcpy(ext,c);
+		strcpy_s(ext,sizeof(ext),c);
 		for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
 		if(strcmp(ext,".MZXML")==0 ) return mzXMLgz;
 		if(strcmp(ext,".MZML")==0 ) return mzMLgz;
