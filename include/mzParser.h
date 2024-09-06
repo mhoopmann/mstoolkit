@@ -66,6 +66,7 @@ typedef __int64 f_off;
 #define mzpfseek(h,p,o) _fseeki64(h,p,o)
 #define mzpftell(h) _ftelli64(h)
 #define mzpatoi64(h) _atoi64(h)
+#define strtok_r strtok_s
 #endif
 
 //For MinGW toolset, which lacks the ftello, fseeko, etc functions

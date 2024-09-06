@@ -28,11 +28,11 @@ int mzParser::checkFileType(const char* fname){
   ext[0]='\0';
 
   strcpy(file,fname);
-  tok=strtok_s(file,".\n",&nextTok);
+  tok=strtok_r(file,".\n",&nextTok);
   while(tok!=NULL){
     strcpy(preExt,ext);
     strcpy(ext,tok);
-    tok=strtok_s(NULL,".\n",&nextTok);
+    tok=strtok_r(NULL,".\n",&nextTok);
   }
 
   for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
