@@ -537,14 +537,12 @@ MSPrecursorInfo Spectrum::getPrecursor(int index){
   return precursor->at(index);
 }
 
-bool Spectrum::getRawFilter(char* c, int sz, bool bLock){
+bool Spectrum::getRawFilter(char* c, int sz){
   if(sz<(int)strlen(rawFilter)) {
     cout << "Buffer too small to retrieve RAW filter. " << sizeof(c) << " " << strlen(rawFilter) << endl;
     return false;
   } else {
 		strcpy(c,rawFilter);
-		char* chp=strstr(c,"lock");
-		if(!bLock && chp!=NULL) strcpy(chp,chp+5);
     return true;
   }
 }

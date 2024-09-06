@@ -211,15 +211,9 @@ double BasicSpectrum::getCompensationVoltage(){ return compensationVoltage;}
 double BasicSpectrum::getInverseReducedIonMobility() { return inverseReducedIonMobility; }
 specIonMobDP& BasicSpectrum::getIonMobDP(const size_t& index) { return vDataIonMob->at(index); }
 bool BasicSpectrum::getIonMobilityScan() { return ionMobilityScan;}
-int BasicSpectrum::getFilterLine(char* str) {
-  strcpy(str,filterLine);
-  return (int)strlen(str);
-}
+void BasicSpectrum::getFilterLine(string& str) { str=filterLine;}
 double BasicSpectrum::getHighMZ(){ return highMZ;}
-int BasicSpectrum::getIDString(char* str) { 
-  strcpy(str,idString);
-  return (int)strlen(str);
-}
+void BasicSpectrum::getIDString(string& str) { str=idString; }
 double BasicSpectrum::getIonInjectionTime(){return ionInjectionTime;}
 double BasicSpectrum::getIonMobilityDriftTime(){return ionMobilityDriftTime;}
 double BasicSpectrum::getLowMZ(){ return lowMZ;}

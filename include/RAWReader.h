@@ -59,10 +59,10 @@ public:
   ~RAWReader();
 
 	//Public Functions
-  void getInstrument(char* str);
+  //void getInstrument(char* str);
   void getInstrument(std::string& str);
 	long getLastScanNumber();
-  void getManufacturer(char* str);
+  //void getManufacturer(char* str);
   void getManufacturer(std::string& str);
 	long getScanCount();
 	bool getStatus();

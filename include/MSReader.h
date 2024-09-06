@@ -79,10 +79,10 @@ class MSReader {
   std::string          getCurrentFile();
   MSSpectrumType  getFileType();
   MSHeader&       getHeader();
-  void            getInstrument(char* str);
+  //void            getInstrument(char* str);
   void            getInstrument(std::string& str);
   int             getLastScan();
-  void            getManufacturer(char* str);
+  //void            getManufacturer(char* str);
   void            getManufacturer(std::string& str);
   int             getPercent();
   

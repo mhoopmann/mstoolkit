@@ -16,6 +16,7 @@ int mzParser::checkFileType(const char* fname){
   char file[4096];
   char ext[4096];
   char *tok;
+  char *nextTok;
   char preExt[4096];
   char *tokBuf;
   unsigned int i;
@@ -25,14 +26,14 @@ int mzParser::checkFileType(const char* fname){
     return 0;
   }
 
-  strcpy(ext,"");
+  ext[0]='\0';
 
   strcpy(file,fname);
-  tok=strtok_r(file,".\n",&tokBuf);
+  tok=strtok_r(file,".\n",&nextTok);
   while(tok!=NULL){
     strcpy(preExt,ext);
     strcpy(ext,tok);
-    tok=strtok_r(NULL,".\n",&tokBuf);
+    tok=strtok_r(NULL,".\n",&nextTok);
   }
 
   for(i=0;i<strlen(ext);i++) ext[i]=toupper(ext[i]);
@@ -175,7 +176,7 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
     strcpy(r->ionisation,"UNKNOWN");
     strcpy(r->manufacturer,"UNKNOWN");
     strcpy(r->model,"UNKNOWN");
-	strcpy(r->serial,"UNKNOWN");							
+	  strcpy(r->serial,"UNKNOWN");							
   }
 
   switch(pFI->fileType){
@@ -183,23 +184,23 @@ InstrumentStruct* mzParser::getInstrumentStruct(RAMPFILE *pFI){
     case 3:
     case 6:
       if(pFI->mzML->getInstrument()->size()>0){
-        if(pFI->mzML->getInstrument()->at(0).analyzer.size()>1) strcpy(r->analyzer,&pFI->mzML->getInstrument()->at(0).analyzer[0]);
-        if(pFI->mzML->getInstrument()->at(0).detector.size()>1) strcpy(r->detector,&pFI->mzML->getInstrument()->at(0).detector[0]);
-        if(pFI->mzML->getInstrument()->at(0).ionization.size()>1) strcpy(r->ionisation,&pFI->mzML->getInstrument()->at(0).ionization[0]);
-        if(pFI->mzML->getInstrument()->at(0).manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzML->getInstrument()->at(0).manufacturer[0]);
-        if(pFI->mzML->getInstrument()->at(0).model.size()>1) strcpy(r->model,&pFI->mzML->getInstrument()->at(0).model[0]);
-		    if(pFI->mzML->getInstrument()->at(0).serial.size()>1) strcpy(r->serial,&pFI->mzML->getInstrument()->at(0).serial[0]);																													 
+        if(pFI->mzML->getInstrument()->at(0).analyzer.size()>1) strcpy(r->analyzer, &pFI->mzML->getInstrument()->at(0).analyzer[0]);
+        if(pFI->mzML->getInstrument()->at(0).detector.size()>1) strcpy(r->detector, &pFI->mzML->getInstrument()->at(0).detector[0]);
+        if(pFI->mzML->getInstrument()->at(0).ionization.size()>1) strcpy(r->ionisation, &pFI->mzML->getInstrument()->at(0).ionization[0]);
+        if(pFI->mzML->getInstrument()->at(0).manufacturer.size()>1) strcpy(r->manufacturer, &pFI->mzML->getInstrument()->at(0).manufacturer[0]);
+        if(pFI->mzML->getInstrument()->at(0).model.size()>1) strcpy(r->model, &pFI->mzML->getInstrument()->at(0).model[0]);
+		    if(pFI->mzML->getInstrument()->at(0).serial.size()>1) strcpy(r->serial, &pFI->mzML->getInstrument()->at(0).serial[0]);
       }
       break;
 
     case 2:
     case 4:
-      if(pFI->mzXML->getInstrument().analyzer.size()>1) strcpy(r->analyzer,&pFI->mzXML->getInstrument().analyzer[0]);
-      if(pFI->mzXML->getInstrument().detector.size()>1) strcpy(r->detector,&pFI->mzXML->getInstrument().detector[0]);
-      if(pFI->mzXML->getInstrument().ionization.size()>1) strcpy(r->ionisation,&pFI->mzXML->getInstrument().ionization[0]);
-      if(pFI->mzXML->getInstrument().manufacturer.size()>1) strcpy(r->manufacturer,&pFI->mzXML->getInstrument().manufacturer[0]);
-      if(pFI->mzXML->getInstrument().model.size()>1) strcpy(r->model,&pFI->mzXML->getInstrument().model[0]);
-      if(pFI->mzXML->getInstrument().serial.size()>1) strcpy(r->serial,&pFI->mzXML->getInstrument().serial[0]);																										   
+      if(pFI->mzXML->getInstrument().analyzer.size()>1) strcpy(r->analyzer, &pFI->mzXML->getInstrument().analyzer[0]);
+      if(pFI->mzXML->getInstrument().detector.size()>1) strcpy(r->detector, &pFI->mzXML->getInstrument().detector[0]);
+      if(pFI->mzXML->getInstrument().ionization.size()>1) strcpy(r->ionisation, &pFI->mzXML->getInstrument().ionization[0]);
+      if(pFI->mzXML->getInstrument().manufacturer.size()>1) strcpy(r->manufacturer, &pFI->mzXML->getInstrument().manufacturer[0]);
+      if(pFI->mzXML->getInstrument().model.size()>1) strcpy(r->model, &pFI->mzXML->getInstrument().model[0]);
+      if(pFI->mzXML->getInstrument().serial.size()>1) strcpy(r->serial, &pFI->mzXML->getInstrument().serial[0]);
       break;
 
     case 5:
@@ -341,7 +342,7 @@ char* mzParser::rampConstructInputPath(char *buf, int inbuflen, const char *dir_
         case 1:  strcat(buf,".mzXML"); break;
         case 2:  strcat(buf,".mzML.gz"); break;
         case 3:  strcat(buf,".mzXML.gz");  break;
-        case 4: strcat(buf,".mz5"); break;
+        case 4:  strcat(buf,".mz5"); break;
         default: break;
       }
       
@@ -659,8 +660,11 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
     }
   }
   
-  pFI->bs->getFilterLine(scanHeader->filterLine);
-  pFI->bs->getIDString(scanHeader->idString);
+  string ts;
+  pFI->bs->getFilterLine(ts);
+  strcpy(scanHeader->filterLine,ts.c_str());
+  pFI->bs->getIDString(ts);
+  strcpy(scanHeader->idString,ts.c_str());
 
   switch(pFI->bs->getActivation()){
     case 1: strcpy(scanHeader->activationMethod,"CID"); break;

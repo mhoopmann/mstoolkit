@@ -66,6 +66,7 @@ typedef __int64 f_off;
 #define mzpfseek(h,p,o) _fseeki64(h,p,o)
 #define mzpftell(h) _ftelli64(h)
 #define mzpatoi64(h) _atoi64(h)
+#define strtok_r strtok_s
 #endif
 
 //For MinGW toolset, which lacks the ftello, fseeko, etc functions
@@ -304,9 +305,9 @@ public:
   double        getCollisionEnergy();
   double        getCompensationVoltage();
   double        getInverseReducedIonMobility();
-  int           getFilterLine(char* str);
+  void          getFilterLine(std::string& str);
   double        getHighMZ();
-  int           getIDString(char* str);
+  void          getIDString(std::string& str);
   double        getIonInjectionTime();
   double        getIonMobilityDriftTime();
   specIonMobDP& getIonMobDP(const size_t& index);
@@ -385,7 +386,7 @@ public:
   //Accessors
   int                         getCharge();
   std::vector<TimeIntensityPair>&  getData();
-  int                         getIDString(char* str);
+  void                        getIDString(std::string& str);
   double                      getPreMZ();
   double                      getPreOffsetLower();
   double                      getPreOffsetUpper();

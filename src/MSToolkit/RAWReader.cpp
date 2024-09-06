@@ -159,7 +159,8 @@ MSSpectrumType RAWReader::evaluateFilter(long scan, char* chFilter, vector<doubl
 	strcpy(cStr,chFilter);
 	MSSpectrumType mst=Unspecified;
 	char* tok;
-	tok=strtok(cStr," \n");
+  char* nextTok;
+	tok=strtok_r(cStr," \n",&nextTok);
 	while(tok!=NULL){
 
 		if(strcmp(tok,"c")==0){
@@ -221,7 +222,7 @@ MSSpectrumType RAWReader::evaluateFilter(long scan, char* chFilter, vector<doubl
 			cout << "Unknown token: " << tok << endl;
 		}
 
-		tok=strtok(NULL," \n");
+		tok=strtok_r(NULL," \n",&nextTok);
 	}
 
 	return mst;
@@ -297,9 +298,10 @@ string RAWReader::evaluateTrailerString(const char* str) {
   return ret;
 }
 
-void RAWReader::getInstrument(char* str){
-  strcpy(str,rawInstrument);
-}
+//REMOVED 2024.09.06
+//void RAWReader::getInstrument(char* str){
+//  strcpy(str,rawInstrument);
+//}
 
 void RAWReader::getInstrument(string& str) {
   str=rawInstrument;
@@ -309,9 +311,10 @@ long RAWReader::getLastScanNumber(){
 	return rawCurSpec;
 }
 
-void RAWReader::getManufacturer(char* str){
-  strcpy(str,rawManufacturer);
-}
+//REMOVED 2024.09.06
+//void RAWReader::getManufacturer(char* str){
+//  strcpy(str,rawManufacturer);
+//}
 
 void RAWReader::getManufacturer(string& str) {
   str=rawManufacturer;

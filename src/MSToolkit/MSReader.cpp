@@ -31,7 +31,7 @@ MSReader::MSReader(){
   mgfOnePlus=false;
   iFType=0;
   iVersion=0;
-  for(int i=0;i<16;i++)	strcpy(header.header[i],"\0");
+  for(int i=0;i<16;i++)	header.header[i][0]='\0';
   headerIndex=0;
   sCurrentFile.clear();
   sInstrument="unknown";
@@ -259,9 +259,10 @@ MSHeader& MSReader::getHeader(){
   return header;
 }
 
-void MSReader::getInstrument(char* str){
-  strcpy(str,&sInstrument[0]);
-}
+//REMOVED 2024.09.06
+//void MSReader::getInstrument(char* str){
+//  strcpy(str,&sInstrument[0]);
+//}
 
 void MSReader::getInstrument(string& str) {
   str=sInstrument;
@@ -293,9 +294,10 @@ int MSReader::getLastScan(){
   return -1;
 }
 
-void MSReader::getManufacturer(char* str){
-  strcpy(str,&sManufacturer[0]);
-}
+//REMOVED 2024.09.06
+//void MSReader::getManufacturer(char* str){
+//  strcpy(str,&sManufacturer[0]);
+//}
 
 void MSReader::getManufacturer(string& str) {
   str=sManufacturer;
@@ -352,7 +354,7 @@ int MSReader::openFile(const char *c,bool text){
 	else fileIn=fopen(c,"rb");
 
   if(fileIn==NULL) {
-		for(i=0;i<16;i++) strcpy(header.header[i],"\0");
+		for(i=0;i<16;i++) header.header[i][0]='\0';
     headerIndex=0;
     fileType=Unspecified;
     return 1;
@@ -369,7 +371,7 @@ int MSReader::openFile(const char *c,bool text){
 		fseek(fileIn,0,0);
 
 		if(text){
-			for(i=0;i<16;i++) strcpy(header.header[i],"\0");
+			for(i=0;i<16;i++) header.header[i][0]='\0';
 			headerIndex=0;
 		} else {
       ret=fread(&iFType,4,1,fileIn);
@@ -392,6 +394,7 @@ bool MSReader::prevSpectrum(Spectrum& s){
 bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
   char* tok;
+  char* nextTok;
   char str[1024];
   char num[6];
   unsigned int i;
@@ -427,8 +430,8 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
       if(!strncmp(strMGF,"CHARGE",7)) {
         mgfGlobalCharge.clear();
-        strcpy(str, strMGF+7);
-        tok=strtok(str," \t\n\r");
+        strcpy(str,strMGF+7);
+        tok=strtok_r(str," \t\n\r",&nextTok);
         while(tok!=NULL){
           for(i=0;i<strlen(tok);i++){
             if(isdigit(tok[i])) {
@@ -445,7 +448,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
             }
             break;
           }
-          tok=strtok(NULL," \t\n\r");
+          tok=strtok_r(NULL," \t\n\r",&nextTok);
         }
       } else if (!strncmp(strMGF, "MASS", 5)){
 
@@ -523,8 +526,8 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
   if(s.getScanNumber()==0){
     //attempt to obtain scan number from title using ISB/ProteoWizard format
     if (s.getNativeID(str, 1024)){
-      tok = strtok(str, ".");
-      tok = strtok(NULL, ".");
+      tok = strtok_r(str, ".",&nextTok);
+      tok = strtok_r(NULL, ".", &nextTok);
       if (tok!=NULL) {
         s.setScanNumber(atoi(tok));
         s.setScanNumber(atoi(tok),true);
@@ -540,20 +543,20 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
   //Read peak data
   while(!isalpha(strMGF[0])){
 
-    tok=strtok(strMGF," \t\n\r");
+    tok=strtok_r(strMGF," \t\n\r", &nextTok);
     if(tok==NULL){
       cout << "Error in MGF file: bad m/z or intensity value." << endl;
       exit(-13);
     }
     mz=atof(tok);
-    tok=strtok(NULL," \t\n\r");
+    tok=strtok_r(NULL," \t\n\r", &nextTok);
     if(tok==NULL){
       cout << "Error in MGF file: bad m/z or intensity value." << endl;
       exit(-13);
     }
     intensity=(float)atof(tok);
     if(!mgfOnePlus){
-      tok=strtok(NULL," \t\n\r");
+      tok=strtok_r(NULL," \t\n\r", &nextTok);
       if(tok!=NULL) {
         ch=atoi(tok);
         mz *= ch;                  // if fragment charge specified, convert m/z to 1+
@@ -579,6 +582,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 bool MSReader::readMGFFile2(const char* c, Spectrum& s){
 
   char* tok;
+  char* nextTok;
   char str[1024];
   char num[6];
   unsigned int i;
@@ -614,10 +618,10 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     if(strlen(strMGF)<2) continue; //skip blank lines
     if (strMGF[0] == '#' || strMGF[0] == ';' || strMGF[0] == '!' || strMGF[0] == '/') continue; //skip comment lines
     tokens.clear();
-    tok=strtok(strMGF,"=\n\r");
+    tok=strtok_r(strMGF,"=\n\r", &nextTok);
     while(tok!=NULL){
       tokens.push_back(string(tok));
-      tok=strtok(NULL,"=\n\r");
+      tok=strtok_r(NULL,"=\n\r", &nextTok);
     }
     if(tokens[0].compare("BEGIN IONS")==0) break;
     else if(tokens[0].compare("MASS")==0){
@@ -626,7 +630,7 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     } else if (tokens[0].compare("CHARGE") == 0){
       mgfGlobalCharge.clear();
       strcpy(str,tokens[1].c_str());
-      tok = strtok(str, " \t\n\r");
+      tok = strtok_r(str, " \t\n\r", &nextTok);
       while (tok != NULL){
         for (i = 0; i<strlen(tok); i++){
           if (isdigit(tok[i])) {
@@ -643,7 +647,7 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
           }
           break;
         }
-        tok = strtok(NULL, " \t\n\r");
+        tok = strtok_r(NULL, " \t\n\r", &nextTok);
       }
     } else if(tokens[0][0]=='_') { //user and reserved parameters
       if(tokens[0].find("_DISTILLER_RAWFILE")==0){
@@ -663,10 +667,10 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     if (strlen(strMGF)<2) continue; //skip blank lines
     if (strMGF[0] == '#' || strMGF[0] == ';' || strMGF[0] == '!' || strMGF[0] == '/') continue; //skip comment lines
     tokens.clear();
-    tok = strtok(strMGF, "=\n\r");
+    tok = strtok_r(strMGF, "=\n\r", &nextTok);
     while (tok != NULL){
       tokens.push_back(string(tok));
-      tok = strtok(NULL, "=\n\r");
+      tok = strtok_r(NULL, "=\n\r", &nextTok);
     }
     if (tokens[0].find("END IONS") != string::npos) {
       //convert any header information to MST spectrum information
@@ -684,8 +688,8 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       if (s.getScanNumber() == 0){
         //attempt to obtain scan number from title using ISB/ProteoWizard format
         if (s.getNativeID(str, 1024)){
-          tok = strtok(str, ".");
-          tok = strtok(NULL, ".");
+          tok = strtok_r(str, ".", &nextTok);
+          tok = strtok_r(NULL, ".", &nextTok);
           if (tok != NULL) {
             s.setScanNumber(atoi(tok));
             s.setScanNumber(atoi(tok), true);
@@ -718,12 +722,12 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
       s.setNativeID(tokens[1].c_str());
     } else if(isdigit(tokens[0][0])){
       strcpy(str, tokens[0].c_str());
-      tok = strtok(str, " \t\n\r");
+      tok = strtok_r(str, " \t\n\r", &nextTok);
       mz = atof(tok);
-      tok = strtok(NULL, " \t\n\r");
+      tok = strtok_r(NULL, " \t\n\r", &nextTok);
       intensity = (float)atof(tok);
       if (!mgfOnePlus){
-        tok = strtok(NULL, " \t\n\r");
+        tok = strtok_r(NULL, " \t\n\r", &nextTok);
         if (tok != NULL) {
           ch = atoi(tok);
           mz *= ch;                  // if fragment charge specified, convert m/z to 1+
@@ -753,6 +757,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
   char tstr[256];
   char ch;
   char *tok;
+  char *nextTok;
   char *retC;
 
   //variables for compressed files
@@ -925,10 +930,13 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 	      //Header lines are recorded as strings up to 16 lines at 256 characters each
         retC = fgets(tstr, 256, fileIn);
 	      if(!bDoneHeader) {
-	        tok=strtok(tstr," \t\n\r");
-	        tok=strtok(NULL,"\n\r");
-	        strcat(tok,"\n");
-	        if(headerIndex<16) strcpy(header.header[headerIndex++],tok);
+	        tok=strtok_r(tstr," \t\n\r", &nextTok);
+	        tok=strtok_r(NULL,"\n\r", &nextTok);
+	        if(headerIndex<16) {
+            strcpy(header.header[headerIndex],tok);
+            strcat(header.header[headerIndex],"\n");
+            headerIndex++;
+          }
 	        else cout << "Header too big!!" << endl;
 	      }
 	      break;
@@ -936,49 +944,49 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
       case 'I':
 	      //I lines are recorded only if they contain retention times
         retC = fgets(tstr, 256, fileIn);
-        tok=strtok(tstr," \t\n\r");
-        tok=strtok(NULL," \t\n\r");
+        tok=strtok_r(tstr," \t\n\r", &nextTok);
+        tok=strtok_r(NULL," \t\n\r", &nextTok);
         if(strcmp(tok,"RTime")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setRTime((float)atof(tok));
         }	else if(strcmp(tok,"TIC")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setTIC((float)atof(tok));
         }	else if(strcmp(tok,"IIT")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setIonInjectionTime((float)atof(tok));
         }	else if(strcmp(tok,"BPI")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setBPI((float)atof(tok));
         }	else if(strcmp(tok,"BPM")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setBPM((float)atof(tok));
         }	else if(strcmp(tok,"ConvA")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionA(atof(tok));
         }	else if(strcmp(tok,"ConvB")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionB(atof(tok));
         }	else if(strcmp(tok,"ConvC")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionC(atof(tok));
         }	else if(strcmp(tok,"ConvD")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionD(atof(tok));
         }	else if(strcmp(tok,"ConvE")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionE(atof(tok));
         }	else if(strcmp(tok,"ConvI")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           s.setConversionI(atof(tok));
         } else if(strcmp(tok,"EZ")==0) {
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.z=atoi(tok);
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.mh=atof(tok);
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.pRTime=(float)atof(tok);
-          tok=strtok(NULL," \t\n\r,");
+          tok=strtok_r(NULL," \t\n\r,", &nextTok);
           ez.pArea=(float)atof(tok);
           s.addEZState(ez);
         }
@@ -998,18 +1006,18 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
 
 	      } else {
           retC = fgets(tstr, 256, fileIn);
-	        tok=strtok(tstr," \t\n\r");
-	        tok=strtok(NULL," \t\n\r");
+	        tok=strtok_r(tstr," \t\n\r", &nextTok);
+	        tok=strtok_r(NULL," \t\n\r", &nextTok);
           s.setScanNumber(atoi(tok));
-	        tok=strtok(NULL," \t\n\r");
+	        tok=strtok_r(NULL," \t\n\r", &nextTok);
 	        s.setScanNumber(atoi(tok),true);
-	        tok=strtok(NULL," \t\n\r");
+	        tok=strtok_r(NULL," \t\n\r", &nextTok);
 	        if(tok!=NULL)	s.setMZ(atof(tok));
 					else s.setMZ(0);
-					tok=strtok(NULL," \t\n\r");
+					tok=strtok_r(NULL," \t\n\r", &nextTok);
 					while(tok!=NULL) {
 						s.addMZ(atof(tok));
-						tok=strtok(NULL," \t\n\r");
+						tok=strtok_r(NULL," \t\n\r", &nextTok);
 					}
 	        if(scNum != 0){
 	          if(s.getScanNumber() != scNum) {
@@ -1033,10 +1041,10 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
  	        break;
 	      }
         retC = fgets(tstr, 256, fileIn);
-	      tok=strtok(tstr," \t\n\r");
-	      tok=strtok(NULL," \t\n\r");
+	      tok=strtok_r(tstr," \t\n\r", &nextTok);
+	      tok=strtok_r(NULL," \t\n\r", &nextTok);
 	      z.z=atoi(tok);
-	      tok=strtok(NULL," \t\n\r");
+	      tok=strtok_r(NULL," \t\n\r", &nextTok);
 	      z.mh=atof(tok);
 	      s.addZState(z);
 	      break;
@@ -1088,8 +1096,8 @@ void MSReader::writeFile(const char* c, bool text, MSObject& m){
   if(c == NULL) {
     return;
   } else {
-    if(text) fileOut=fopen(c,"wt");
-    else fileOut=fopen(c,"wb");
+    if(text) fileOut =fopen(c,"wt");
+    else fileOut =fopen(c,"wb");
   }
 
   //output file header lines;
