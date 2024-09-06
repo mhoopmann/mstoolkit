@@ -668,7 +668,7 @@ bool mzpSAXMzxmlHandler::generateIndexOffset() {
         do{
           // "<scan" and "num=" can be on different lines
           if ((pStr = strstr(chunk, " num=\"")) != NULL){
-            sscanf_s(pStr+6, "%ld", &scanNum);
+            sscanf(pStr+6, "%ld", &scanNum);
             bSuccessfullyReadScan = true;
             curIndex.scanNum = scanNum;
             curIndex.idRef = "";

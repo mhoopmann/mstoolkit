@@ -1249,7 +1249,7 @@ bool mzpSAXMzmlHandler::generateIndexOffset() {
         do{
           // now need to look for "index="
           if ((pStr = strstr(chunk, "index=\"")) != NULL){
-            sscanf_s(pStr+7, "%ld", &scanNum);
+            sscanf(pStr+7, "%ld", &scanNum);
             bSuccessfullyReadScan = true;
           }
 
