@@ -521,7 +521,8 @@ void mzpSAXMzmlHandler::processCVParam(const char* name, const char* accession, 
 
     //this looks like a mess. Fix it properly.
   } else if ((!strcmp(name, "non-standard data array") && !strcmp(value, "Ion Mobility") && !strcmp(accession, "MS:1000786")) ||
-    (!strcmp(name, "mean inverse reduced ion mobility array") && !strcmp(accession, "MS:1003006"))) {
+    (!strcmp(name, "mean inverse reduced ion mobility array") && !strcmp(accession, "MS:1003006")) ||
+    (!strcmp(name, "raw ion mobility array") && !strcmp(accession, "MS:1003007"))) {
     m_bInmzArrayBinary = false;
     m_bInintenArrayBinary = false;
     m_bInionMobilityArrayBinary = true;
