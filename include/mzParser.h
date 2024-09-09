@@ -1342,6 +1342,7 @@ typedef struct RAMPFILE{
 
   int peakCapacity;
   RAMPREAL* pPeaks;
+  ramp_fileoffset_t lLastScanIndex;
   RAMPFILE(){
     bs=NULL;
     mzML=NULL;
@@ -1354,6 +1355,7 @@ typedef struct RAMPFILE{
     #endif
     fileType=0;
     bIsMzData=0;
+    lLastScanIndex=0;
   }
   ~RAMPFILE(){
     if(bs!=NULL) delete bs;
@@ -1453,8 +1455,6 @@ struct ScanCacheStruct {
   struct ScanHeaderStruct *headers;
   RAMPREAL **peaks;
 };
-
-static ramp_fileoffset_t lLastScanIndex=0;
 
 int                 checkFileType(const char* fname);
 ramp_fileoffset_t   getIndexOffset(RAMPFILE *pFI);

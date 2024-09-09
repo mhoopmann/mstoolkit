@@ -18,6 +18,7 @@ int mzParser::checkFileType(const char* fname){
   char *tok;
   char *nextTok;
   char preExt[4096];
+  char *tokBuf;
   unsigned int i;
 
   if (strlen(fname) < 4) {
@@ -526,7 +527,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
   scanHeader->seqNum=-1;
 
   if(lScanIndex<0) return;
-  if(lScanIndex!=lLastScanIndex){
+  if(lScanIndex!=pFI->lLastScanIndex){
   
     switch(pFI->fileType){
       case 1:
@@ -534,7 +535,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
       case 6:
         if (!pFI->mzML->readHeaderFromOffset((f_off)lScanIndex,iIndex)){
           v = NULL;
-          lLastScanIndex=0;
+          pFI->lLastScanIndex=0;
           return;
         }
         break;
@@ -542,7 +543,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
       case 4:
         if (!pFI->mzXML->readHeaderFromOffset((f_off)lScanIndex)){
           v = NULL;
-          lLastScanIndex = 0;
+          pFI->lLastScanIndex = 0;
           return;
         }
         break;
@@ -553,7 +554,7 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
           if(v2->at(i).offset==(f_off)lScanIndex) {
             if(!pFI->mz5->readHeader((int)v2->at(i).scanNum)){
               v2=NULL;
-              lLastScanIndex = 0;
+              pFI->lLastScanIndex = 0;
               return;
             }
             break;
@@ -567,14 +568,14 @@ void mzParser::readHeader(RAMPFILE *pFI, ramp_fileoffset_t lScanIndex, struct Sc
 #ifdef MZP_HDF
         v2=NULL;
 #endif
-        lLastScanIndex = 0;
+        pFI->lLastScanIndex = 0;
         return;
     }
     v=NULL;
 #ifdef MZP_HDF
     v2=NULL;
 #endif
-    lLastScanIndex = lScanIndex;
+    pFI->lLastScanIndex = lScanIndex;
   }
 
   scanHeader->acquisitionNum=pFI->bs->getScanNum();
@@ -872,19 +873,19 @@ RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int i
   if(lScanIndex<0) return pPeaks;
 
   //see if we already have this spectrum in memory
-  if(lScanIndex!=lLastScanIndex){
+  if(lScanIndex!=pFI->lLastScanIndex){
 
     switch(pFI->fileType){
       case 1:
       case 3:
       case 6:
         pFI->mzML->readSpectrumFromOffset((f_off)lScanIndex,iIndex);
-        lLastScanIndex=lScanIndex;
+        pFI->lLastScanIndex=lScanIndex;
         break;
       case 2:
       case 4:
         pFI->mzXML->readSpectrumFromOffset((f_off)lScanIndex);
-        lLastScanIndex = lScanIndex;
+        pFI->lLastScanIndex = lScanIndex;
         break;
 #ifdef MZP_HDF
       case 5:
@@ -892,7 +893,7 @@ RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int i
         for(i=0;i<v2->size();i++) {
           if(v2->at(i).offset==(f_off)lScanIndex) {
             pFI->mz5->readSpectrum((int)v2->at(i).scanNum);
-            lLastScanIndex = lScanIndex;
+            pFI->lLastScanIndex = lScanIndex;
             break;
           }
         }
@@ -900,7 +901,7 @@ RAMPREAL* mzParser::readPeaks(RAMPFILE* pFI, ramp_fileoffset_t lScanIndex, int i
 #endif
       default:
         pFI->bs->clear();
-        lLastScanIndex=0;
+        pFI->lLastScanIndex=0;
         break;
     }
     v=NULL;
