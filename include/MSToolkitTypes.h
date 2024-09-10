@@ -20,7 +20,14 @@ limitations under the License.
 #include <string>
 
 #ifdef _MSC_VER
-#define strtok_r strtok_s
+#  define strtok_r strtok_s
+#  ifdef MSTOOLKIT_DLL
+#    ifdef MSTOOLKIT_EXPORTS
+#      define MSTOOLKIT_API extern __declspec(dllexport)
+#    else
+#      define MSTOOLKIT_API extern __declspec(dllimport)
+#    endif
+#  endif
 #endif
 
 namespace MSToolkit {

@@ -1,0 +1,21 @@
+LIBRARY
+
+EXPORTS
+    ??0MSReader@MSToolkit@@QEAA@XZ      @1
+    ??1MSReader@MSToolkit@@QEAA@XZ      @2
+    ?readFile@MSReader@MSToolkit@@QEAA_NPEBDAEAVSpectrum@2@H@Z      @3
+    ?addFilter@MSReader@MSToolkit@@QEAAXW4MSSpectrumType@2@@Z       @4
+    
+    ??1Spectrum@MSToolkit@@QEAA@XZ                      @5
+    ??0Spectrum@MSToolkit@@QEAA@XZ                      @6
+    ?sizeZ@Spectrum@MSToolkit@@QEAAHXZ                  @7
+    ?sizeMZ@Spectrum@MSToolkit@@QEAAHXZ                 @8
+    ?size@Spectrum@MSToolkit@@QEAAHXZ                   @9
+    ?getScanNumber@Spectrum@MSToolkit@@QEAAH_N@Z        @10
+    ?getRTime@Spectrum@MSToolkit@@QEAAMXZ               @11
+    ?getNativeID@Spectrum@MSToolkit@@QEAA_NPEADH@Z      @12
+    ?getMZ@Spectrum@MSToolkit@@QEAANH@Z                 @13
+    ?atZ@Spectrum@MSToolkit@@QEAAAEAUZState@2@AEBH@Z    @14
+    ?at@Spectrum@MSToolkit@@QEAAAEAUPeak_T@2@AEBH@Z     @15
+    ?getCentroidStatus@Spectrum@MSToolkit@@QEAAHXZ      @16
+

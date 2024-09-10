@@ -24,7 +24,7 @@ using namespace MSToolkit;
 
 int main(int argc, char *argv[]){
 
-	//Here are all the variable we are going to need
+	//Here are all the variables we are going to need
 	MSReader r;
 	Spectrum s;
   int j;
