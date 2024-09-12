@@ -16,7 +16,7 @@ jobs:
 
     - name: build mstoolkit
       run: |
-        msbuild VisualStudio/MSToolkit.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v142 -tv:Current /p:_NO_THERMORAW
+        msbuild VisualStudio/MSToolkit.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v142 -tv:Current -p:PreDef=/D_NO_THERMORAW
 
     - name: test
       shell: cmd
