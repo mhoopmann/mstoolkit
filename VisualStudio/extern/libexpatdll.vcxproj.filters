@@ -1,21 +1,21 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\expat-2.2.9\lib\xmlparse.c">
+    <ClCompile Include="..\..\extern\expat-2.2.9\lib\xmlparse.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\expat-2.2.9\lib\xmlrole.c">
+    <ClCompile Include="..\..\extern\expat-2.2.9\lib\xmlrole.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\expat-2.2.9\lib\xmltok.c">
+    <ClCompile Include="..\..\extern\expat-2.2.9\lib\xmltok.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\expat-2.2.9\CMakeLists.txt" />
+    <CustomBuild Include="..\..\extern\expat-2.2.9\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\expat-2.2.9\lib\libexpat.def">
+    <None Include="..\..\extern\expat-2.2.9\lib\libexpat.def">
       <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
