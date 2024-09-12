@@ -1,0 +1,23 @@
+name: windows-2019 build
+
+on:
+  push:
+    branches: [ Restructuring ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2019
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: msbuild
+      uses: microsoft/setup-msbuild@v2
+
+    - name: build mstoolkit
+      run: |
+        msbuild VisualStudio/MSToolkit.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v142 -tv:Current
+
+    - name: test
+      shell: cmd
+      run: D:\a\MSToolkit\VisualStudio\x64\Release\MSSingleScan.exe
