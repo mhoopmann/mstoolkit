@@ -133,6 +133,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>..\include;..\include\extern;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <AdditionalOptions>/D_NO_THERMORAW</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
