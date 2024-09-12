@@ -20,4 +20,4 @@ jobs:
 
     - name: test
       shell: cmd
-      run: D:\a\MSToolkit\VisualStudio\x64\Release\MSSingleScan.exe
+      run: D:\a\mstoolkit\mstoolkit\VisualStudio\x64\Release\MSSingleScan.exe
