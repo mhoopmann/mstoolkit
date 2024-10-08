@@ -1310,7 +1310,8 @@ bool MSReader::readMZPFile(const char* c, Spectrum& s, int scNum){
 		if(rampFileOpen) closeFile();
 		rampFileIn = mzParser::rampOpenFile(c);
 		if (rampFileIn == NULL) {
-      cerr << "ERROR: Failure reading input file " << c << endl;
+      //silence errors. TODO: put in error code for user to lookup
+      //cerr << "ERROR: Failure reading input file " << c << endl;
       return false;
 		}
 		rampFileOpen=true;

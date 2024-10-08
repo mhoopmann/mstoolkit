@@ -19,6 +19,10 @@ limitations under the License.
 #include <stddef.h>
 #include <string>
 
+//Version information stored here, can be recalled at any point
+#define MST_VER "2.0.0"
+#define MST_DATE "2024 SEPTEMBER 13"
+
 #ifdef _MSC_VER
 #  define strtok_r strtok_s
 #  ifdef MSTOOLKIT_DLL
