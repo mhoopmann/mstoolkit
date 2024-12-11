@@ -1,0 +1,23 @@
+name: linux build
+
+on:
+  push:
+    branches: [ Restructuring ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: build mstoolkit
+      run: make all
+
+    - name: test
+      run: ./MSSingleScan
+
+    - name: test shared lib version
+      run: |
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/home/runner/work/mstoolkit/mstoolkit/ && \
+        ./MSSingleScanSL

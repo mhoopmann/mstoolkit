@@ -18,7 +18,6 @@ int mzParser::checkFileType(const char* fname){
   char *tok;
   char *nextTok;
   char preExt[4096];
-  char *tokBuf;
   unsigned int i;
 
   if (strlen(fname) < 4) {

@@ -11,20 +11,28 @@
 
 C = gcc
 CC = g++
-ifdef HDF5
-CFLAGS = -O3 -std=c++11 -I. -I./include -I$(HDF5_DIR)/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
-SFLAGS = -O3 -std=c++11 -shared -fPIC -g -I. -I./include -I$(HDF5_DIR)/include  -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
-else
-CFLAGS = -O3 -std=c++11 -static -I. -I./include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H 
-SFLAGS = -O3 -std=c++11 -shared -fPIC -g -I. -I./include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H
-endif
-LITEFLAGS = -D_NOSQLITE
 
-SOVER = 84
-RELVER = $(SOVER).0.1
+CFLAGS = -O3 -std=c++11
+SLFLAGS = -shared -fPIC -g
+INCLUDE = -I./include
+INCLUDE_EXT = -I./include/extern
+DFLAGS = -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC
+DFLAGS_EXT = -DHAVE_EXPAT_CONFIG_H
+
+# -- Need to fix HDF5
+#ifdef HDF5
+#CFLAGS = -O3 -std=c++11 -I. -I./include -I$(HDF5_DIR)/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
+#SFLAGS = -O3 -std=c++11 -shared -fPIC -g -I. -I./include -I$(HDF5_DIR)/include  -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
+#else
+#CFLAGS = -O3 -std=c++11
+#endif
+
+SOVER = 2
+RELVER = $(SOVER).0.0
 
 SRC_DIR  := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 BUILD_SRC = $(SRC_DIR)/src
+BUILD_EXT = $(SRC_DIR)/extern
 BUILD_DIR = $(SRC_DIR)/obj
 BUILD_LIC = $(SRC_DIR)/lic
 
@@ -41,10 +49,12 @@ $(BUILD_DIR)/ :
 # Rules for all packages of the MSToolkit.
 #
 
-.PHONY: all clean realclean
-all       : expat zlib mstoolkit mzparser mzimltools sqlite lib MSSingleScan
-clean     : expat-clean zlib-clean mstoolkit-clean mzparser-clean mzimltools-clean sqlite-clean lib-clean MSSingleScan-clean
-realclean : expat-realclean zlib-realclean mstoolkit-realclean mzparser-realclean mzimltools-realclean sqlite-realclean lib-realclean MSSingleScan-realclean rc
+.PHONY: all mst extern clean realclean
+all       : expat zlib mstoolkit mzparser lib libextern MSSingleScan
+mst       : mstoolkit mzparser lib MSSingleScan
+extern	  : expat zlib libextern
+clean     : expat-clean zlib-clean mstoolkit-clean mzparser-clean lib-clean libextern-clean MSSingleScan-clean
+realclean : expat-realclean zlib-realclean mstoolkit-realclean mzparser-realclean lib-realclean libextern-realclean MSSingleScan-realclean rc
 
 # -- Expat XML Parser ---------------------------------------------------------
 #
@@ -55,9 +65,9 @@ realclean : expat-realclean zlib-realclean mstoolkit-realclean mzparser-realclea
 # http://expat.sourceforge.net/
 #
 EXPAT_VER := expat-2.2.9
-EXPAT_SRC := $(BUILD_SRC)/$(EXPAT_VER)
-EXPAT_DST := include/expat_config.h $(BUILD_DIR)/libexpat.a
-EXPAT_DSO := $(BUILD_SRC)/$(EXPAT_VER)/lib/.libs/xmlparse.o $(BUILD_SRC)/$(EXPAT_VER)/lib/.libs/xmlrole.o $(BUILD_SRC)/$(EXPAT_VER)/lib/.libs/xmltok.o
+EXPAT_SRC := $(BUILD_EXT)/$(EXPAT_VER)
+EXPAT_DST := include/extern/expat_config.h $(BUILD_DIR)/libexpat.a
+EXPAT_DSO := $(BUILD_EXT)/$(EXPAT_VER)/lib/.libs/xmlparse.o $(BUILD_EXT)/$(EXPAT_VER)/lib/.libs/xmlrole.o $(BUILD_EXT)/$(EXPAT_VER)/lib/.libs/xmltok.o
 EXPAT_LIC := $(BUILD_LIC)/$(EXPAT_VER)/COPYING
 
 .PHONY : expat expat-clean expat-realclean
@@ -65,7 +75,7 @@ EXPAT_LIC := $(BUILD_LIC)/$(EXPAT_VER)/COPYING
 expat : $(EXPAT_DST) $(EXPAT_LIC)
 
 $(EXPAT_DST) : | $(BUILD_DIR)/ $(EXPAT_SRC)/
-	cd $(BUILD_SRC); tar -xzf $(EXPAT_VER).tar.gz
+	cd $(BUILD_EXT); tar -xzf $(EXPAT_VER).tar.gz
 	cd $(EXPAT_SRC); ./configure --prefix=$(BUILD_DIR) \
 	   --enable-shared=yes --enable-static=yes \
 	   --without-xmlwf --without-examples --without-tests \
@@ -96,7 +106,7 @@ expat-realclean : expat-clean
 # http://zlib.net/
 #
 ZLIB_VER := zlib-1.2.11
-ZLIB_SRC := $(BUILD_SRC)/$(ZLIB_VER)
+ZLIB_SRC := $(BUILD_EXT)/$(ZLIB_VER)
 ZLIB_SRCB := $(wildcard $(ZLIB_SRC)/*.c)
 ZLIB_DST := $(BUILD_DIR)/libz.a
 ZLIB_LIC := $(BUILD_LIC)/$(ZLIB_VER)/README
@@ -107,7 +117,7 @@ ZLIB_DSO := $(patsubst ${ZLIB_SRC}/%.c, ${ZLIB_SRC}/%.lo, $(ZLIB_SRCB))
 zlib : $(ZLIB_DST) $(ZLIB_LIC)
 
 $(ZLIB_DST) : | $(BUILD_DIR)/ $(ZLIB_SRC)/
-	cd $(BUILD_SRC); unzip -o zlib1211.zip
+	cd $(BUILD_EXT); unzip -o zlib1211.zip
 	cd $(ZLIB_SRC); ./configure --prefix=$(BUILD_DIR) --includedir $(SRC_DIR)/include --libdir $(BUILD_DIR) 
 	make -C $(ZLIB_SRC) install
 
@@ -134,33 +144,24 @@ MSTOOLKIT_DSTDIR = $(BUILD_DIR)/
 MSTOOLKIT_SRC = $(filter-out $(BUILD_SRC)/MSToolkit/RAWReader.cpp, $(wildcard $(BUILD_SRC)/MSToolkit/*.cpp))
 MSTOOLKIT_DST = $(patsubst ${MSTOOLKIT_SRCDIR}%.cpp, ${MSTOOLKIT_DSTDIR}%.o, $(MSTOOLKIT_SRC))
 MSTOOLKIT_DSO = $(patsubst ${MSTOOLKIT_SRCDIR}%.cpp, ${MSTOOLKIT_DSTDIR}%.lo, $(MSTOOLKIT_SRC))
-MSTOOLKIT_DSTLITE = $(patsubst ${MSTOOLKIT_SRCDIR}%.cpp, ${MSTOOLKIT_DSTDIR}%_lite.o, $(MSTOOLKIT_SRC))
-MSTOOLKIT_DSOLITE = $(patsubst ${MSTOOLKIT_SRCDIR}%.cpp, ${MSTOOLKIT_DSTDIR}%_lite.lo, $(MSTOOLKIT_SRC))
 
 .PHONY : mstoolkit
 
-mstoolkit : $(MSTOOLKIT_DST) $(MSTOOLKIT_DSO) $(MSTOOLKIT_DSTLITE) $(MSTOOLKIT_DSOLITE)
+mstoolkit : $(MSTOOLKIT_DST) $(MSTOOLKIT_DSO)
 	ar rcs $(BUILD_DIR)/libmst.a $(MSTOOLKIT_DST)
-	ar rcs $(BUILD_DIR)/libmstlite.a $(MSTOOLKIT_DSTLITE)
 
 $(MSTOOLKIT_DST) : | $(BUILD_DIR)/
 $(MSTOOLKIT_DST) : $(MSTOOLKIT_DSTDIR)%.o : $(MSTOOLKIT_SRCDIR)%.cpp
-	$(CC) $(CFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) -static $(INCLUDE) $(DFLAGS) $< -c -o $@
 
 $(MSTOOLKIT_DSO) : $(MSTOOLKIT_DSTDIR)%.lo : $(MSTOOLKIT_SRCDIR)%.cpp
-	$(CC) $(SFLAGS) $< -c -o $@
-	
-$(MSTOOLKIT_DSTLITE) : $(MSTOOLKIT_DSTDIR)%_lite.o : $(MSTOOLKIT_SRCDIR)%.cpp
-	$(CC) $(CFLAGS) $(LITEFLAGS) $< -c -o $@
-	
-$(MSTOOLKIT_DSOLITE) : $(MSTOOLKIT_DSTDIR)%_lite.lo : $(MSTOOLKIT_SRCDIR)%.cpp
-	$(CC) $(SFLAGS) $(LITEFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) $< -c -o $@
 	
 mstoolkit-clean :
-	rm -rf $(MSTOOLKIT_DST) $(MSTOOLKIT_DSTLITE) $(MSTOOLKIT_DSO) $(MSTOOLKIT_DSOLITE)
+	rm -rf $(MSTOOLKIT_DST) $(MSTOOLKIT_DSO)
 
 mstoolkit-realclean : mstoolkit-clean
-	rm -rf $(MSTOOLKIT_DST) $(MSTOOLKIT_DSTLITE) $(MSTOOLKIT_DSO) $(MSTOOLKIT_DSOLITE) $(BUILD_DIR)/libmst.a $(BUILD_DIR)/libmstlite.a
+	rm -rf $(MSTOOLKIT_DST) $(MSTOOLKIT_DSO) $(BUILD_DIR)/libmst.a 
 	
 
 # -- mzParser  ---------------------------------------------------------------
@@ -178,16 +179,16 @@ MZPARSER_DSO = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.lo, $(MZP
 
 mzparser : $(MZPARSER_DST) $(MZPARSER_DSO)
 	ar rcs $(BUILD_DIR)/libmzparser.a $(MZPARSER_DST)
-	$(CC) $(SFLAGS) -o $(BUILD_DIR)/libmzparser.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmzparser.so.$(SOVER) $(MZPARSER_DSO)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o $(BUILD_DIR)/libmzparser.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmzparser.so.$(SOVER) $(MZPARSER_DSO)
 	ln -sf $(BUILD_DIR)/libmzparser.so.$(RELVER) $(BUILD_DIR)/libmzparser.so.$(SOVER)
 	ln -sf $(BUILD_DIR)/libmzparser.so.$(SOVER) $(BUILD_DIR)/libmzparser.so
 	
 $(MZPARSER_DST) : | $(BUILD_DIR)/
 $(MZPARSER_DST) : $(MZPARSER_DSTDIR)%.o : $(MZPARSER_SRCDIR)%.cpp
-	$(CC) $(CFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) -static $(INCLUDE) $(DFLAGS) $< -c -o $@
 	
 $(MZPARSER_DSO) : $(MZPARSER_DSTDIR)%.lo : $(MZPARSER_SRCDIR)%.cpp
-	$(CC) $(SFLAGS) $< -c -o $@
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS)  $< -c -o $@
 	
 mzparser-clean :
 	rm -rf $(MZPARSER_DST) $(MZPARSER_DSO)
@@ -196,120 +197,62 @@ mzparser-realclean : mzparser-clean
 	rm -rf $(MZPARSER_DST) $(MZPARSER_DSO) $(BUILD_DIR)/libmzparser.a $(BUILD_DIR)/libmzparser.so*
 	
 
-# -- mzIMLTools  ---------------------------------------------------------------
-#
-# mzIdentMLTools is a c++ style interface for reading and writing mzID files
-#
-#
-MZIMLTOOLS_SRCDIR = $(BUILD_SRC)/mzIMLTools/
-MZIMLTOOLS_DSTDIR = $(BUILD_DIR)/
-MZIMLTOOLS_SRC = $(wildcard $(BUILD_SRC)/mzIMLTools/*.cpp)
-MZIMLTOOLS_DST = $(patsubst ${MZIMLTOOLS_SRCDIR}%.cpp, ${MZIMLTOOLS_DSTDIR}%.o, $(MZIMLTOOLS_SRC))
-MZIMLTOOLS_DSO = $(patsubst ${MZIMLTOOLS_SRCDIR}%.cpp, ${MZIMLTOOLS_DSTDIR}%.lo, $(MZIMLTOOLS_SRC))
-
-.PHONY : mzimltools
-
-mzimltools : $(MZIMLTOOLS_DST) $(MZIMLTOOLS_DSO)
-	ar rcs $(BUILD_DIR)/libmzimltools.a $(MZIMLTOOLS_DST)
-
-$(MZIMLTOOLS_DST) : | $(BUILD_DIR)/
-$(MZIMLTOOLS_DST) : $(MZIMLTOOLS_DSTDIR)%.o : $(MZIMLTOOLS_SRCDIR)%.cpp
-	$(CC) $(CFLAGS) $< -c -o $@
-	
-$(MZIMLTOOLS_DSO) : $(MZIMLTOOLS_DSTDIR)%.lo : $(MZIMLTOOLS_SRCDIR)%.cpp
-	$(CC) $(SFLAGS) $< -c -o $@
-	
-mzimltools-clean :
-	rm -rf $(MZIMLTOOLS_DST) $(MZIMLTOOLS_DSO) 
-
-mzimltools-realclean : mzimltools-clean
-	rm -rf $(MZIMLTOOLS_DST) $(MZIMLTOOLS_DSO) $(BUILD_DIR)/libmzimltools.a
-	
-
-# -- SQLite  ---------------------------------------------------------------
-#
-# SQLite is a C-language library that implements a small, fast, 
-# self-contained, high-reliability, full-featured, SQL database engine.
-# It is public domain (no license), and I don't know if its features are
-# still needed by the folks who asked for it in the MSToolkit.
-#
-# https://www.sqlite.org/
-#
-SQLITE_VER := sqlite-3.32.1
-SQLITE_SRCDIR = $(BUILD_SRC)/$(SQLITE_VER)/
-SQLITE_DSTDIR = $(BUILD_DIR)/
-SQLITE_SRC = $(filter-out $(SQLITE_SRCDIR)shell.c, $(wildcard $(SQLITE_SRCDIR)*.c))
-SQLITE_DST = $(patsubst $(SQLITE_SRCDIR)%.c, ${SQLITE_DSTDIR}%.o, $(SQLITE_SRC))
-SQLITE_DSO = $(patsubst ${SQLITE_SRCDIR}%.c, ${SQLITE_DSTDIR}%.lo, $(SQLITE_SRC))
-
-.PHONY : sqlite
-
-sqlite : $(SQLITE_DST) $(SQLITE_DSO)
-	ar rcs $(BUILD_DIR)/libsqlite.a $(SQLITE_DST)
-	
-$(SQLITE_DST) : | $(BUILD_DIR)/
-$(SQLITE_DST) : $(SQLITE_DSTDIR)%.o : $(SQLITE_SRCDIR)%.c
-	$(C) $(CFLAGS) $< -c -o $@
-	
-$(SQLITE_DSO) : $(SQLITE_DSTDIR)%.lo : $(SQLITE_SRCDIR)%.c
-	$(C) $(SFLAGS) $< -c -o $@
-	
-sqlite-clean :
-	rm -rf $(SQLITE_DST) $(SQLITE_DSO)
-
-sqlite-realclean : sqlite-clean
-	rm -rf $(SQLITE_DST) $(SQLITE_DSO) $(BUILD_DIR)/libsqlite.a
-	
-
 # -- Libraries  ----------------------------------------------------------
 #
-# The static libmstoolkit.a and shared libmstoolkit.so (I think)
-# not sure how to link expat into the shared library.
+# The static libmstoolkit.a and shared libmstoolkit.so 
 #
 #
 .PHONY : lib
 
-lib : expat zlib mstoolkit mzparser mzimltools sqlite
+lib : mstoolkit mzparser
 	$(file >mstoolkit.mri,create libmstoolkit.a)
-	$(file >>mstoolkit.mri,addlib obj/libexpat.a)
-	$(file >>mstoolkit.mri,addlib obj/libz.a)
 	$(file >>mstoolkit.mri,addlib obj/libmst.a)
 	$(file >>mstoolkit.mri,addlib obj/libmzparser.a)
-	$(file >>mstoolkit.mri,addlib obj/libmzimltools.a)
-	$(file >>mstoolkit.mri,addlib obj/libsqlite.a)
 ifdef HDF5
 	$(file >>mstoolkit.mri,addlib $(HDF5_DIR)/lib/libhdf5.a)
 	$(file >>mstoolkit.mri,addlib $(HDF5_DIR)/lib/libhdf5_cpp.a)
 endif
 	$(file >>mstoolkit.mri,save)
 	$(file >>mstoolkit.mri,end)
-	$(file >mstoolkitlite.mri,create libmstoolkitlite.a)
-	$(file >>mstoolkitlite.mri,addlib obj/libexpat.a)
-	$(file >>mstoolkitlite.mri,addlib obj/libz.a)
-	$(file >>mstoolkitlite.mri,addlib obj/libmstlite.a)
-	$(file >>mstoolkitlite.mri,addlib obj/libmzparser.a)
-	$(file >>mstoolkitlite.mri,addlib obj/libmzimltools.a)
-ifdef HDF5
-	$(file >>mstoolkitlite.mri,addlib $(HDF5_DIR)/lib/libhdf5.a)
-	$(file >>mstoolkitlite.mri,addlib $(HDF5_DIR)/lib/libhdf5_cpp.a)
-endif
-	$(file >>mstoolkitlite.mri,save)
-	$(file >>mstoolkitlite.mri,end)
 	ar -M <mstoolkit.mri
-	ar -M <mstoolkitlite.mri
-	$(CC) $(SFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO) $(MZIMLTOOLS_DSO) $(EXPAT_DSO) $(ZLIB_DSO) $(SQLITE_DSO) 
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO)
 	ln -sf libmstoolkit.so.$(RELVER) libmstoolkit.so.$(SOVER)
 	ln -sf libmstoolkit.so.$(SOVER) libmstoolkit.so
-	$(CC) $(SFLAGS) -o libmstoolkitlite.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkitlite.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO) $(MZIMLTOOLS_DSO) $(EXPAT_DSO) $(ZLIB_DSO)
-	ln -sf libmstoolkitlite.so.$(RELVER) libmstoolkitlite.so.$(SOVER)
-	ln -sf libmstoolkitlite.so.$(SOVER) libmstoolkitlite.so
 
 lib-clean :
-	rm -rf libmstoolkit.a libmstoolkitlite.a libmstoolkit.so* libmstoolkitlite.so*
+	rm -rf libmstoolkit.a libmstoolkit.so*
 
 lib-realclean : lib-clean
-	rm -rf libmstoolkit.a libmstoolkitlite.a libmstoolkit.so* libmstoolkitlite.so*
-	
+	rm -rf libmstoolkit.a libmstoolkit.so*
+
+
+# -- External Libraries  ----------------------------------------------------------
+#
+# The static libmstoolkitextern.a and shared libmstoolkitextern.so (I think)
+#
+#
+.PHONY : libextern
+
+libextern : expat zlib
+	$(file >mstoolkitextern.mri,create libmstoolkitextern.a)
+	$(file >>mstoolkitextern.mri,addlib obj/libexpat.a)
+	$(file >>mstoolkitextern.mri,addlib obj/libz.a)
+ifdef HDF5
+	$(file >>mstoolkitextern.mri,addlib $(HDF5_DIR)/lib/libhdf5.a)
+	$(file >>mstoolkitextern.mri,addlib $(HDF5_DIR)/lib/libhdf5_cpp.a)
+endif
+	$(file >>mstoolkitextern.mri,save)
+	$(file >>mstoolkitextern.mri,end)
+	ar -M <mstoolkitextern.mri
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkitextern.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkitextern.so.$(SOVER) $(ZLIB_DSO) $(EXPAT_DSO) 
+	ln -sf libmstoolkitextern.so.$(RELVER) libmstoolkitextern.so.$(SOVER)
+	ln -sf libmstoolkitextern.so.$(SOVER) libmstoolkitextern.so
+
+libextern-clean :
+	rm -rf libmstoolkitextern.a libmstoolkitextern.so*
+
+libextern-realclean : libextern-clean
+	rm -rf libmstoolkitextern.a libmstoolkitextern.so*
 	
 # -- MSSingleScan  ----------------------------------------------------------
 #
@@ -320,16 +263,17 @@ lib-realclean : lib-clean
 
 MSSingleScan : lib
 ifdef HDF5
-	$(CC) $(CFLAGS) $(LITEFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -l:libmstoolkitlite.a -ldl -o MSSingleScan
+	$(CC) $(CFLAGS) -static $(INCLUDE) $(DFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -l:libmstoolkit.a -l:libmstoolkitextern.a -ldl -o MSSingleScan
 else
-	$(CC) $(CFLAGS) $(LITEFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkitlite -o MSSingleScan
+	$(CC) $(CFLAGS) -static $(INCLUDE) $(INCLUDE_EXT) $(DFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkit -lmstoolkitextern -o MSSingleScan
+	$(CC) $(CFLAGS) $(INCLUDE) $(INCLUDE_EXT) $(DFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkit -lmstoolkitextern -o MSSingleScanSL
 endif
 
 MSSingleScan-clean :
-	rm -rf MSSingleScan
+	rm -rf MSSingleScan MSSingleScanSL
 
-MSSingleScan-realclean : lib-clean
-	rm -rf MSSingleScan
+MSSingleScan-realclean : MSSingleScan-clean
+	rm -rf MSSingleScan MSSingleScanSL
 
 	
 # -- cleanup  ----------------------------------------------------------

@@ -1,0 +1,46 @@
+﻿  Microsoft (R) Macro Assembler (x64) Version 14.29.30153.0
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+   Assembling: inffasx64.asm
+  Microsoft (R) Macro Assembler (x64) Version 14.29.30153.0
+  Copyright (C) Microsoft Corporation.  All rights reserved.
+  
+   Assembling: gvmat64.asm
+  adler32.c
+  compress.c
+  crc32.c
+  deflate.c
+  Assembler code may have bugs -- use at your own risk
+  gzclose.c
+  gzlib.c
+  gzread.c
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\gzread.c(319,20): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\gzread.c(400,35): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\gzread.c(472,33): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  gzwrite.c
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\gzwrite.c(212,27): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\gzwrite.c(232,24): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\gzwrite.c(371,36): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  infback.c
+  inffas8664.c
+  inffast.c
+  Assembler code may have bugs -- use at your own risk
+  inflate.c
+  inftrees.c
+  ioapi.c
+  iowin32.c
+D:\mhoopman\Software Development\2019\mstoolkit-restructure\extern\zlib-1.2.11\contrib\minizip\iowin32.c(31,32): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+  trees.c
+  uncompr.c
+  zutil.c
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(1363,5): warning MSB8012: TargetPath(D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\zlibmst.dll) does not match the Linker's OutputFile property value (D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\zlibwapi.dll). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(1365,5): warning MSB8012: TargetName(zlibmst) does not match the Linker's OutputFile property value (zlibwapi). This may cause your project to build incorrectly. To correct this, please make sure that $(OutDir), $(TargetName) and $(TargetExt) property values match the value specified in %(Link.OutputFile).
+     Creating library D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\zlibmst.lib and object D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\zlibmst.exp
+  Generating code
+  0 of 265 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+unzip.obj : warning LNK4204: 'D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+zip.obj : warning LNK4204: 'D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\vc142.pdb' is missing debugging information for referencing module; linking object as if no debug info
+  zlibvc.vcxproj -> D:\mhoopman\Software Development\2019\mstoolkit-restructure\VisualStudio\x64\Release\DLL\zlibmst.dll

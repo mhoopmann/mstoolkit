@@ -7,17 +7,30 @@ on:
 
 jobs:
   build:
-    runs-on: window-2019
+    runs-on: windows-2019
     steps:
     - uses: actions/checkout@v4
+    
+    - name: unzip Thermo MSFileReader
+      shell: bash
+      run: unzip -P iacceptthelicense extern/msfreader.zip -d dlls
+
+    - name: register Thermo MSFileReader
+      shell: cmd
+      run: FOR %%G IN (dlls\*.dll) DO regsvr32 /S %%G
 
     - name: msbuild
       uses: microsoft/setup-msbuild@v2
 
     - name: build mstoolkit
-      run: |
-        msbuild VisualStudio/MSToolkit.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v142 -tv:Current
+      # use -p:PreDef=/D_NO_THERMORAW to build MSToolkit without Thermo raw support windows 
+      run: msbuild VisualStudio/MSToolkit.sln -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v142 -tv:Current
 
     - name: test
       shell: cmd
-      run: D:\a\MSToolkit\VisualStudio\x64\Release\MSSingleScan.exe
+      run: D:\a\mstoolkit\mstoolkit\VisualStudio\x64\Release\MSSingleScan.exe
+
+    - name: test DLL
+      shell: cmd
+      run: D:\a\mstoolkit\mstoolkit\VisualStudio\x64\Release\DLL\MSSingleScan.exe
+
