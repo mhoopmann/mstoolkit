@@ -17,7 +17,7 @@ ENDIF()
 
 IF (UNIX)
   # for linux
-  add_definitions(-DGCC -DXML_DEV_URANDOM -D_FILE_OFFSET_BITS=64 -D_NO_THERMORAW -D_NOSQLITE)
+  add_definitions(-DGCC -DXML_DEV_URANDOM -D_FILE_OFFSET_BITS=64 -D_NO_THERMORAW -D_NOSQLITE -fPIC)
 ENDIF()
 
 # Include directories
@@ -25,26 +25,20 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 
 # Source directories
 set(MSTOOLKIT_SRC_DIR ${PROJECT_SOURCE_DIR}/src/MSToolkit)
-set(EXPAT_SRC_DIR ${PROJECT_SOURCE_DIR}/src/expat-2.2.9/lib)
 set(MZID_SRC_DIR ${PROJECT_SOURCE_DIR}/src/mzIMLTools)
 set(MZP_SRC_DIR ${PROJECT_SOURCE_DIR}/src/mzParser)
-set(ZLIB_SRC_DIR ${PROJECT_SOURCE_DIR}/src/zlib-1.2.11)
 
 # Library output directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
 # Add library targets
 file(GLOB MSTOOLKIT_SOURCES "${MSTOOLKIT_SRC_DIR}/*.cpp")
-add_library(mstoolkit STATIC ${MSTOOLKIT_SOURCES})
-file(GLOB EXPAT_SOURCES "${EXPAT_SRC_DIR}/*.c")
-add_library(expat STATIC ${EXPAT_SOURCES})
+add_library(mstoolkit SHARED ${MSTOOLKIT_SOURCES})
 file(GLOB MZID_SOURCES "${MZID_SRC_DIR}/*.cpp")
 add_library(mzid STATIC ${MZID_SOURCES})
 file(GLOB MZP_SOURCES "${MZP_SRC_DIR}/*.cpp")
-add_library(mzparser STATIC ${MZP_SOURCES})
-file(GLOB ZLIB_SOURCES "${ZLIB_SRC_DIR}/*.c")
-add_library(zlib STATIC ${ZLIB_SOURCES})
+add_library(mzparser SHARED ${MZP_SOURCES})
 
 # Link libraries
 target_link_libraries(mzparser expat)
-target_link_libraries(mstoolkit expat mzid mzparser zlib)
+target_link_libraries(mstoolkit expat mzid mzparser z)
