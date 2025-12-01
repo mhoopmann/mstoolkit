@@ -238,6 +238,7 @@ void mzpSAXMzmlHandler::startElement(const XML_Char *el, const XML_Char **attr){
     }
     m_peaksCount = atoi(getAttrValue("defaultArrayLength", attr));
     spec->setPeaksCount(m_peaksCount);
+    vdIM.clear(); //Added by Rick
 
   } else if (isElement("spectrumList",el)) {
     m_bInSpectrumList=true;
