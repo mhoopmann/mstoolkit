@@ -105,7 +105,7 @@ expat-realclean : expat-clean
 #
 # http://zlib.net/
 #
-ZLIB_VER := zlib-1.2.11
+ZLIB_VER := zlib-1.3.1
 ZLIB_SRC := $(BUILD_EXT)/$(ZLIB_VER)
 ZLIB_SRCB := $(wildcard $(ZLIB_SRC)/*.c)
 ZLIB_DST := $(BUILD_DIR)/libz.a

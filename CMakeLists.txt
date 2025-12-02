@@ -28,7 +28,7 @@ set(MSTOOLKIT_SRC_DIR ${PROJECT_SOURCE_DIR}/src/MSToolkit)
 set(EXPAT_SRC_DIR ${PROJECT_SOURCE_DIR}/src/expat-2.2.9/lib)
 set(MZID_SRC_DIR ${PROJECT_SOURCE_DIR}/src/mzIMLTools)
 set(MZP_SRC_DIR ${PROJECT_SOURCE_DIR}/src/mzParser)
-set(ZLIB_SRC_DIR ${PROJECT_SOURCE_DIR}/src/zlib-1.2.11)
+set(ZLIB_SRC_DIR ${PROJECT_SOURCE_DIR}/src/zlib-1.3.1)
 
 # Library output directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
