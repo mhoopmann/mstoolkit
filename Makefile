@@ -12,7 +12,7 @@
 C = gcc
 CC = g++
 
-CFLAGS = -O3 -std=c++11
+CFLAGS = -O3 -std=c++14
 SLFLAGS = -shared -fPIC -g
 INCLUDE = -I./include
 INCLUDE_EXT = -I./include/extern
