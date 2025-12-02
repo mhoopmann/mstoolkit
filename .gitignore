@@ -3,3 +3,6 @@ build/
 .vs/
 lib/
 *.json
+.DS_Store
+CMakeCache.txt
+CMakeFiles/
