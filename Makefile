@@ -19,6 +19,22 @@ INCLUDE_EXT = -I./include/extern
 DFLAGS = -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC
 DFLAGS_EXT = -DHAVE_EXPAT_CONFIG_H
 
+
+# -- Libraries  ----------------------------------------------------------
+#
+# Linux and MacOS compatibility
+#
+#
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    RELRO = -Wl,-z,relro
+endif
+
+ifeq ($(UNAME_S),Darwin)
+    RELRO =
+endif
+
+
 # -- Need to fix HDF5
 #ifdef HDF5
 #CFLAGS = -O3 -std=c++11 -I. -I./include -I$(HDF5_DIR)/include -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC -DHAVE_EXPAT_CONFIG_H $(HDF5)
@@ -179,7 +195,7 @@ MZPARSER_DSO = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.lo, $(MZP
 
 mzparser : $(MZPARSER_DST) $(MZPARSER_DSO)
 	ar rcs $(BUILD_DIR)/libmzparser.a $(MZPARSER_DST)
-	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o $(BUILD_DIR)/libmzparser.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmzparser.so.$(SOVER) $(MZPARSER_DSO)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o $(BUILD_DIR)/libmzparser.so.$(RELVER) $(RELRO) -Wl,-soname,libmzparser.so.$(SOVER) $(MZPARSER_DSO)
 	ln -sf $(BUILD_DIR)/libmzparser.so.$(RELVER) $(BUILD_DIR)/libmzparser.so.$(SOVER)
 	ln -sf $(BUILD_DIR)/libmzparser.so.$(SOVER) $(BUILD_DIR)/libmzparser.so
 	
@@ -215,7 +231,7 @@ endif
 	$(file >>mstoolkit.mri,save)
 	$(file >>mstoolkit.mri,end)
 	ar -M <mstoolkit.mri
-	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkit.so.$(RELVER) $(RELRO) -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO)
 	ln -sf libmstoolkit.so.$(RELVER) libmstoolkit.so.$(SOVER)
 	ln -sf libmstoolkit.so.$(SOVER) libmstoolkit.so
 
@@ -244,7 +260,7 @@ endif
 	$(file >>mstoolkitextern.mri,save)
 	$(file >>mstoolkitextern.mri,end)
 	ar -M <mstoolkitextern.mri
-	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkitextern.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkitextern.so.$(SOVER) $(ZLIB_DSO) $(EXPAT_DSO) 
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkitextern.so.$(RELVER) $(RELRO) -Wl,-soname,libmstoolkitextern.so.$(SOVER) $(ZLIB_DSO) $(EXPAT_DSO) 
 	ln -sf libmstoolkitextern.so.$(RELVER) libmstoolkitextern.so.$(SOVER)
 	ln -sf libmstoolkitextern.so.$(SOVER) libmstoolkitextern.so
 
