@@ -2,7 +2,10 @@ name: windows-2019 build
 
 on:
   push:
-    branches: [ Restructuring ]
+    branches: [ master, Restructuring ]
+  pull_request:
+  release:
+    types: [ created ]
   workflow_dispatch:
 
 jobs:

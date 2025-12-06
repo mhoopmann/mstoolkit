@@ -12,12 +12,28 @@
 C = gcc
 CC = g++
 
-CFLAGS = -O3 -std=c++11
+CFLAGS = -O3 -std=c++14
 SLFLAGS = -shared -fPIC -g
 INCLUDE = -I./include
 INCLUDE_EXT = -I./include/extern
 DFLAGS = -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64 -DGCC
 DFLAGS_EXT = -DHAVE_EXPAT_CONFIG_H
+
+
+# -- Libraries  ----------------------------------------------------------
+#
+# Linux and MacOS compatibility
+#
+#
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Linux)
+    RELRO = -Wl,-z,relro
+endif
+
+ifeq ($(UNAME_S),Darwin)
+    RELRO =
+endif
+
 
 # -- Need to fix HDF5
 #ifdef HDF5
@@ -105,7 +121,7 @@ expat-realclean : expat-clean
 #
 # http://zlib.net/
 #
-ZLIB_VER := zlib-1.2.11
+ZLIB_VER := zlib-1.3.1
 ZLIB_SRC := $(BUILD_EXT)/$(ZLIB_VER)
 ZLIB_SRCB := $(wildcard $(ZLIB_SRC)/*.c)
 ZLIB_DST := $(BUILD_DIR)/libz.a
@@ -117,7 +133,7 @@ ZLIB_DSO := $(patsubst ${ZLIB_SRC}/%.c, ${ZLIB_SRC}/%.lo, $(ZLIB_SRCB))
 zlib : $(ZLIB_DST) $(ZLIB_LIC)
 
 $(ZLIB_DST) : | $(BUILD_DIR)/ $(ZLIB_SRC)/
-	cd $(BUILD_EXT); unzip -o zlib1211.zip
+	cd $(BUILD_EXT); unzip -o zlib131.zip
 	cd $(ZLIB_SRC); ./configure --prefix=$(BUILD_DIR) --includedir $(SRC_DIR)/include --libdir $(BUILD_DIR) 
 	make -C $(ZLIB_SRC) install
 
@@ -152,7 +168,11 @@ mstoolkit : $(MSTOOLKIT_DST) $(MSTOOLKIT_DSO)
 
 $(MSTOOLKIT_DST) : | $(BUILD_DIR)/
 $(MSTOOLKIT_DST) : $(MSTOOLKIT_DSTDIR)%.o : $(MSTOOLKIT_SRCDIR)%.cpp
+ifeq ($(UNAME_S),Darwin)
+	$(CC) $(CFLAGS) $(INCLUDE) $(DFLAGS) $< -c -o $@
+else
 	$(CC) $(CFLAGS) -static $(INCLUDE) $(DFLAGS) $< -c -o $@
+endif
 
 $(MSTOOLKIT_DSO) : $(MSTOOLKIT_DSTDIR)%.lo : $(MSTOOLKIT_SRCDIR)%.cpp
 	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) $< -c -o $@
@@ -179,10 +199,15 @@ MZPARSER_DSO = $(patsubst ${MZPARSER_SRCDIR}%.cpp, ${MZPARSER_DSTDIR}%.lo, $(MZP
 
 mzparser : $(MZPARSER_DST) $(MZPARSER_DSO)
 	ar rcs $(BUILD_DIR)/libmzparser.a $(MZPARSER_DST)
-	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o $(BUILD_DIR)/libmzparser.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmzparser.so.$(SOVER) $(MZPARSER_DSO)
+ifeq ($(UNAME_S),Linux)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o $(BUILD_DIR)/libmzparser.so.$(RELVER) $(RELRO) -Wl,-soname,libmzparser.so.$(SOVER) $(MZPARSER_DSO)
 	ln -sf $(BUILD_DIR)/libmzparser.so.$(RELVER) $(BUILD_DIR)/libmzparser.so.$(SOVER)
 	ln -sf $(BUILD_DIR)/libmzparser.so.$(SOVER) $(BUILD_DIR)/libmzparser.so
-	
+endif
+ifeq ($(UNAME_S),Darwin)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o $(BUILD_DIR)/libmzparser.dylib $(RELRO) -Wl,-install_name,libmzparser.dylib $(MZPARSER_DSO) -lz -lexpat -Lextern/zlib-1.3.1 -Lextern/expat-2.2.9
+endif
+
 $(MZPARSER_DST) : | $(BUILD_DIR)/
 $(MZPARSER_DST) : $(MZPARSER_DSTDIR)%.o : $(MZPARSER_SRCDIR)%.cpp
 	$(CC) $(CFLAGS) -static $(INCLUDE) $(DFLAGS) $< -c -o $@
@@ -214,10 +239,15 @@ ifdef HDF5
 endif
 	$(file >>mstoolkit.mri,save)
 	$(file >>mstoolkit.mri,end)
+ifeq ($(UNAME_S),Linux)
 	ar -M <mstoolkit.mri
-	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkit.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkit.so.$(RELVER) $(RELRO) -Wl,-soname,libmstoolkit.so.$(SOVER) $(MSTOOLKIT_DSO) $(MZPARSER_DSO)
 	ln -sf libmstoolkit.so.$(RELVER) libmstoolkit.so.$(SOVER)
 	ln -sf libmstoolkit.so.$(SOVER) libmstoolkit.so
+endif
+ifeq ($(UNAME_S),Darwin)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkit.dylib $(RELRO) -Wl,-install_name,libmstoolkit.dylib $(MSTOOLKIT_DSO) $(MZPARSER_DSO) -lz -lexpat -Lextern/zlib-1.3.1 -Lextern/expat-2.2.9
+endif
 
 lib-clean :
 	rm -rf libmstoolkit.a libmstoolkit.so*
@@ -243,10 +273,15 @@ ifdef HDF5
 endif
 	$(file >>mstoolkitextern.mri,save)
 	$(file >>mstoolkitextern.mri,end)
+ifeq ($(UNAME_S),Linux)
 	ar -M <mstoolkitextern.mri
-	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkitextern.so.$(RELVER) -Wl,-z,relro -Wl,-soname,libmstoolkitextern.so.$(SOVER) $(ZLIB_DSO) $(EXPAT_DSO) 
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkitextern.so.$(RELVER) $(RELRO) -Wl,-soname,libmstoolkitextern.so.$(SOVER) $(ZLIB_DSO) $(EXPAT_DSO) 
 	ln -sf libmstoolkitextern.so.$(RELVER) libmstoolkitextern.so.$(SOVER)
 	ln -sf libmstoolkitextern.so.$(SOVER) libmstoolkitextern.so
+endif
+ifeq ($(UNAME_S),Darwin)
+	$(CC) $(CFLAGS) $(SLFLAGS) $(INCLUDE) $(DFLAGS) -o libmstoolkitextern.dylib $(RELRO) -Wl,-install_name,libmstoolkitextern.dylib $(ZLIB_DSO) $(EXPAT_DSO) 
+endif
 
 libextern-clean :
 	rm -rf libmstoolkitextern.a libmstoolkitextern.so*
@@ -265,8 +300,12 @@ MSSingleScan : lib
 ifdef HDF5
 	$(CC) $(CFLAGS) -static $(INCLUDE) $(DFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -l:libmstoolkit.a -l:libmstoolkitextern.a -ldl -o MSSingleScan
 else
+ifeq ($(UNAME_S),Linux)
 	$(CC) $(CFLAGS) -static $(INCLUDE) $(INCLUDE_EXT) $(DFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkit -lmstoolkitextern -o MSSingleScan
+endif
+ifeq ($(UNAME_S),Darwin)
 	$(CC) $(CFLAGS) $(INCLUDE) $(INCLUDE_EXT) $(DFLAGS) $(SRC_DIR)/MSSingleScanSrc/MSSingleScan.cpp -L. -lmstoolkit -lmstoolkitextern -o MSSingleScanSL
+endif
 endif
 
 MSSingleScan-clean :
