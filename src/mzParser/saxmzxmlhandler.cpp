@@ -19,6 +19,7 @@
  *******************************************************/
 
 #include "mzParser.h"
+#include <stdexcept>
 
 using namespace std;
 using namespace mzParser;
@@ -100,8 +101,7 @@ void mzpSAXMzxmlHandler::startElement(const XML_Char *el, const XML_Char **attr)
     if(!strcmp("zlib",&s[0])) m_bCompressedData=true;
     else if(!strcmp("none",&s[0])) m_bCompressedData=false;
     else if(s.length()>0) {
-      cout << "Halting! Unknown compression type: " <<  &s[0] << endl;
-      exit(-5);
+      throw std::runtime_error(std::string("Halting! Unknown compression type: ") + s);
     }
     s=getAttrValue("compressedLen", attr);
     if(s.length()>0) m_compressLen = (uLong)atoi(&s[0]);
@@ -473,9 +473,7 @@ void mzpSAXMzxmlHandler::decode32(){
     // an additional check of the data file integrity can be performed
     int length = b64_decode_mio( (char*) pDecoded , (char*) pData, stringSize );
     if(length != size) {
-      cout << " decoded size " << length << " and required size " << (unsigned long)size << " dont match:\n";
-      cout << " Cause: possible corrupted file.\n";
-      exit(EXIT_FAILURE);
+      throw std::runtime_error(std::string("Decoded size ") + std::to_string(length) + " and required size " + std::to_string((unsigned long)size) + " don't match: possible corrupted file.");
     }
   }
 
@@ -518,9 +516,7 @@ void mzpSAXMzxmlHandler::decode64(){
     // an additional check of the data file integrity can be performed
     int length = b64_decode_mio( (char*) pDecoded , (char*) pData, stringSize );
     if(length != size) {
-      cout << " decoded size " << length << " and required size " << (unsigned long)size << " dont match:\n";
-      cout << " Cause: possible corrupted file.\n";
-      exit(EXIT_FAILURE);
+      throw std::runtime_error(std::string("Decoded size ") + std::to_string(length) + " and required size " + std::to_string((unsigned long)size) + " don't match: possible corrupted file.");
     }
   }
 
@@ -655,8 +651,7 @@ bool mzpSAXMzxmlHandler::generateIndexOffset() {
     char *pStr;
 
     if (f==NULL){
-      cout << "Error cannot open file " << m_strFileName[0] << endl;
-      exit(EXIT_FAILURE);
+      throw std::runtime_error(std::string("Error cannot open file ") + m_strFileName);
     }
 
     bool bReadingFirstSpectrum = true;

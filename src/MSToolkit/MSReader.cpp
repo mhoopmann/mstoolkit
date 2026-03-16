@@ -15,6 +15,7 @@ limitations under the License.
 */
 #include "MSReader.h"
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 using namespace MSToolkit;
 
@@ -457,9 +458,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
   //Sanity check that we are at next spectrum
   if(strstr(strMGF,"BEGIN IONS")==NULL) {
-    cout << "Malformed MGF spectrum entry. Exiting." << endl;
-    cout << "line: " << strMGF << endl;
-    exit(-10);
+    throw std::runtime_error(std::string("Malformed MGF spectrum entry. Line: ") + std::string(strMGF));
   }
 
   //Read [next] spectrum header, modernization from JKE across entire while block
@@ -498,8 +497,7 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
   //Process header information
   if(s.getMZ()==0) {
-    cout << "Error in MGF file: no PEPMASS found." << endl;
-    exit(-12);
+    throw std::runtime_error("Error in MGF file: no PEPMASS found.");
   }
   if(ch!=0){
     s.addZState(ch,s.getMZ()*ch-1.007276466*(ch-1));
@@ -530,14 +528,12 @@ bool MSReader::readMGFFile(const char* c, Spectrum& s){
 
     tok=strtok_r(strMGF," \t\n\r", &nextTok);
     if(tok==NULL){
-      cout << "Error in MGF file: bad m/z or intensity value." << endl;
-      exit(-13);
+      throw std::runtime_error("Error in MGF file: bad m/z or intensity value.");
     }
     mz=atof(tok);
     tok=strtok_r(NULL," \t\n\r", &nextTok);
     if(tok==NULL){
-      cout << "Error in MGF file: bad m/z or intensity value." << endl;
-      exit(-13);
+      throw std::runtime_error("Error in MGF file: bad m/z or intensity value.");
     }
     intensity=(float)atof(tok);
     if(!mgfOnePlus){
@@ -660,8 +656,7 @@ bool MSReader::readMGFFile2(const char* c, Spectrum& s){
     if (tokens[0].find("END IONS") != string::npos) {
       //convert any header information to MST spectrum information
       if (s.getMZ() == 0) {
-        cout << "Error in MGF file: no PEPMASS found." << endl;
-        exit(-12);
+        throw std::runtime_error("Error in MGF file: no PEPMASS found.");
       }
       if (ch != 0){
         s.addZState(ch, s.getMZ()*ch - 1.007276466*(ch - 1));
@@ -793,8 +788,7 @@ bool MSReader::readMSTFile(const char *c, bool text, Spectrum& s, int scNum){
     readSpecHeader(fileIn,ms);
 
     if(scNum<0) {
-      cerr << "ERROR: readMSTFile(): Cannot request previous scan. Function not supported. " << flush;
-      exit(1);
+      throw std::runtime_error("ERROR: readMSTFile(): Cannot request previous scan. Function not supported.");
     }
     if(scNum!=0){
 

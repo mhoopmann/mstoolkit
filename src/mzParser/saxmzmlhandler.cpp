@@ -34,6 +34,7 @@
  *******************************************************/
 
 #include "mzParser.h"
+#include <stdexcept>
 using namespace std;
 using namespace mzParser;
 
@@ -893,8 +894,7 @@ void mzpSAXMzmlHandler::decode(vector<double>& d){
       unzippedLen = m_peaksCount*sizeof(uint64_t);
     } else {
       if(!m_bNumpressLinear && !m_bNumpressSlof && !m_bNumpressPic){
-        cout << "Unknown data format to unzip. Stopping file read." << endl;
-        exit(EXIT_FAILURE);
+        throw std::runtime_error("Unknown data format to unzip. Stopping file read.");
       }
     //don't know the unzipped size of numpressed data, so assume it to be no larger than unpressed 64-bit data
     unzippedLen = m_peaksCount*sizeof(uint64_t);
@@ -922,8 +922,7 @@ void mzpSAXMzmlHandler::decode(vector<double>& d){
           else ms::numpress::MSNumpress::decodePic((unsigned char*)decoded,decodeLen,unpressed);
         }
     } catch (const char* ch){
-      cout << "Exception: " << ch << endl;
-      exit(EXIT_FAILURE);
+      throw std::runtime_error(std::string("Exception: ") + ch);
     }
 
     if(m_bZlib) delete [] unzipped;
@@ -1233,8 +1232,7 @@ bool mzpSAXMzmlHandler::generateIndexOffset() {
     char *pStr;
 
     if (f==NULL){
-      cout << "Error cannot open file " << m_strFileName[0] << endl;
-      exit(EXIT_FAILURE);
+      throw std::runtime_error(std::string("Error cannot open file ") + m_strFileName);
     }
 
     bool bReadingFirstSpectrum = true;
