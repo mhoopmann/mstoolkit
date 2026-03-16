@@ -129,6 +129,8 @@ The End
 */
 
 #include "mzParser.h"
+#include <stdexcept>
+#include <string>
 using namespace std;
 using namespace mzParser;
 
@@ -305,33 +307,29 @@ bool mzpSAXHandler::parseOffset(f_off offset){
 			if(m_bStopParse) break;
 		}
 	}
+    if (!success && !m_bStopParse)
+    {
+        XML_Error error = XML_GetErrorCode(m_parser);
 
-	if (!success && !m_bStopParse)
-	{
-		XML_Error error = XML_GetErrorCode(m_parser);
+        std::string msg = std::string(m_strFileName) + "(" + std::to_string(XML_GetCurrentLineNumber(m_parser)) + ") : parseOffset() " + std::to_string((int)error) + ": ";
 
-		cerr << m_strFileName
-			<< "(" << XML_GetCurrentLineNumber(m_parser) << ")"
-			<< " : parseOffset() " << (int) error << ": ";
+        switch (error)
+        {
+            case XML_ERROR_SYNTAX:
+            case XML_ERROR_INVALID_TOKEN:
+            case XML_ERROR_UNCLOSED_TOKEN:
+                msg += "Syntax error parsing XML.";
+                break;
 
-		switch (error)
-		{
-			case XML_ERROR_SYNTAX:
-			case XML_ERROR_INVALID_TOKEN:
-			case XML_ERROR_UNCLOSED_TOKEN:
-				cerr << "Syntax error parsing XML." << endl;
-				break;
+            // TODO: Add more descriptive text for interesting errors.
 
-			// TODO: Add more descriptive text for interesting errors.
+            default:
+                msg += std::string("Spectrum XML Parsing error: ") + XML_ErrorString(error);
+                break;
+        }
 
-			default:
-				cerr << "Spectrum XML Parsing error:\n";
-				cerr << XML_ErrorString(error) << endl;
-				break;
-		} 
-		exit(-7);
-		return false;
-	}
+        throw std::runtime_error(msg);
+    }
 	return true;
 }
 
